@@ -1,0 +1,125 @@
+<!doctype html>
+<html>
+
+<head>
+<meta charset="utf-8">
+<title>{{.Lable}}</title>
+</head>
+<body>
+    
+
+
+<div class="header">
+    <h1>Таблица ТМЦ</h1>
+    <p >
+        {{.User}}  <a href="/works/prof"> профиль </a> 
+    </p>
+</div>
+
+<iframe name="o" float="left" width="100%" height="350" scrolling="auto" frameborder="0" src="/works/komm/"  id="o">Sorry, your browser doesn't support iframes.</iframe>
+
+
+
+</strong></p>
+<div class="scroll-table">
+    <table>
+        <thead>
+        <tr>
+            <th><strong>Наименование D-Link</strong></th>
+            <th><strong>Наименование T-Kom</strong></th>
+            <th><strong>SN</strong></th>
+            <th><strong>Состояние</strong></th>
+            <th><strong>Дата</strong></th>
+            <th><strong>MAC</strong></th>
+            <th><strong>Перейти</strong></th>
+        </tr>
+    </thead>
+    </table>
+    <div class="scroll-table-body">
+        <table>
+            <tbody>
+            {{range .Tab}}
+            <tr>
+                <td onclick="document.o.location= '/works/komm/{{.Sn}}'" >{{.DName}}</td>
+                <td onclick="document.o.location= '/works/komm/{{.Sn}}'" >{{.TName}}</td>
+                <td onclick="document.o.location= '/works/komm/{{.Sn}}'" >{{.Sn}}</td>
+                <td onclick="document.o.location= '/works/komm/{{.Sn}}'" >{{.Mac}}</td>
+                <td onclick="document.o.location= '/works/komm/{{.Sn}}'" >{{.Condition}}</td>
+                <td onclick="document.o.location= '/works/komm/{{.Sn}}'" >{{.СonditionDate}}</td>
+                <td><a href="/works/komm/{{.Sn}}">Открыть</a></td>
+            </tr>
+            {{end}}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+</body>
+
+<style type="text/css">
+    .header {
+        text-align: center;
+        white-space: nowrap; 
+    }
+
+    .header h1 {
+        font-size: 24px;
+        margin: 0;
+    }
+
+    .header p {
+        font-size: 16px;
+        margin: 5px 0;
+        text-align: right;
+    }
+
+    .scroll-table-body {
+        height: 500px;
+        overflow-x:auto;
+        margin-top: 0px;
+        margin-bottom: 20px;
+        border-bottom: 0px solid #eee;
+    }
+    .scroll-table table {
+        width:100%;
+        table-layout: fixed;
+        border: none;
+        border-spacing : 0px;
+    }
+    .scroll-table thead th {
+        font-weight: bold;
+        text-align: left;
+        padding: 10px 15px;
+        background: #1984ffc0;
+        font-size: 14px;
+    }
+    .scroll-table tbody td {
+        text-align: left;
+        border-left: 1px solid #0e0e0e;
+        padding: 10px 15px;
+        font-size: 14px;
+        vertical-align: top;
+    }
+
+    .scroll-table tbody td a{
+        text-align: left;
+        font-size: 14px;
+        vertical-align: top;
+    }
+    .scroll-table tbody tr:nth-child(even){
+        background: #f3f3f3;
+    }
+    
+
+    ::-webkit-scrollbar {
+        width: 10px;
+    } 
+    ::-webkit-scrollbar-track {
+        box-shadow: inset 0 0 6px rgba(0,0,0,0.3); 
+    } 
+    ::-webkit-scrollbar-thumb {
+        box-shadow: inset 0 0 6px rgba(0,0,0,0.3); 
+    }
+    </style>
+
+</html>

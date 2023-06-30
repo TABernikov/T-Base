@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>T-Work</title>
+    <style>
+        table {
+            width: 100%;
+        }
+        td {
+            width: 50%;
+        }
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f2f2f2;
+      }
+      .profile-box {
+        max-width: 95%;
+        margin: 0 auto;
+        background-color: #fff;
+        border-radius: 10px;
+        padding: 20px;
+      }
+      h1 {
+        text-align: center;
+        margin-bottom: 20px;
+        color: #555;
+      }
+      label {
+        font-weight: bold;
+        display: inline-block;
+        width: 150px;
+        margin-bottom: 10px;
+        color: #555;
+      }
+      .input-field {
+        border: none;
+        border-bottom: 1px solid #ddd;
+        font-size: 16px;
+        padding-left: 10px;
+        width: calc(100% - 150px);
+      }
+      .input-field:focus {
+        outline: none;
+        border-color: #5c7cfa;
+      }
+      .field-container {
+        margin-bottom: 20px;
+      }
+      .field-container:last-child {
+        margin-bottom: 0;
+      }
+      .profile-image {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        border: 5px solid #eee;
+        margin: 0 auto;
+        display: block;
+      }
+
+      input[type=submit] {
+            background-color: #1984ffc0;
+            border-radius: 4px;
+            border: none;
+            color: white;
+            padding: 14px 20px;
+            cursor: pointer;
+            width: 100px;
+            text-align: center;
+        }
+
+    </style>
+  </head>
+  <body>
+    
+   
+  <div class="profile-box">
+    <h1>Тип профиля</h1>
+    <form id="logout" name="logout" action="/works/logout" method="post" class="mt-4"> 
+      <input type="submit" name="logoutBtn" value="Выйти">
+    </form>
+    <br>
+    <br>
+    <table>
+        <td>
+            <div class="field-container">
+                <label for="name">Логин:</label>
+                <span class="input-field">{{.Login}}</span>
+            </div>
+            <div class="field-container">
+                <label for="email">Email:</label>
+                <span class="input-field">{{.Email}}</span>
+            </div>
+            <div class="field-container">
+                <label for="phone">Телефон:</label>
+                <span class="input-field">+1 (555) 123-4567</span>
+            </div>
+            
+           
+        </td>
+        <td>
+            <div class="field-container">
+                <label for="country">Компания:</label>
+                <span class="input-field">Т-КОМ</span>
+            </div>
+            <div class="field-container">
+                <label for="bio">О себе:</label>
+                <span class="input-field">
+                Это тестовая страница профиля
+                где можно писать всяке
+                </span>
+            </div>
+        </td>
+
+    </table>
+</div>
+  </body>
+</html>
