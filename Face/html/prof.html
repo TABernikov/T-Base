@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <title>T-Work</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link href="Face/css/bootstrap.min.css" rel="stylesheet">
+    <link href="Face/css/style.css" rel="stylesheet">
+
+
+  </head>
+  
+  <body>
+
+
+  <div class="profile-box">
+    <h1>Тип профиля</h1>
+    <form id="logout" name="logout" action="/works/logout" method="post" class="mt-4"> 
+      <input type="submit" name="logoutBtn" value="Выйти">
+    </form>
+    <br>
+    <br>
+    <table>
+        <td>
+            <div class="field-container">
+                <label for="name">Логин:</label>
+                <span class="input-field">{{.Login}}</span>
+            </div>
+            <div class="field-container">
+                <label for="email">Email:</label>
+                <span class="input-field">{{.Email}}</span>
+            </div>
+            <div class="field-container">
+                <label for="phone">Телефон:</label>
+                <span class="input-field">+1 (555) 123-4567</span>
+            </div>
+            
+           
+        </td>
+        <td>
+            <div class="field-container">
+                <label for="country">Компания:</label>
+                <span class="input-field">Т-КОМ</span>
+            </div>
+            <div class="field-container">
+                <label for="bio">О себе:</label>
+                <span class="input-field">
+                Это тестовая страница профиля
+                где можно писать всяке
+                </span>
+            </div>
+        </td>
+
+    </table>
+</div>
+
+
+<script src="Fcae/js/js/bootstrap.bundle.min.js"></script>
+
+  </body>
+</html>
