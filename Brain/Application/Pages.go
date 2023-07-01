@@ -29,7 +29,9 @@ func (a App) Routs(r *httprouter.Router) {
 
 // Стартовая страница
 func (a App) startPage(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	http.Redirect(w, r, "/works/prof", http.StatusSeeOther)
+	//http.Redirect(w, r, "/works/prof", http.StatusSeeOther)
+	t := template.Must(template.ParseFiles("Face/html/prof.html"))
+	t.Execute(w, nil)
 }
 
 // Страница авторизации
@@ -40,7 +42,7 @@ func (a App) LoginPage(w http.ResponseWriter, in string) {
 
 	data := answer{in}
 
-	t := template.Must(template.ParseFiles("Face/htmls/auth.html"))
+	t := template.Must(template.ParseFiles("Face/html/auth.html"))
 	t.Execute(w, data)
 
 }
