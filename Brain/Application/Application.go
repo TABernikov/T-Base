@@ -4,6 +4,7 @@ import (
 	"T-Base/Brain/Auth"
 	"T-Base/Brain/Storage"
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
@@ -41,12 +42,14 @@ func (a App) authtorized(nestedFunction HandleUser) httprouter.Handle {
 				return
 			}
 			regenUser, err := Auth.ParseJWT(gentoken, []byte(authToken))
+			fmt.Println("Тут обшибка", user, "имя ", regenUser.Name)
 			if err != nil {
+				fmt.Println("Зашел в ошибку проверки токена")
 				http.Redirect(w, r, "/works/login", http.StatusSeeOther)
 				return
 			}
 			println("Делаю новый токен")
-			Auth.MakeTokens(w, r, regenUser, a.JwtKey, *a.Db) //генерировать токен
+			Auth.MakeTokens(w, r, user, a.JwtKey, *a.Db) //генерировать токен
 			http.Redirect(w, r, r.RequestURI, http.StatusSeeOther)
 			return
 		}

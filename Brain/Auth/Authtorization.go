@@ -17,8 +17,10 @@ import (
 
 type сlaims struct {
 	jwt.StandardClaims
+	Uid   int
 	Login string
-	Email string
+	UName string
+	Acces int
 }
 
 // Парсинг JWT токена
@@ -32,20 +34,35 @@ func ParseJWT(tokenStr string, key []byte) (mytypes.User, error) {
 	})
 
 	if token != nil {
-		if claims, ok := token.Claims.(*сlaims); ok && token.Valid {
-			user := mytypes.User{
-				Login: claims.Login,
-				Email: claims.Email,
+		user := mytypes.User{}
+		if claims, ok := token.Claims.(*сlaims); ok {
+			user = mytypes.User{
+				UserId: claims.Uid,
+				Login:  claims.Login,
+				Name:   claims.UName,
+				Acces:  claims.Acces,
 			}
-			return user, nil
+			if token.Valid {
+				fmt.Println("Тут тоже", user, "имя ", user.Name)
+				return user, nil
+			} else {
+				return user, fmt.Errorf("токен недействителен", err)
+			}
+
 		}
 	}
 
-	return mytypes.User{}, err
+	return mytypes.User{
+		Login: "err",
+		Email: "err",
+		Name:  "claims.UName",
+		Acces: 33,
+	}, err
 }
 
 // Запись 2х токенов
 func MakeTokens(w http.ResponseWriter, r *http.Request, user mytypes.User, JwtKey []byte, db Storage.Base) {
+	fmt.Println("Делаю токен для ", user)
 	cleanCookies(w, r)
 	// генерируем токен авторизации
 	authToken := jwt.NewWithClaims(jwt.SigningMethodHS256, сlaims{
@@ -53,9 +70,12 @@ func MakeTokens(w http.ResponseWriter, r *http.Request, user mytypes.User, JwtKe
 			ExpiresAt: jwt.At(time.Now().Add(1 * time.Minute)),
 			IssuedAt:  jwt.At(time.Now()),
 		},
+		Uid:   user.UserId,
 		Login: user.Login,
-		Email: user.Email,
+		UName: user.Name,
+		Acces: user.Acces,
 	})
+	println(user.Name)
 
 	t, err := authToken.SignedString(JwtKey)
 	if err != nil { // Ошибка генерации токена
@@ -79,8 +99,6 @@ func MakeTokens(w http.ResponseWriter, r *http.Request, user mytypes.User, JwtKe
 			ExpiresAt: jwt.At(time.Now().Add(60 * time.Minute)),
 			IssuedAt:  jwt.At(time.Now()),
 		},
-		Login: user.Login,
-		Email: user.Email,
 	})
 
 	gt, err := generToken.SignedString([]byte(stringJsonToken))

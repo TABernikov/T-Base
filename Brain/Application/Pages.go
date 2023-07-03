@@ -13,10 +13,11 @@ type HandleUser func(http.ResponseWriter, *http.Request, httprouter.Params, myty
 
 func (a App) Routs(r *httprouter.Router) {
 	// открытые пути
-	r.ServeFiles("/Face/*filepath", http.Dir("Face"))
+	r.ServeFiles("/works/Face/*filepath", http.Dir("Face"))
 	//r.ServeFiles("/Face/html/css/*filepath", http.Dir("css"))
 	r.GET("/", a.startPage)
 	r.GET("/works/login", func(w http.ResponseWriter, r *http.Request, pr httprouter.Params) { a.LoginPage(w, "") })
+	r.GET("/works/home", a.homePage)
 
 	r.POST("/works/login", a.Login)
 	r.POST("/works/Logout", Auth.Logout)
@@ -25,13 +26,17 @@ func (a App) Routs(r *httprouter.Router) {
 	r.GET("/works/prof", a.authtorized(a.UserPage))
 	//r.GET("/works/komm/:sn", a.authtorized(a.KommPage))
 	//r.GET("/works/komm/", a.authtorized(a.KommPage))
-	//r.GET("/works/tmc/", a.authtorized(a.TMC))
+	r.GET("/works/tmc/", a.authtorized(a.TMC))
 }
 
 // Стартовая страница
 func (a App) startPage(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	//http.Redirect(w, r, "/works/prof", http.StatusSeeOther)
-	t := template.Must(template.ParseFiles("Face/html/prof.html"))
+	http.Redirect(w, r, "/works/prof", http.StatusSeeOther)
+}
+
+// Домашння страница
+func (a App) homePage(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	t := template.Must(template.ParseFiles("Face/html/Шаблон обложки.html"))
 	t.Execute(w, nil)
 }
 
@@ -73,6 +78,10 @@ func (a App) Login(w http.ResponseWriter, r *http.Request, pr httprouter.Params)
 
 // Страница профиля
 func (a App) UserPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
-	t := template.Must(template.ParseFiles("Face/htmls/prof.html"))
+	t := template.Must(template.ParseFiles("Face/html/prof.html"))
 	t.Execute(w, user)
+}
+
+func (a App) TMC(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+
 }

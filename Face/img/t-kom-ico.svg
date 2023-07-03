@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="48"
+   height="48"
+   viewBox="0 0 48 48"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.1.2 (b8e25be833, 2022-02-05)"
+   sodipodi:docname="drawing.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:document-units="px"
+     showgrid="false"
+     inkscape:zoom="8.65625"
+     inkscape:cx="51.465704"
+     inkscape:cy="25.068592"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs2">
+    <inkscape:path-effect
+       effect="bspline"
+       id="path-effect34002"
+       is_visible="true"
+       lpeversion="1"
+       weight="33.333333"
+       steps="2"
+       helper_size="0"
+       apply_no_weight="true"
+       apply_with_weight="true"
+       only_selected="false" />
+  </defs>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:40.5793px;line-height:1.25;font-family:sans-serif;fill:#000080;fill-opacity:1;stroke:none;stroke-width:1.01448;paint-order:fill markers stroke"
+       x="-4.6022005"
+       y="37.146877"
+       id="text2828"
+       transform="matrix(1.0394887,0.01483386,-0.01372544,0.96181556,0,0)"><tspan
+         sodipodi:role="line"
+         id="tspan2826"
+         x="-4.6022005"
+         y="37.146877"
+         style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Lucida Handwriting';-inkscape-font-specification:'Lucida Handwriting Italic';fill:#000080;stroke-width:1.01448;paint-order:fill markers stroke">T</tspan></text>
+    <path
+       style="fill:#000080;stroke:#000000;stroke-width:0.867232px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 34.118737,6.7220836 c -4.127595,3.8661284 -8.255067,7.7321414 -10.2834,12.9892644 -2.028334,5.257124 -1.957659,11.90417 -4.558417,16.114807 -2.600758,4.210638 -7.873077,5.985813 -13.1458498,7.761141"
+       id="path34000"
+       inkscape:path-effect="#path-effect34002"
+       inkscape:original-d="M 34.118737,6.7220836 C 29.991996,10.589123 25.864523,14.455136 21.736315,18.320128 21.807729,24.968464 21.8784,31.61551 21.948343,38.261664 16.676547,40.037935 11.404228,41.81311 6.1310702,43.587296" />
+    <text
+       xml:space="preserve"
+       style="font-size:11.4343px;line-height:1.25;font-family:sans-serif;stroke-width:0.612552"
+       x="21.604551"
+       y="38.646801"
+       id="text46752"
+       transform="scale(0.93523706,1.0692476)"><tspan
+         sodipodi:role="line"
+         id="tspan46750"
+         x="21.604551"
+         y="38.646801"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Lucida Handwriting';-inkscape-font-specification:'Lucida Handwriting';stroke-width:0.612552">KOM</tspan></text>
+  </g>
+</svg>
