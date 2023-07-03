@@ -14,6 +14,7 @@ type HandleUser func(http.ResponseWriter, *http.Request, httprouter.Params, myty
 func (a App) Routs(r *httprouter.Router) {
 	// открытые пути
 	r.ServeFiles("/Face/*filepath", http.Dir("Face"))
+	//r.ServeFiles("/Face/html/css/*filepath", http.Dir("css"))
 	r.GET("/", a.startPage)
 	r.GET("/works/login", func(w http.ResponseWriter, r *http.Request, pr httprouter.Params) { a.LoginPage(w, "") })
 
