@@ -4,6 +4,7 @@ import (
 	"T-Base/Brain/mytypes"
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -356,7 +357,7 @@ func (base Base) TakeDeviceByRequest(ctx context.Context, request string) ([]myt
 	return devices, nil
 }
 
-// Получение слайса девайсов по Id
+// Получение слайса читабельных девайсов по Id
 func (base Base) TakeCleanDeviceById(ctx context.Context, inId ...int) ([]mytypes.DeviceClean, error) {
 	devices := []mytypes.DeviceClean{}
 	device := mytypes.DeviceClean{}
@@ -377,7 +378,7 @@ func (base Base) TakeCleanDeviceById(ctx context.Context, inId ...int) ([]mytype
 			device.CondDate = CondDate.Format("02.01.2006")
 			device.ShipedDate = ShipedDate.Format("02.01.2006")
 			device.TakenDate = TakenDate.Format("02.01.2006")
-			device.Shiped = string(Shiped)
+			device.Shiped = strconv.FormatBool(Shiped)
 			devices = append(devices, device)
 		}
 
@@ -391,10 +392,38 @@ func (base Base) TakeCleanDeviceById(ctx context.Context, inId ...int) ([]mytype
 			device.CondDate = CondDate.Format("02.01.2006")
 			device.ShipedDate = ShipedDate.Format("02.01.2006")
 			device.TakenDate = TakenDate.Format("02.01.2006")
-			device.Shiped = string(Shiped)
-			devices = append(devices, device)
+			device.Shiped = strconv.FormatBool(Shiped)
 			devices = append(devices, device)
 		}
 	}
+	return devices, nil
+}
+
+// Получение стлайса читабельных устройств по условию SQL
+func (base Base) TakeCleanDeviceByRequest(ctx context.Context, request string) ([]mytypes.DeviceClean, error) {
+	devices := []mytypes.DeviceClean{}
+	device := mytypes.DeviceClean{}
+	var CondDate, ShipedDate, TakenDate time.Time
+	var Shiped bool
+
+	qq := `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder" FROM "cleanSns"`
+
+	rows, err := base.db.Query(ctx, qq+request)
+	if err != nil {
+		return devices, err
+	}
+
+	for rows.Next() {
+		err := rows.Scan(&device.Id, &device.Sn, &device.Mac, &device.DModel, &device.Rev, &device.TModel, &device.Name, &device.Condition, &CondDate, &device.Order, &device.Place, &Shiped, &ShipedDate, &device.ShippedDest, &TakenDate, &device.TakenDoc, &device.TakenOrder)
+		if err != nil {
+			return devices, err
+		}
+		device.CondDate = CondDate.Format("02.01.2006")
+		device.ShipedDate = ShipedDate.Format("02.01.2006")
+		device.TakenDate = TakenDate.Format("02.01.2006")
+		device.Shiped = strconv.FormatBool(Shiped)
+		devices = append(devices, device)
+	}
+
 	return devices, nil
 }

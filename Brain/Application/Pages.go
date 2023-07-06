@@ -17,7 +17,7 @@ type HandleUser func(http.ResponseWriter, *http.Request, httprouter.Params, myty
 func (a App) Routs(r *httprouter.Router) {
 	// открытые пути
 	r.ServeFiles("/works/Face/*filepath", http.Dir("Face"))
-	//r.ServeFiles("/works/device/Face/*filepath", http.Dir("Face"))
+	r.ServeFiles("/works/device/Face/*filepath", http.Dir("Face"))
 	r.GET("/", a.startPage)
 	r.GET("/works/login", func(w http.ResponseWriter, r *http.Request, pr httprouter.Params) { a.LoginPage(w, "") })
 	r.GET("/works/home", a.homePage)
@@ -136,10 +136,10 @@ func (a App) NewSns(w http.ResponseWriter, r *http.Request, pr httprouter.Params
 
 func (a App) DeviceMiniPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 
-	var device mytypes.DeviceRaw
+	var device mytypes.DeviceClean
 
 	if r.FormValue("Id") == "nil" {
-		devices, err := a.Db.TakeDeviceByRequest(a.ctx, " Limit 1")
+		devices, err := a.Db.TakeCleanDeviceByRequest(a.ctx, " Limit 1")
 		if err != nil {
 			fmt.Fprintln(w, err)
 			return
@@ -155,7 +155,7 @@ func (a App) DeviceMiniPage(w http.ResponseWriter, r *http.Request, pr httproute
 			fmt.Fprintln(w, "Устройство не найдено")
 			return
 		}
-		devices, err := a.Db.TakeDeviceById(a.ctx, Id)
+		devices, err := a.Db.TakeCleanDeviceById(a.ctx, Id)
 		if err != nil {
 			fmt.Fprintln(w, "Ошибка поиска устройства: ", err)
 			return
