@@ -2,124 +2,142 @@
 <html>
 
 <head>
-<meta charset="utf-8">
-<title>{{.Lable}}</title>
+    <title>{{.Lable}}</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="Face\img\t-kom-ico.svg">
+
+    <link href="Face/html/css/bootstrap.min.css" rel="stylesheet">
+    <link href="Face/html/css/fontello.css" rel="stylesheet">
+    <link href="Face/html/css/style.css" rel="stylesheet">
+
 </head>
 <body>
     
+    <nav class="navbar navbar-expand-lg sticky-top navbar-light bg-light" aria-label="Fifth navbar example" style="width: 100;">
+        <div class="container-fluid" >
+        
+          <a class="navbar-brand" href="#">
+            <img src="Face\img\t-kom-logo.svg" width="100" height="50" alt="" loading="lazy">
+          </a>
+  
+          <button class="navbar-toggler collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#navbarsExample05" aria-controls="navbarsExample05" aria-expanded="false" aria-label="Переключить навигацию">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+    
+          <div class="navbar-collapse collapse" id="navbarsExample05" style="">
+  
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+    
+              <li class="nav-item">
+                <a class="nav-link active" aria-current="page" href="/works/home">Главная</a>
+              </li>
+              
+              <li class="nav-item">
+                <a class="nav-link" href="/works/prof">Профиль</a>
+              </li>
+              
+              
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false">Таблицы</a>
+                <ul class="dropdown-menu">
+                  <li><a class="dropdown-item" href="#">ТМЦ</a></li>
+                  <li><a class="dropdown-item" href="#">Заказы</a></li>
+                  <li><a class="dropdown-item" href="#">Склад</a></li>
+                </ul>
+              </li>
+              <form id="logout" name="logout" action="/works/logout" method="post"> 
+                <input class="btn btn-outline-danger" type="submit" name="logoutBtn" value="Выйти">
+              </form>
+            </ul>
+  
+            
+  
+            <form class="d-flex" role="search">
+              <input class="form-control" type="search" placeholder="SN/Заказ/Другое..." aria-label="Поиск">
+              <button class="btn btn-outline-success" type="submit">Поиск</button>
+            </form>
+  
+          </div>
+  
+        </div>
+      </nav>
 
 
-<div class="header">
-    <h1>Таблица ТМЦ</h1>
-    <p >
-        {{.User}}  <a href="/works/prof"> профиль </a> 
-    </p>
-</div>
 
-<iframe name="o" float="left" width="100%" height="350" scrolling="auto" frameborder="0" src="/works/komm/"  id="o">Sorry, your browser doesn't support iframes.</iframe>
+
+<iframe  name="o" float="left" width="100%" height="350" scrolling="auto" frameborder="0" src="/works/komm/" style="height: 34vh;"  id="o">Sorry, your browser doesn't support iframes.</iframe>
 
 
 
-</strong></p>
-<div class="scroll-table">
-    <table>
-        <thead>
-        <tr>
-            <th><strong>Наименование D-Link</strong></th>
-            <th><strong>Наименование T-Kom</strong></th>
-            <th><strong>SN</strong></th>
-            <th><strong>Состояние</strong></th>
-            <th><strong>Дата</strong></th>
-            <th><strong>MAC</strong></th>
-            <th><strong>Перейти</strong></th>
-        </tr>
-    </thead>
-    </table>
-    <div class="scroll-table-body">
-        <table>
-            <tbody>
-            {{range .Tab}}
-            <tr>
-                <td onclick="document.o.location= '/works/komm/{{.Sn}}'" >{{.DName}}</td>
-                <td onclick="document.o.location= '/works/komm/{{.Sn}}'" >{{.TName}}</td>
-                <td onclick="document.o.location= '/works/komm/{{.Sn}}'" >{{.Sn}}</td>
-                <td onclick="document.o.location= '/works/komm/{{.Sn}}'" >{{.Mac}}</td>
-                <td onclick="document.o.location= '/works/komm/{{.Sn}}'" >{{.Condition}}</td>
-                <td onclick="document.o.location= '/works/komm/{{.Sn}}'" >{{.СonditionDate}}</td>
-                <td><a href="/works/komm/{{.Sn}}">Открыть</a></td>
-            </tr>
-            {{end}}
-            </tbody>
-        </table>
+    <div class="container-fluid" style="overflow-y:scroll; width: 2800px;  height: 55vh;">
+        <div class="" >
+                <table class="table table-hover table-striped"style = "table-layout: fixed" >
+                  <col span="18" style="width: 150px;">
+                    <thead>
+                        <tr>
+                            <th scope="col">Id</th>
+                            <th scope="col">Перейти</th>
+                            <th scope="col">SN</th>
+                            <th scope="col">MAC</th>
+                            <th scope="col">D-Model</th>
+                            <th scope="col">Rev</th>
+                            <th scope="col">T-Model</th>
+                            <th scope="col">Имя</th>
+                            <th scope="col">Состояние</th>
+                            <th scope="col">Дата</th>
+                            <th scope="col">Заказ</th>
+                            <th scope="col">Место</th>
+                            <th scope="col">Отгрузка</th>
+                            <th scope="col">Дата отгрузки</th>
+                            <th scope="col">Место отгрузки</th>
+                            <th scope="col">Дата приемки</th>
+                            <th scope="col">Документ приемки</th>
+                            <th scope="col">Заказ приемки</th>
+                            
+                        </tr>
+                    </thead>
+                </table>
+        </div>
+
+        <div  style=" ">
+            <div class="" style="height: 45vh;  overflow-x:scroll ">
+                <table class="table table-hover table-striped"style = "table-layout: fixed" >
+                  <col span="18" style="width: 150px;">
+                    <tbody>
+                    {{range .Tab}}
+                    
+                    <tr >
+                        <th scope="row" onclick="document.o.location= '/works/komm/{{.Sn}}'" >{{.Id}}</th>
+                        <td><a class="btn btn-outline-info" role="button" href="/works/komm/{{.Sn}}" >Открыть</a></td>
+                        <td onclick="document.o.location= '/works/komm/{{.Sn}}'" >{{.Sn}}</td>
+                        <td onclick="document.o.location= '/works/komm/{{.Sn}}'" >{{.Mac}}</td>
+                        <td onclick="document.o.location= '/works/komm/{{.Sn}}'" >{{.DModel}}</td>
+                        <td onclick="document.o.location= '/works/komm/{{.Sn}}'" >{{.Rev}}</td>
+                        <td onclick="document.o.location= '/works/komm/{{.Sn}}'" >{{.TModel}}</td>
+                        <td onclick="document.o.location= '/works/komm/{{.Sn}}'" >{{.Name}}</td>
+                        <td onclick="document.o.location= '/works/komm/{{.Sn}}'" >{{.Condition}}</td>
+                        <td onclick="document.o.location= '/works/komm/{{.Sn}}'" >{{.CondDate}}</td>
+                        <td onclick="document.o.location= '/works/komm/{{.Sn}}'" >{{.Order}}</td>
+                        <td onclick="document.o.location= '/works/komm/{{.Sn}}'" >{{.Place}}</td>
+                        <td onclick="document.o.location= '/works/komm/{{.Sn}}'" >{{.Shiped}}</td>
+                        <td onclick="document.o.location= '/works/komm/{{.Sn}}'" >{{.ShipedDate}}</td>
+                        <td onclick="document.o.location= '/works/komm/{{.Sn}}'" >{{.ShippedDest}}</td>
+                        <td onclick="document.o.location= '/works/komm/{{.Sn}}'" >{{.TakenDate}}</td>
+                        <td onclick="document.o.location= '/works/komm/{{.Sn}}'" >{{.TakenDoc}}</td>
+                        <td onclick="document.o.location= '/works/komm/{{.Sn}}'" >{{.TakenOrder}}</td>
+                        
+                    </tr>
+                    
+                    {{end}}
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
-</div>
 
+        <script src="Face/html/js/bootstrap.bundle.js"></script>
 </body>
 
-<style type="text/css">
-    .header {
-        text-align: center;
-        white-space: nowrap; 
-    }
-
-    .header h1 {
-        font-size: 24px;
-        margin: 0;
-    }
-
-    .header p {
-        font-size: 16px;
-        margin: 5px 0;
-        text-align: right;
-    }
-
-    .scroll-table-body {
-        height: 500px;
-        overflow-x:auto;
-        margin-top: 0px;
-        margin-bottom: 20px;
-        border-bottom: 0px solid #eee;
-    }
-    .scroll-table table {
-        width:100%;
-        table-layout: fixed;
-        border: none;
-        border-spacing : 0px;
-    }
-    .scroll-table thead th {
-        font-weight: bold;
-        text-align: left;
-        padding: 10px 15px;
-        background: #1984ffc0;
-        font-size: 14px;
-    }
-    .scroll-table tbody td {
-        text-align: left;
-        border-left: 1px solid #0e0e0e;
-        padding: 10px 15px;
-        font-size: 14px;
-        vertical-align: top;
-    }
-
-    .scroll-table tbody td a{
-        text-align: left;
-        font-size: 14px;
-        vertical-align: top;
-    }
-    .scroll-table tbody tr:nth-child(even){
-        background: #f3f3f3;
-    }
-    
-
-    ::-webkit-scrollbar {
-        width: 10px;
-    } 
-    ::-webkit-scrollbar-track {
-        box-shadow: inset 0 0 6px rgba(0,0,0,0.3); 
-    } 
-    ::-webkit-scrollbar-thumb {
-        box-shadow: inset 0 0 6px rgba(0,0,0,0.3); 
-    }
-    </style>
 
 </html>

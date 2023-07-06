@@ -3,8 +3,11 @@ package Application
 import (
 	"T-Base/Brain/Auth"
 	"T-Base/Brain/mytypes"
+	"fmt"
 	"html/template"
 	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/julienschmidt/httprouter"
 )
@@ -14,7 +17,6 @@ type HandleUser func(http.ResponseWriter, *http.Request, httprouter.Params, myty
 func (a App) Routs(r *httprouter.Router) {
 	// открытые пути
 	r.ServeFiles("/works/Face/*filepath", http.Dir("Face"))
-	//r.ServeFiles("/Face/html/css/*filepath", http.Dir("css"))
 	r.GET("/", a.startPage)
 	r.GET("/works/login", func(w http.ResponseWriter, r *http.Request, pr httprouter.Params) { a.LoginPage(w, "") })
 	r.GET("/works/home", a.homePage)
@@ -25,8 +27,9 @@ func (a App) Routs(r *httprouter.Router) {
 	// пути требующие авторизацию
 	r.GET("/works/prof", a.authtorized(a.UserPage))
 	//r.GET("/works/komm/:sn", a.authtorized(a.KommPage))
-	//r.GET("/works/komm/", a.authtorized(a.KommPage))
-	r.GET("/works/tmc/", a.authtorized(a.TMC))
+	r.GET("/works/device/nil", a.authtorized(a.DeviceMiniPage))
+	r.GET("/works/tmc", a.authtorized(a.TMC))
+	//r.GET("/works/new", a.authtorized(a.NewSns))
 }
 
 // Стартовая страница
@@ -82,6 +85,63 @@ func (a App) UserPage(w http.ResponseWriter, r *http.Request, pr httprouter.Para
 	t.Execute(w, user)
 }
 
+// Таблица ТМЦ
 func (a App) TMC(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	devices, err := a.Db.TakeDeviceById(a.ctx)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	fmt.Println(len(devices))
+
+	type tt struct {
+		Lable string
+		Tab   []mytypes.DeviceRaw
+	}
+	table := tt{"ТМЦ", devices}
+
+	t := template.Must(template.ParseFiles("Face/html/TMC.html"))
+	t.Execute(w, table)
+}
+
+// Добавление начальных устройств
+func (a App) NewSns(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	var devices []mytypes.DeviceRaw
+	for i := 1; i <= 100; i++ {
+		device := mytypes.DeviceRaw{
+			Sn:          strconv.Itoa(i + 1000),
+			Mac:         "m" + strconv.Itoa(i+1000),
+			DModel:      2,
+			TModel:      2,
+			Rev:         "a1",
+			Condition:   1,
+			Name:        "Test2",
+			CondDate:    time.Now(),
+			Order:       0,
+			Place:       1,
+			Shiped:      false,
+			ShipedDate:  time.Now(),
+			ShippedDest: "Hjr",
+			TakenDate:   time.Now(),
+			TakenDoc:    "qawe",
+			TakenOrder:  "asd",
+		}
+		devices = append(devices, device)
+	}
+
+	a.Db.InsertDiviceToSns(a.ctx, devices...)
+}
+
+func (a App) DeviceMiniPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+
+	devices, err := a.Db.TakeDeviceByRequest(a.ctx, " Limit 1")
+	device := devices[0]
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Printf("device: %v\n", device)
+
+	t := template.Must(template.ParseFiles("Face/html/komm.html"))
+	t.Execute(w, device)
 
 }

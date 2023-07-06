@@ -3,6 +3,7 @@ package Auth
 import (
 	"T-Base/Brain/Storage"
 	"T-Base/Brain/mytypes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -115,7 +116,7 @@ func MakeTokens(w http.ResponseWriter, r *http.Request, user mytypes.User, JwtKe
 	cookie = http.Cookie{Name: "Korikasa", Value: stringJsonToken, Expires: expiration, HttpOnly: true, SameSite: http.SameSiteStrictMode, Path: "/works"} // создание куки с покеном по именем Koisd2hsd
 	http.SetCookie(w, &cookie)
 	r.AddCookie(&cookie)
-	db.NewRegenToken(user.Login, stringJsonToken)
+	db.NewRegenToken(user.Login, stringJsonToken, context.Background())
 
 	println(user.Login + " ген: " + stringJsonToken)
 }

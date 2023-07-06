@@ -4,7 +4,7 @@ import "time"
 
 // структура устройства
 type DeviceRaw struct {
-	Id          string
+	Id          int
 	Sn          string
 	Mac         string
 	DModel      int
@@ -15,10 +15,31 @@ type DeviceRaw struct {
 	CondDate    time.Time
 	Order       int
 	Place       int
-	Shiped      int8
+	Shiped      bool
 	ShipedDate  time.Time
 	ShippedDest string
 	TakenDate   time.Time
+	TakenDoc    string
+	TakenOrder  string
+}
+
+// структура устройства для вывода пользователю
+type DeviceClean struct {
+	Id          int
+	Sn          string
+	Mac         string
+	DModel      string
+	Rev         string
+	TModel      string
+	Name        string
+	Condition   string
+	CondDate    string
+	Order       string
+	Place       int
+	Shiped      int8
+	ShipedDate  string
+	ShippedDest string
+	TakenDate   string
 	TakenDoc    string
 	TakenOrder  string
 }
