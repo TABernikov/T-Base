@@ -4,6 +4,7 @@ import (
 	"T-Base/Brain/mytypes"
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 )
@@ -307,7 +308,7 @@ func (base Base) TakeDeviceById(ctx context.Context, inId ...int) ([]mytypes.Dev
 
 	} else {
 		for _, id := range inId {
-			row := base.db.QueryRow(ctx, `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder" FROM sns Where snsId = $1`, id)
+			row := base.db.QueryRow(ctx, `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder" FROM sns Where "snsId" = $1`, id)
 			err := row.Scan(&device.Id, &device.Sn, &device.Mac, &device.DModel, &device.Rev, &device.TModel, &device.Name, &device.Condition, &device.CondDate, &device.Order, &device.Place, &device.Shiped, &device.ShipedDate, &device.ShippedDest, &device.TakenDate, &device.TakenDoc, &device.TakenOrder)
 			if err != nil {
 				return devices, err
@@ -352,5 +353,48 @@ func (base Base) TakeDeviceByRequest(ctx context.Context, request string) ([]myt
 		devices = append(devices, device)
 	}
 
+	return devices, nil
+}
+
+// Получение слайса девайсов по Id
+func (base Base) TakeCleanDeviceById(ctx context.Context, inId ...int) ([]mytypes.DeviceClean, error) {
+	devices := []mytypes.DeviceClean{}
+	device := mytypes.DeviceClean{}
+	var CondDate, ShipedDate, TakenDate time.Time
+	var Shiped bool
+
+	if len(inId) == 0 {
+		rows, err := base.db.Query(ctx, `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder" FROM "cleanSns"`)
+		if err != nil {
+			return devices, err
+		}
+
+		for rows.Next() {
+			err := rows.Scan(&device.Id, &device.Sn, &device.Mac, &device.DModel, &device.Rev, &device.TModel, &device.Name, &device.Condition, &CondDate, &device.Order, &device.Place, &Shiped, &ShipedDate, &device.ShippedDest, &TakenDate, &device.TakenDoc, &device.TakenOrder)
+			if err != nil {
+				return devices, err
+			}
+			device.CondDate = CondDate.Format("02.01.2006")
+			device.ShipedDate = ShipedDate.Format("02.01.2006")
+			device.TakenDate = TakenDate.Format("02.01.2006")
+			device.Shiped = string(Shiped)
+			devices = append(devices, device)
+		}
+
+	} else {
+		for _, id := range inId {
+			row := base.db.QueryRow(ctx, `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder" FROM sns Where "snsId" = $1`, id)
+			err := row.Scan(&device.Id, &device.Sn, &device.Mac, &device.DModel, &device.Rev, &device.TModel, &device.Name, &device.Condition, &CondDate, &device.Order, &device.Place, &Shiped, &ShipedDate, &device.ShippedDest, &TakenDate, &device.TakenDoc, &device.TakenOrder)
+			if err != nil {
+				return devices, err
+			}
+			device.CondDate = CondDate.Format("02.01.2006")
+			device.ShipedDate = ShipedDate.Format("02.01.2006")
+			device.TakenDate = TakenDate.Format("02.01.2006")
+			device.Shiped = string(Shiped)
+			devices = append(devices, device)
+			devices = append(devices, device)
+		}
+	}
 	return devices, nil
 }

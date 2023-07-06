@@ -12,6 +12,16 @@
             "name": "T-Base",
             "database": "t-base",
             "username": "Admin"
+        },
+        {
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 5432,
+            "driver": "PostgreSQL",
+            "name": "T-post",
+            "database": "t-base",
+            "username": "postgres",
+            "password": "Superkim61"
         }
     ]
 }

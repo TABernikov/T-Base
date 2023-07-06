@@ -36,7 +36,7 @@ type DeviceClean struct {
 	CondDate    string
 	Order       string
 	Place       int
-	Shiped      int8
+	Shiped      string
 	ShipedDate  string
 	ShippedDest string
 	TakenDate   string

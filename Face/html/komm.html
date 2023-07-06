@@ -13,13 +13,106 @@
 
 </head>
 <body>
-    <div class="container-fuild" style="height: 350px;">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Заголовок карточки</h5>
-                Это некий текст в теле карточки.
-            </div>
-          </div>
+    
+
+    
+    <div class="container-xxl" style="height: 34vh;">
+            
+                
+                    <nav>
+                    <div class="nav nav-tabs mb-3" id="nav-tab" role="tablist">
+                        <button class="text-sm-center nav-link disabled" >{{.Name}}&nbsp;&nbsp;Sn:{{.Sn}}</button>
+                        <button class="nav-link active" id="nav-home-tab" data-bs-toggle="tab" data-bs-target="#nav-home" type="button" role="tab" aria-controls="nav-home" aria-selected="true">Главная</button>
+                        <button class="nav-link" id="nav-profile-tab" data-bs-toggle="tab" data-bs-target="#nav-profile" type="button" role="tab" aria-controls="nav-profile" aria-selected="false" tabindex="-1">Детали</button>
+                        <button class="nav-link" id="nav-contact-tab" data-bs-toggle="tab" data-bs-target="#nav-contact" type="button" role="tab" aria-controls="nav-contact" aria-selected="false" tabindex="-1">Приемка/Отгрузка</button>
+                    </div>
+                    </nav>
+                    <div class="tab-content" id="nav-tabContent">
+                    <div class="tab-pane fade active show" id="nav-home" role="tabpanel" aria-labelledby="nav-home-tab">
+                        <table class="table" style="font-size: 80%;">
+                            <tbody>
+                                <tr>
+                                    <th>Наименование:</th>
+                                    <td>{{.Name}}</td>
+                                    <th>SN:</th>
+                                    <td>{{.Sn}}</td>
+                                </tr>
+                                <tr>
+                                    <th>DModel:</th>
+                                    <td>{{.DModel}}</td>
+                                    <th>Место:</th>
+                                    <td>{{.Place}}</td>
+                                </tr>
+                                <tr>
+                                    <th>TModel:</th>
+                                    <td>{{.TModel}}</td>
+                                    <th>Статус</th>
+                                    <td>{{.Condition}}</td>
+                                </tr>
+                                <tr>
+                                    <th>Заказ:</th>
+                                    <td>{{.Order}}</td>
+                                    <th>Изм. статус.</th>
+                                    <td>{{.CondDate}}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="tab-pane fade" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab">
+                        <table class="table" style="font-size: 80%;">
+                            <tbody>
+                                <tr>
+                                    <th>Id:</th>
+                                    <td>{{.Id}}</td>
+                                    <th>DModel:</th>
+                                    <td>{{.DModel}}</td>
+
+                                </tr>
+                                <tr>
+                                    <th>SN:</th>
+                                    <td>{{.Sn}}</td>
+                                    <th>TModel:</th>
+                                    <td>{{.TModel}}</td>
+                                </tr>
+                                <tr>
+                                    <th>MAC:</th>
+                                    <td>{{.Mac}}</td>
+                                    <th>Ревизия:</th>
+                                    <td>{{.Rev}}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="tab-pane fade" id="nav-contact" role="tabpanel" aria-labelledby="nav-contact-tab">
+                        <table class="table" style="font-size: 80%;">
+                            <tbody>
+                                <tr>
+                                    <th>Отгрузка:</th>
+                                    <td>{{.Shiped}}</td>
+                                    <th>Заказ приёмки:</th>
+                                    <td>{{.TakenOrder}}</td>
+
+                                </tr>
+                                <tr>
+                                    <th>Дата отгрузки:</th>
+                                    <td>{{.ShipedDate}}</td>
+                                    <th>Дата приемки:</th>
+                                    <td>{{.TakenDate}}</td>
+                                </tr>
+                                <tr>
+                                    <th>Место отгрузки:</th>
+                                    <td>{{.ShippedDest}}</td>
+                                    <th>Документ приемки:</th>
+                                    <td>{{.TakenDoc}}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    </div>
+                    </div>
+                
+           
+          
     </div>
 <script src="Face/html/js/bootstrap.bundle.js"></script>
 </body>
