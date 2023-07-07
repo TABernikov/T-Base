@@ -7,6 +7,7 @@ import (
 	"html/template"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/julienschmidt/httprouter"
@@ -29,7 +30,9 @@ func (a App) Routs(r *httprouter.Router) {
 	r.GET("/works/prof", a.authtorized(a.UserPage))
 	//r.GET("/works/komm/:sn", a.authtorized(a.KommPage))
 	r.GET("/works/device/mini", a.authtorized(a.DeviceMiniPage))
-	r.GET("/works/tmc", a.authtorized(a.TMC))
+	r.GET("/works/tmc", a.authtorized(a.TMCPage))
+	r.GET("/works/inputtest", a.authtorized(a.TestImputPage))
+	r.POST("/works/inputtest", a.authtorized(a.TestImput))
 	//r.GET("/works/new", a.authtorized(a.NewSns))
 }
 
@@ -88,7 +91,7 @@ func (a App) UserPage(w http.ResponseWriter, r *http.Request, pr httprouter.Para
 }
 
 // Таблица ТМЦ
-func (a App) TMC(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+func (a App) TMCPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	devices, err := a.Db.TakeCleanDeviceById(a.ctx)
 	if err != nil {
 		fmt.Println(err)
@@ -165,5 +168,31 @@ func (a App) DeviceMiniPage(w http.ResponseWriter, r *http.Request, pr httproute
 
 	t := template.Must(template.ParseFiles("Face/html/komm.html"))
 	t.Execute(w, device)
+}
+
+func (a App) TestImputPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+
+	t := template.Must(template.ParseFiles("Face/html/testinsert.html"))
+	t.Execute(w, nil)
+}
+
+func (a App) TestImput(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+
+	snString := r.FormValue("sn")
+	Sns := strings.Fields(snString)
+	devices, err := a.Db.TakeCleanDeviceBySn(a.ctx, Sns...)
+	if err != nil {
+		fmt.Println(err)
+
+	}
+	fmt.Println(devices)
+	type tt struct {
+		Lable string
+		Tab   []mytypes.DeviceClean
+	}
+	table := tt{"Результаты поиска", devices}
+
+	t := template.Must(template.ParseFiles("Face/html/TMC.html"))
+	t.Execute(w, table)
 
 }

@@ -107,7 +107,7 @@
                     <tbody>
                     {{range .Tab}}
                     
-                    <tr >
+                    <tr class="{{if(eq .Condition "Не собрано")}} {{print "table-warning"}} {{end}} {{if(eq .Condition "Собрано")}} {{print "table-success"}} {{end}}">
                         <th scope="row" onclick="document.o.location= '/works/device/mini?Id={{.Id}}'" >{{.Id}}</th>
                         <td><a class="btn btn-outline-info" role="button" href="/works/device/mini?Id={{.Id}}" >Открыть</a></td>
                         <td onclick="document.o.location= '/works/device/mini?Id={{.Id}}'" >{{.Sn}}</td>

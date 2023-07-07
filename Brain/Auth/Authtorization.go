@@ -68,7 +68,7 @@ func MakeTokens(w http.ResponseWriter, r *http.Request, user mytypes.User, JwtKe
 	// генерируем токен авторизации
 	authToken := jwt.NewWithClaims(jwt.SigningMethodHS256, сlaims{
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: jwt.At(time.Now().Add(1 * time.Minute)),
+			ExpiresAt: jwt.At(time.Now().Add(15 * time.Minute)),
 			IssuedAt:  jwt.At(time.Now()),
 		},
 		Uid:   user.UserId,
