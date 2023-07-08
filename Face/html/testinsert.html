@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <title>Ввод данных</title>
+    <title>{{.Title}}</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" href="Face\img\t-kom-ico.svg">
@@ -15,20 +15,20 @@
 <body>
     
     <div class="container">
-    <form id="sn-form" name="sn-form" action="/works/inputtest" method="post">
+    <form id="sn-form" name="sn-form" action="{{.PostPath}}" method="post">
     <div class="container">
         <div class="row">
-            <label for="SnTextAria" class="form-label">Введите cерийные номера:</label>
+            <label for="SnTextAria" class="form-label">{{.InputText}}</label>
         </div>
         <div class="row">    
             
             <div class="col-8">
                 <div class="mb-3">
-                    <textarea class="form-control" type="sn" id="sn" name="sn"  placeholder="Серийные номера" ></textarea>
+                    <textarea class="form-control" type="sn" id="sn" name="sn"  placeholder="" ></textarea>
                 </div>
             </div>
             <div class="col-4">
-                <button type="submit" class="btn btn-primary">Отправить</button>
+                <button type="submit" class="btn btn-primary">{{.BtnText}}</button>
             </div>
         </div>
     

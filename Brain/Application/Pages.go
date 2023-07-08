@@ -8,33 +8,9 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/julienschmidt/httprouter"
 )
-
-type HandleUser func(http.ResponseWriter, *http.Request, httprouter.Params, mytypes.User)
-
-func (a App) Routs(r *httprouter.Router) {
-	// открытые пути
-	r.ServeFiles("/works/Face/*filepath", http.Dir("Face"))
-	r.ServeFiles("/works/device/Face/*filepath", http.Dir("Face"))
-	r.GET("/", a.startPage)
-	r.GET("/works/login", func(w http.ResponseWriter, r *http.Request, pr httprouter.Params) { a.LoginPage(w, "") })
-	r.GET("/works/home", a.homePage)
-
-	r.POST("/works/login", a.Login)
-	r.POST("/works/Logout", Auth.Logout)
-
-	// пути требующие авторизацию
-	r.GET("/works/prof", a.authtorized(a.UserPage))
-	//r.GET("/works/komm/:sn", a.authtorized(a.KommPage))
-	r.GET("/works/device/mini", a.authtorized(a.DeviceMiniPage))
-	r.GET("/works/tmc", a.authtorized(a.TMCPage))
-	r.GET("/works/inputtest", a.authtorized(a.TestImputPage))
-	r.POST("/works/inputtest", a.authtorized(a.TestImput))
-	//r.GET("/works/new", a.authtorized(a.NewSns))
-}
 
 // Стартовая страница
 func (a App) startPage(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
@@ -57,7 +33,6 @@ func (a App) LoginPage(w http.ResponseWriter, in string) {
 
 	t := template.Must(template.ParseFiles("Face/html/auth.html"))
 	t.Execute(w, data)
-
 }
 
 // Обработчик авторизации
@@ -97,46 +72,10 @@ func (a App) TMCPage(w http.ResponseWriter, r *http.Request, pr httprouter.Param
 		fmt.Println(err)
 	}
 
-	fmt.Println(len(devices))
-
-	type tt struct {
-		Lable string
-		Tab   []mytypes.DeviceClean
-	}
-	table := tt{"ТМЦ", devices}
-
-	t := template.Must(template.ParseFiles("Face/html/TMC.html"))
-	t.Execute(w, table)
+	MakeTMCPage(w, devices, "ТМЦ")
 }
 
-// Добавление начальных устройств
-func (a App) NewSns(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
-	var devices []mytypes.DeviceRaw
-	for i := 1; i <= 100; i++ {
-		device := mytypes.DeviceRaw{
-			Sn:          strconv.Itoa(i + 1000),
-			Mac:         "m" + strconv.Itoa(i+1000),
-			DModel:      2,
-			TModel:      2,
-			Rev:         "a1",
-			Condition:   1,
-			Name:        "Test2",
-			CondDate:    time.Now(),
-			Order:       0,
-			Place:       1,
-			Shiped:      false,
-			ShipedDate:  time.Now(),
-			ShippedDest: "Hjr",
-			TakenDate:   time.Now(),
-			TakenDoc:    "qawe",
-			TakenOrder:  "asd",
-		}
-		devices = append(devices, device)
-	}
-
-	a.Db.InsertDiviceToSns(a.ctx, devices...)
-}
-
+// Компактное представление устройства
 func (a App) DeviceMiniPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 
 	var device mytypes.DeviceClean
@@ -170,12 +109,12 @@ func (a App) DeviceMiniPage(w http.ResponseWriter, r *http.Request, pr httproute
 	t.Execute(w, device)
 }
 
+// тестовая страница ввода серийных номеров
 func (a App) TestImputPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
-
-	t := template.Must(template.ParseFiles("Face/html/testinsert.html"))
-	t.Execute(w, nil)
+	MakeImputPage(w, "/works/inputtest", "test imput", "mpput sn", "search")
 }
 
+// поиск в тмц по серийным ноомерам
 func (a App) TestImput(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 
 	snString := r.FormValue("sn")
@@ -183,16 +122,34 @@ func (a App) TestImput(w http.ResponseWriter, r *http.Request, pr httprouter.Par
 	devices, err := a.Db.TakeCleanDeviceBySn(a.ctx, Sns...)
 	if err != nil {
 		fmt.Println(err)
-
 	}
-	fmt.Println(devices)
-	type tt struct {
+
+	MakeTMCPage(w, devices, "Результаты поиска")
+}
+
+func MakeImputPage(w http.ResponseWriter, postPath, title, imputText, btnText string) {
+
+	type imputPage struct {
+		Title     string
+		InputText string
+		BtnText   string
+		PostPath  string
+	}
+
+	tmp := imputPage{title, imputText, btnText, postPath}
+
+	t := template.Must(template.ParseFiles("Face/html/testinsert.html"))
+	t.Execute(w, tmp)
+}
+
+func MakeTMCPage(w http.ResponseWriter, devices []mytypes.DeviceClean, lable string) {
+
+	type tmcPage struct {
 		Lable string
 		Tab   []mytypes.DeviceClean
 	}
-	table := tt{"Результаты поиска", devices}
+	table := tmcPage{lable, devices}
 
 	t := template.Must(template.ParseFiles("Face/html/TMC.html"))
 	t.Execute(w, table)
-
 }

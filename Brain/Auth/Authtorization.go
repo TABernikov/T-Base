@@ -35,7 +35,7 @@ func ParseJWT(tokenStr string, key []byte) (mytypes.User, error) {
 	})
 
 	if token != nil {
-		user := mytypes.User{}
+		var user mytypes.User
 		if claims, ok := token.Claims.(*сlaims); ok {
 			user = mytypes.User{
 				UserId: claims.Uid,
@@ -47,9 +47,8 @@ func ParseJWT(tokenStr string, key []byte) (mytypes.User, error) {
 				fmt.Println("Тут тоже", user, "имя ", user.Name)
 				return user, nil
 			} else {
-				return user, fmt.Errorf("токен недействителен", err)
+				return user, err
 			}
-
 		}
 	}
 
