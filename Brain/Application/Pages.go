@@ -110,12 +110,12 @@ func (a App) DeviceMiniPage(w http.ResponseWriter, r *http.Request, pr httproute
 }
 
 // тестовая страница ввода серийных номеров
-func (a App) TestImputPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
-	MakeImputPage(w, "/works/inputtest", "test imput", "mpput sn", "search")
+func (a App) SnSearchPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	MakeImputPage(w, "/works/snsearch", "Поиск по Sn", "Введите серийные номера", "Поиск")
 }
 
 // поиск в тмц по серийным ноомерам
-func (a App) TestImput(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+func (a App) SnSearch(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 
 	snString := r.FormValue("sn")
 	Sns := strings.Fields(snString)
@@ -138,7 +138,7 @@ func MakeImputPage(w http.ResponseWriter, postPath, title, imputText, btnText st
 
 	tmp := imputPage{title, imputText, btnText, postPath}
 
-	t := template.Must(template.ParseFiles("Face/html/testinsert.html"))
+	t := template.Must(template.ParseFiles("Face/html/insert.html"))
 	t.Execute(w, tmp)
 }
 
@@ -152,4 +152,44 @@ func MakeTMCPage(w http.ResponseWriter, devices []mytypes.DeviceClean, lable str
 
 	t := template.Must(template.ParseFiles("Face/html/TMC.html"))
 	t.Execute(w, table)
+}
+
+func MakeStoragePage(w http.ResponseWriter, storage []mytypes.StorageCount, lable string) {
+	type storagePage struct {
+		Lable string
+		Tab   []mytypes.StorageCount
+	}
+	table := storagePage{lable, storage}
+
+	t := template.Must(template.ParseFiles("Face/html/storage.html"))
+	t.Execute(w, table)
+}
+
+func (a App) StoragePage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	storage, err := a.Db.TakeStorageCount(a.ctx)
+	if err != nil {
+		return
+	}
+	MakeStoragePage(w, storage, "Склад")
+}
+
+func MakeStorageByPlacePage(w http.ResponseWriter, storage []mytypes.StorageByPlaceCount, lable string) {
+	type storagePage struct {
+		Lable string
+		Tab   []mytypes.StorageByPlaceCount
+	}
+	table := storagePage{lable, storage}
+
+	t := template.Must(template.ParseFiles("Face/html/storageByPlace.html"))
+	t.Execute(w, table)
+}
+
+func (a App) StorageByPlacePage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	storage, err := a.Db.TakeStorageCountByPlace(a.ctx)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	MakeStorageByPlacePage(w, storage, "Места")
 }

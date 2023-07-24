@@ -31,35 +31,24 @@
         <div class="navbar-collapse collapse" id="navbarsExample05" style="">
 
           <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-  
-            <li class="nav-item">
-              <a class="nav-link active" aria-current="page" href="/works/home">Главная</a>
-            </li>
             
             <li class="nav-item">
-              <a class="nav-link" href="/works/prof">Профиль</a>
+              <a class="nav-link active" href="/works/prof">Профиль</a>
             </li>
             
             
             <li class="nav-item dropdown">
               <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false">Таблицы</a>
               <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="#">ТМЦ</a></li>
+                <li><a class="dropdown-item" href="/works/tmc">ТМЦ</a></li>
                 <li><a class="dropdown-item" href="#">Заказы</a></li>
-                <li><a class="dropdown-item" href="#">Склад</a></li>
+                <li><a class="dropdown-item" href="/works/storage">Склад</a></li>
               </ul>
             </li>
             <form id="logout" name="logout" action="/works/logout" method="post"> 
               <input class="btn btn-outline-danger" type="submit" name="logoutBtn" value="Выйти">
             </form>
           </ul>
-
-          
-
-          <form class="d-flex" role="search">
-            <input class="form-control" type="search" placeholder="SN/Заказ/Другое..." aria-label="Поиск">
-            <button class="btn btn-outline-success" type="submit">Поиск</button>
-          </form>
 
         </div>
 
@@ -109,49 +98,46 @@
         <div class="col">
         <div class="row gy-3 gx-3">
           <div class="col">
-            <h6 class="text-nowrap">Название группы</h6>
+            <h6 class="text-nowrap">Скад</h6>
             <div class="d-grid gap-2">
               <a class="btn btn-primary" href="/works/tmc" role="button">ТМЦ</a>
-              <a class="btn btn-primary" href="/works/tmc" role="button">Скад</a>
-              <a class="btn btn-primary" href="/works/tmc" role="button">Места</a>
+              <a class="btn btn-primary" href="/works/storage" role="button">Скад</a>
+              <a class="btn btn-primary" href="/works/places" role="button">Места</a>
+              <a class="btn btn-primary" href="/works/snsearch" role="button">Поиск по Sn</a>
             </div>
           </div>
 
           <div class="col">
-            <h6 class="text-nowrap">Название группы</h6>
+            <h6 class="text-nowrap">Приемка</h6>
             <div class="d-grid gap-2">
-              <a class="btn btn-primary" href="/works/tmc" role="button">ТМЦ</a>
-              <a class="btn btn-primary" href="/works/tmc" role="button">Скад</a>
-              <a class="btn btn-primary" href="/works/tmc" role="button">Места</a>
-              <a class="btn btn-primary" href="/works/tmc" role="button">Места</a>
+              <a class="btn btn-primary" href="" role="button">Приемка по моделям</a>
+              <a class="btn btn-primary" href="" role="button">Приемка демо</a>
             </div>
           </div>
 
           <div class="col">
-            <h6 class="text-nowrap">Название группы</h6>
+            <h6 class="text-nowrap">Складская логистика</h6>
             <div class="d-grid gap-2">
-              <a class="btn btn-primary" href="/works/tmc" role="button">ТМЦ</a>
-              <a class="btn btn-primary" href="/works/tmc" role="button">Скад</a>
-              <a class="btn btn-primary" href="/works/tmc" role="button">Места</a>
+              <a class="btn btn-primary" href="" role="button">Передать в производство</a>
+              <a class="btn btn-primary" href="" role="button">Установить место</a>
+              <a class="btn btn-primary" href="" role="button">Изменить № паллета</a>
             </div>
           </div>
 
           <div class="col">
-            <h6 class="text-nowrap">Название группы</h6>
+            <h6 class="text-nowrap">Заказы</h6>
             <div class="d-grid gap-2">
-              <a class="btn btn-primary" href="/works/tmc" role="button">ТМЦ</a>
-              <a class="btn btn-primary" href="/works/tmc" role="button">Скад</a>
-              <a class="btn btn-primary" href="/works/tmc" role="button">Места</a>
-              <a class="btn btn-primary" href="/works/tmc" role="button">Места</a>
-              <a class="btn btn-primary" href="/works/tmc" role="button">Места</a>
+              <a class="btn btn-primary" href="" role="button">Заказы</a>
+              <a class="btn btn-primary" href="" role="button">Назначить заказ/резерв</a>
+              <a class="btn btn-primary" href="" role="button">На резервирование</a>
             </div>
           </div>
           
           <div class="col">
-            <h6 class="text-nowrap">Название группы</h6>
+            <h6 class="text-nowrap">Отгрузки</h6>
             <div class="d-grid gap-2">
-              <a class="btn btn-primary" href="/works/tmc" role="button">ТМЦ</a>
-              <a class="btn btn-primary" href="/works/tmc" role="button">Скад</a>
+              <a class="btn btn-primary" href="" role="button">Подготовка</a>
+              <a class="btn btn-primary" href="" role="button">Отгрузка</a>
             </div>
           </div>
         </div>

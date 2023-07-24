@@ -53,3 +53,15 @@ type User struct {
 	Name   string
 	Email  string
 }
+
+type StorageCount struct {
+	Order int
+	Name  string
+	Amout int
+}
+
+type StorageByPlaceCount struct {
+	Place int
+	Name  string
+	Amout int
+}

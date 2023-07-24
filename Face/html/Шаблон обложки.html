@@ -28,25 +28,31 @@
         <div class="navbar-collapse collapse" id="navbarsExample05" style="">
 
           <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-  
-            <li class="nav-item">
-              <a class="nav-link active" aria-current="page" href="/works/home">Главная</a>
-            </li>
             
             <li class="nav-item">
-              <a class="nav-link" href="/works/prof">Профиль</a>
+              <a class="nav-link active" href="/works/prof">Профиль</a>
             </li>
             
             
             <li class="nav-item dropdown">
               <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false">Таблицы</a>
               <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="#">ТМЦ</a></li>
+                <li><a class="dropdown-item" href="/works/tmc">ТМЦ</a></li>
                 <li><a class="dropdown-item" href="#">Заказы</a></li>
-                <li><a class="dropdown-item" href="#">Склад</a></li>
+                <li><a class="dropdown-item" href="/works/storage">Склад</a></li>
               </ul>
             </li>
+            <form id="logout" name="logout" action="/works/logout" method="post"> 
+              <input class="btn btn-outline-danger" type="submit" name="logoutBtn" value="Выйти">
+            </form>
           </ul>
+
+          
+
+          <form class="d-flex" role="search">
+            <input class="form-control" type="search" placeholder="SN/Заказ/Другое..." aria-label="Поиск">
+            <button class="btn btn-outline-success" type="submit">Поиск</button>
+          </form>
 
         </div>
 

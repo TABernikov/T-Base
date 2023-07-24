@@ -294,3 +294,50 @@ func (base Base) TakeCleanDeviceBySn(ctx context.Context, inSn ...string) ([]myt
 	}
 	return devices, nil
 }
+
+// Получение кол-ва устройств на складе по заказам
+func (base Base) TakeStorageCount(ctx context.Context) ([]mytypes.StorageCount, error) {
+	storage := []mytypes.StorageCount{}
+	deviceCount := mytypes.StorageCount{}
+
+	qq := `SELECT "order", name, count FROM wear`
+
+	rows, err := base.db.Query(ctx, qq)
+	if err != nil {
+		return storage, err
+	}
+
+	for rows.Next() {
+		err := rows.Scan(&deviceCount.Order, &deviceCount.Name, &deviceCount.Amout)
+		if err != nil {
+			return storage, err
+		}
+
+		storage = append(storage, deviceCount)
+	}
+	return storage, nil
+}
+
+// Получение кол-ва устройств на складе по местам
+func (base Base) TakeStorageCountByPlace(ctx context.Context) ([]mytypes.StorageByPlaceCount, error) {
+	storage := []mytypes.StorageByPlaceCount{}
+	deviceCount := mytypes.StorageByPlaceCount{}
+
+	qq := `SELECT "place", name, count FROM "wearByPlace"`
+
+	rows, err := base.db.Query(ctx, qq)
+	if err != nil {
+		return storage, err
+	}
+
+	for rows.Next() {
+		err := rows.Scan(&deviceCount.Place, &deviceCount.Name, &deviceCount.Amout)
+		if err != nil {
+			return storage, err
+		}
+
+		storage = append(storage, deviceCount)
+	}
+	return storage, nil
+
+}

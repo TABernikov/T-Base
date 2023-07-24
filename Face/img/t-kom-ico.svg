@@ -8,7 +8,10 @@
    version="1.1"
    id="svg5"
    inkscape:version="1.1.2 (b8e25be833, 2022-02-05)"
-   sodipodi:docname="drawing.svg"
+   sodipodi:docname="t-kom-ico.svg"
+   inkscape:export-filename="C:\Code\T-Base\Face\img\t-kom-ico.png"
+   inkscape:export-xdpi="96"
+   inkscape:export-ydpi="96"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
@@ -24,7 +27,7 @@
      inkscape:document-units="px"
      showgrid="false"
      inkscape:zoom="8.65625"
-     inkscape:cx="51.465704"
+     inkscape:cx="51.581227"
      inkscape:cy="25.068592"
      inkscape:window-width="1920"
      inkscape:window-height="1017"
@@ -52,33 +55,15 @@
      id="layer1">
     <text
        xml:space="preserve"
-       style="font-style:normal;font-weight:normal;font-size:40.5793px;line-height:1.25;font-family:sans-serif;fill:#000080;fill-opacity:1;stroke:none;stroke-width:1.01448;paint-order:fill markers stroke"
-       x="-4.6022005"
-       y="37.146877"
+       style="font-style:normal;font-weight:normal;font-size:56.4143px;line-height:1.25;font-family:sans-serif;fill:#000080;fill-opacity:1;stroke:none;stroke-width:1.41035;paint-order:fill markers stroke"
+       x="-4.8093247"
+       y="49.088478"
        id="text2828"
-       transform="matrix(1.0394887,0.01483386,-0.01372544,0.96181556,0,0)"><tspan
+       transform="matrix(1.1173348,0.01380037,-0.01475332,0.89480467,0,0)"><tspan
          sodipodi:role="line"
          id="tspan2826"
-         x="-4.6022005"
-         y="37.146877"
-         style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Lucida Handwriting';-inkscape-font-specification:'Lucida Handwriting Italic';fill:#000080;stroke-width:1.01448;paint-order:fill markers stroke">T</tspan></text>
-    <path
-       style="fill:#000080;stroke:#000000;stroke-width:0.867232px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="m 34.118737,6.7220836 c -4.127595,3.8661284 -8.255067,7.7321414 -10.2834,12.9892644 -2.028334,5.257124 -1.957659,11.90417 -4.558417,16.114807 -2.600758,4.210638 -7.873077,5.985813 -13.1458498,7.761141"
-       id="path34000"
-       inkscape:path-effect="#path-effect34002"
-       inkscape:original-d="M 34.118737,6.7220836 C 29.991996,10.589123 25.864523,14.455136 21.736315,18.320128 21.807729,24.968464 21.8784,31.61551 21.948343,38.261664 16.676547,40.037935 11.404228,41.81311 6.1310702,43.587296" />
-    <text
-       xml:space="preserve"
-       style="font-size:11.4343px;line-height:1.25;font-family:sans-serif;stroke-width:0.612552"
-       x="21.604551"
-       y="38.646801"
-       id="text46752"
-       transform="scale(0.93523706,1.0692476)"><tspan
-         sodipodi:role="line"
-         id="tspan46750"
-         x="21.604551"
-         y="38.646801"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Lucida Handwriting';-inkscape-font-specification:'Lucida Handwriting';stroke-width:0.612552">KOM</tspan></text>
+         x="-4.8093247"
+         y="49.088478"
+         style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Lucida Handwriting';-inkscape-font-specification:'Lucida Handwriting Italic';fill:#000080;stroke-width:1.41035;paint-order:fill markers stroke">T</tspan></text>
   </g>
 </svg>

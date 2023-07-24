@@ -40,11 +40,12 @@ func (a App) Routs(r *httprouter.Router) {
 
 	// пути требующие авторизацию
 	r.GET("/works/prof", a.authtorized(a.UserPage))
-	//r.GET("/works/komm/:sn", a.authtorized(a.KommPage))
 	r.GET("/works/device/mini", a.authtorized(a.DeviceMiniPage))
 	r.GET("/works/tmc", a.authtorized(a.TMCPage))
-	r.GET("/works/inputtest", a.authtorized(a.TestImputPage))
-	r.POST("/works/inputtest", a.authtorized(a.TestImput))
+	r.GET("/works/snsearch", a.authtorized(a.SnSearchPage))
+	r.GET("/works/storage", a.authtorized(a.StoragePage))
+	r.GET("/works/places", a.authtorized(a.StorageByPlacePage))
+	r.POST("/works/snsearch", a.authtorized(a.SnSearch))
 	//r.GET("/works/new", a.authtorized(a.NewSns))
 }
 
