@@ -198,9 +198,11 @@ func (base Base) TakeCleanDeviceByRequest(ctx context.Context, request string) (
 	var CondDate, ShipedDate, TakenDate time.Time
 	var Shiped bool
 
-	qq := `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder" FROM "cleanSns" order by "snsId" `
+	qq := `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder" FROM "cleanSns" `
 
 	rows, err := base.db.Query(ctx, qq+request)
+	fmt.Println(request)
+	fmt.Println(qq + request)
 	if err != nil {
 		return devices, err
 	}

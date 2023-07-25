@@ -46,6 +46,7 @@ func (a App) Routs(r *httprouter.Router) {
 	r.GET("/works/storage", a.authtorized(a.StoragePage))
 	r.GET("/works/places", a.authtorized(a.StorageByPlacePage))
 	r.POST("/works/snsearch", a.authtorized(a.SnSearch))
+	r.POST("/works/tmcsearch", a.authtorized(a.TMCSearch))
 	//r.GET("/works/new", a.authtorized(a.NewSns))
 }
 
