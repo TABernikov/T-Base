@@ -196,14 +196,11 @@ func (a App) StorageByPlacePage(w http.ResponseWriter, r *http.Request, pr httpr
 
 // универсальный поиск в тмц
 func (a App) TMCSearch(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
-	fmt.Println("Nene")
 	snString := r.FormValue("sn")
-	//Sns := strings.Fields(snString)
-	req := `WHERE sn = '` + snString + `' OR mac = '` + snString + `' OR "name" = '` + snString + `' OR dmodel = '` + snString + `' OR rev = '` + snString + `' OR tmodel = '` + snString + `' OR condition = '` + snString + `' OR "shippedDest" = '` + snString + `' OR "takenDoc" = '` + snString + `' OR "takenOrder" = '` + snString + "'"
-	devices, err := a.Db.TakeCleanDeviceByRequest(a.ctx, req)
+	Sns := strings.Split(snString, ";")
+	devices, err := a.Db.TakeCleanDeviceByAnything(a.ctx, Sns...)
 	if err != nil {
 		fmt.Println(err)
 	}
-
 	MakeTMCPage(w, devices, "Результаты поиска"+snString)
 }

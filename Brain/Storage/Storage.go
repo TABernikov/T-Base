@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -341,5 +342,59 @@ func (base Base) TakeStorageCountByPlace(ctx context.Context) ([]mytypes.Storage
 		storage = append(storage, deviceCount)
 	}
 	return storage, nil
+}
+
+// Получение слайса читабельных устройств в которых любой параметр совпадает со значением строки
+func (base Base) TakeCleanDeviceByAnything(ctx context.Context, request ...string) ([]mytypes.DeviceClean, error) {
+
+	var qq string
+	for i, a := range request {
+		a = strings.TrimSpace(a)
+		if i != 0 {
+			qq += " UNION "
+		} else if a == "" {
+			device, err := base.TakeCleanDeviceById(ctx)
+			return device, err
+		}
+
+		qq += `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder" FROM "cleanSns" WHERE sn = '` + a + `' OR mac = '` + a + `' OR "name" = '` + a + `' OR dmodel = '` + a + `' OR rev = '` + a + `' OR tmodel = '` + a + `' OR condition = '` + a + `' OR "shippedDest" = '` + a + `' OR "takenDoc" = '` + a + `' OR "takenOrder" = '` + a + "'"
+
+		_, err := strconv.Atoi(a)
+		if err == nil {
+			qq += ` OR "order" = ` + a + ` OR place = ` + a + ` OR "snsId" = ` + a
+		}
+
+		date, err := time.Parse("02.01.2006", a)
+		if err == nil {
+			a = date.Format("2006-01-02")
+			qq += ` OR "condDate" = '` + a + `' OR "shipedDate" = '` + a + `' OR "takenDate" = '` + a + `'`
+		}
+	}
+
+	devices := []mytypes.DeviceClean{}
+	device := mytypes.DeviceClean{}
+	var CondDate, ShipedDate, TakenDate time.Time
+	var Shiped bool
+
+	rows, err := base.db.Query(ctx, qq)
+	fmt.Println(request)
+	fmt.Println(qq)
+	if err != nil {
+		return devices, err
+	}
+
+	for rows.Next() {
+		err := rows.Scan(&device.Id, &device.Sn, &device.Mac, &device.DModel, &device.Rev, &device.TModel, &device.Name, &device.Condition, &CondDate, &device.Order, &device.Place, &Shiped, &ShipedDate, &device.ShippedDest, &TakenDate, &device.TakenDoc, &device.TakenOrder)
+		if err != nil {
+			return devices, err
+		}
+		device.CondDate = CondDate.Format("02.01.2006")
+		device.ShipedDate = ShipedDate.Format("02.01.2006")
+		device.TakenDate = TakenDate.Format("02.01.2006")
+		device.Shiped = strconv.FormatBool(Shiped)
+		devices = append(devices, device)
+	}
+
+	return devices, nil
 
 }
