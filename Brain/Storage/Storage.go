@@ -396,5 +396,25 @@ func (base Base) TakeCleanDeviceByAnything(ctx context.Context, request ...strin
 	}
 
 	return devices, nil
+}
 
+// Получение слайса событий коммутатора по его ID
+func (base Base) TakeDeviceEvent(ctx context.Context, deviceId int) ([]mytypes.DeviceEvent, error) {
+	var events []mytypes.DeviceEvent
+	var event mytypes.DeviceEvent
+
+	rows, err := base.db.Query(ctx, `SELECT "logId", "eventType", "eventText", "eventTime", "user" FROM public."deviceLog" WHERE "deviceId" = $1`, deviceId)
+	if err != nil {
+		return events, err
+	}
+
+	for rows.Next() {
+		err := rows.Scan(&event.LogId, &event.EventType, &event.EventText, &event.EventTime, &event.User)
+		if err != nil {
+			return events, err
+		}
+		events = append(events, event)
+	}
+
+	return events, nil
 }

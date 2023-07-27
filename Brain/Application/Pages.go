@@ -105,8 +105,9 @@ func (a App) DeviceMiniPage(w http.ResponseWriter, r *http.Request, pr httproute
 		device = devices[0]
 	}
 
-	t := template.Must(template.ParseFiles("Face/html/komm.html"))
-	t.Execute(w, device)
+	events, _ := a.Db.TakeDeviceEvent(a.ctx, device.Id)
+
+	MakeDeviceMiniPage(w, device, events)
 }
 
 // тестовая страница ввода серийных номеров
@@ -125,6 +126,18 @@ func (a App) SnSearch(w http.ResponseWriter, r *http.Request, pr httprouter.Para
 	}
 
 	MakeTMCPage(w, devices, "Результаты поиска")
+}
+
+func MakeDeviceMiniPage(w http.ResponseWriter, device mytypes.DeviceClean, events []mytypes.DeviceEvent) {
+	type devicePage struct {
+		Device mytypes.DeviceClean
+		Events []mytypes.DeviceEvent
+	}
+
+	page := devicePage{device, events}
+
+	t := template.Must(template.ParseFiles("Face/html/komm.html"))
+	t.Execute(w, page)
 }
 
 func MakeImputPage(w http.ResponseWriter, postPath, title, imputText, btnText string) {
@@ -152,6 +165,7 @@ func MakeTMCPage(w http.ResponseWriter, devices []mytypes.DeviceClean, lable str
 
 	t := template.Must(template.ParseFiles("Face/html/TMC.html"))
 	t.Execute(w, table)
+
 }
 
 func MakeStoragePage(w http.ResponseWriter, storage []mytypes.StorageCount, lable string) {

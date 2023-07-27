@@ -65,3 +65,11 @@ type StorageByPlaceCount struct {
 	Name  string
 	Amout int
 }
+
+type DeviceEvent struct {
+	LogId     int
+	EventType int
+	EventText string
+	EventTime time.Time
+	User      int
+}

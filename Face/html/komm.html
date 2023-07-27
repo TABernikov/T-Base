@@ -16,9 +16,10 @@
     
 
     
-    <div class="container-xxl" style="height: 34vh;">
+    <div class="container-fluid" style="height: 34vh;">
             
-                
+            <div class="row">
+                <div class="col">
                     <nav>
                     <div class="nav nav-tabs mb-3" id="nav-tab" role="tablist">
                         <button class="text-sm-center nav-link disabled" >{{.Name}}&nbsp;&nbsp;Sn:{{.Sn}}</button>
@@ -109,11 +110,54 @@
                         </table>
                     </div>
                     </div>
+                </div>
+
+                <div class="col">
+                    <div class="container-fluid" style="height: 100vh; overflow-y: scroll;">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th scope="col">ID</th>
+                                    <th scope="col">Событие</th>
+                                    <th scope="col">Текст</th>
+                                    <th scope="col">Дата</th>
+                                    <th scope="col">Сотрудник</th>
+                                </tr>
+                            </thead>
+                            <tbody class="table-group-divider">
+                                <tr>
+                                    <th scope="row">1</th>
+                                    <td>Отгрузка</td>
+                                    <td>Отгружаем чтото кудато очень быстро и на долго</td>
+                                    <td>15.03.2023 15:30:45</td> 
+                                    <td>Lilitiana</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">1</th>
+                                    <td>Отгрузка</td>
+                                    <td>Отгружаем чтото кудато очень быстро и на долго</td>
+                                    <td>15.03.2023 15:30:45</td> 
+                                    <td>Lilitiana</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">1</th>
+                                    <td>Отгрузка</td>
+                                    <td>Отгружаем чтото кудато очень быстро и на долго</td>
+                                    <td>15.03.2023 15:30:45</td> 
+                                    <td>Lilitiana</td>
+                                </tr>
+                                
+                              
+                            </tbody>
+                      </table>
                     </div>
+                </div>
+            </div>
                 
            
           
     </div>
+    
 <script src="Face/html/js/bootstrap.bundle.js"></script>
 </body>
 
