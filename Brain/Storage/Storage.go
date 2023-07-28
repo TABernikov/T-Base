@@ -418,3 +418,58 @@ func (base Base) TakeDeviceEvent(ctx context.Context, deviceId int) ([]mytypes.D
 
 	return events, nil
 }
+
+// Получение слайса заказов по ID
+func (base Base) TakeOrderById(ctx context.Context, inId ...int) ([]mytypes.OrderRaw, error) {
+	var orders []mytypes.OrderRaw
+	var order mytypes.OrderRaw
+
+	if len(inId) == 0 {
+		rows, err := base.db.Query(ctx, `SELECT "orderId", meneger, "orderDate", "reqDate", "promDate", "shDate", "isAct", coment, customer, partner, disributor, name, "1СName" FROM public.orders`)
+		if err != nil {
+			return orders, err
+		}
+
+		for rows.Next() {
+			err := rows.Scan(&order.OrderId, &order.Meneger, &order.OrderDate, &order.ReqDate, &order.PromDate, &order.ShDate, &order.IsAct, &order.Comment, &order.Customer, &order.Partner, &order.Distributor, &order.Name, &order.Id1C)
+			if err != nil {
+				return orders, err
+			}
+			orders = append(orders, order)
+		}
+	}
+
+	for _, Id := range inId {
+
+		row := base.db.QueryRow(ctx, `SELECT "orderId", meneger, "orderDate", "reqDate", "promDate", "shDate", "isAct", coment, customer, partner, disributor, name, "1СName" FROM public.orders Where "orderId" = $1`, Id)
+		err := row.Scan(&order.OrderId, &order.Meneger, &order.OrderDate, &order.ReqDate, &order.PromDate, &order.ShDate, &order.IsAct, &order.Comment, &order.Customer, &order.Partner, &order.Distributor, &order.Name, &order.Id1C)
+		if err != nil {
+			return orders, err
+		}
+		orders = append(orders, order)
+	}
+
+	return orders, nil
+}
+
+// Получение листа заказа по его ID
+func (base Base) TakeOrderList(ctx context.Context, orderId int) ([]mytypes.OrderList, error) {
+	var orderList []mytypes.OrderList
+	var pos mytypes.OrderList
+
+	rows, err := base.db.Query(ctx, `SELECT "orderId", model, amout, "servType", "srevActDate", "lastRed" FROM public."orderList WHERE "orderId" = $1"`, orderId)
+	if err != nil {
+		return orderList, err
+	}
+
+	for rows.Next() {
+		err := rows.Scan(&pos.Order, &pos.Model, &pos.Amout, &pos.ServType, &pos.ServActDate, &pos.LastRed)
+		if err != nil {
+			return orderList, err
+		}
+
+		orderList = append(orderList, pos)
+	}
+
+	return orderList, nil
+}

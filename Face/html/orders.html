@@ -69,27 +69,22 @@
     <div class="container-fluid" style="overflow-y:hidden; width: 2800px;  height: 55vh; overflow-x:hidden;">
         <div class="" >
                 <table class="table table-hover table-striped"style = "table-layout: fixed;" >
-                  <col span="18" style="width: 150px;">
+                  <col span="13" style="width: 150px;">
                     <thead>
                         <tr>
                             <th scope="col">Id</th>
-                            <th scope="col">Перейти</th>
-                            <th scope="col">SN</th>
-                            <th scope="col">MAC</th>
-                            <th scope="col">D-Model</th>
-                            <th scope="col">Rev</th>
-                            <th scope="col">T-Model</th>
-                            <th scope="col">Имя</th>
-                            <th scope="col">Состояние</th>
-                            <th scope="col">Дата</th>
-                            <th scope="col">Заказ</th>
-                            <th scope="col">Место</th>
-                            <th scope="col">Отгрузка</th>
+                            <th scope="col">Открыть</th>
+                            <th scope="col">№1С</th>
+                            <th scope="col">Менеджер</th>
+                            <th scope="col">Дата заказа</th>
+                            <th scope="col">Заказчик</th>
+                            <th scope="col">Партнер</th>
+                            <th scope="col">Дистрибьютор</th>
+                            <th scope="col">Требуемая дата</th>
+                            <th scope="col">Обащаная дата</th>
                             <th scope="col">Дата отгрузки</th>
-                            <th scope="col">Место отгрузки</th>
-                            <th scope="col">Дата приемки</th>
-                            <th scope="col">Документ приемки</th>
-                            <th scope="col">Заказ приемки</th>
+                            <th scope="col">Статус</th>
+                            <th scope="col">Имя</th>
                             
                         </tr>
                     </thead>
@@ -99,30 +94,24 @@
         <div  style=" ">
             <div class="" style="height: 45vh;  overflow-x:hidden; overflow-y:scroll; ">
                 <table class="table table-hover table-striped table-bordered"style = "table-layout: fixed" >
-                  <col span="18" style="width: 150px;">
+                  <col span="13" style="width: 150px;">
                     <tbody>
                     {{range .Tab}}
                     
-                    <tr class="{{if(eq .Condition "Не собрано")}} {{print "table-warning"}} {{end}} {{if(eq .Condition "Собрано")}} {{print "table-success"}} {{end}}">
-                        <th scope="row" onclick="document.o.location= '/works/device/mini?Id={{.Id}}'" >{{.Id}}</th>
-                        <td><a class="btn btn-outline-info" role="button" href="/works/device/mini?Id={{.Id}}" >Открыть</a></td>
-                        <td onclick="document.o.location= '/works/device/mini?Id={{.Id}}'" >{{.Sn}}</td>
-                        <td onclick="document.o.location= '/works/device/mini?Id={{.Id}}'" >{{.Mac}}</td>
-                        <td onclick="document.o.location= '/works/device/mini?Id={{.Id}}'" >{{.DModel}}</td>
-                        <td onclick="document.o.location= '/works/device/mini?Id={{.Id}}'" >{{.Rev}}</td>
-                        <td onclick="document.o.location= '/works/device/mini?Id={{.Id}}'" >{{.TModel}}</td>
-                        <td onclick="document.o.location= '/works/device/mini?Id={{.Id}}'" >{{.Name}}</td>
-                        <td onclick="document.o.location= '/works/device/mini?Id={{.Id}}'" >{{.Condition}}</td>
-                        <td onclick="document.o.location= '/works/device/mini?Id={{.Id}}'" >{{.CondDate}}</td>
-                        <td onclick="document.o.location= '/works/device/mini?Id={{.Id}}'" >{{.Order}}</td>
-                        <td onclick="document.o.location= '/works/device/mini?Id={{.Id}}'" >{{.Place}}</td>
-                        <td onclick="document.o.location= '/works/device/mini?Id={{.Id}}'" >{{.Shiped}}</td>
-                        <td onclick="document.o.location= '/works/device/mini?Id={{.Id}}'" >{{.ShipedDate}}</td>
-                        <td onclick="document.o.location= '/works/device/mini?Id={{.Id}}'" >{{.ShippedDest}}</td>
-                        <td onclick="document.o.location= '/works/device/mini?Id={{.Id}}'" >{{.TakenDate}}</td>
-                        <td onclick="document.o.location= '/works/device/mini?Id={{.Id}}'" >{{.TakenDoc}}</td>
-                        <td onclick="document.o.location= '/works/device/mini?Id={{.Id}}'" >{{.TakenOrder}}</td>
-                        
+                    <tr class="">
+                        <th scope="row" onclick="document.o.location= '/works/device/mini?Id={{.OrderId}}'" >{{.OrderId}}</th>
+                        <td><a class="btn btn-outline-info" role="button" href="/works/device/mini?Id={{.OrderId}}" >Открыть</a></td>
+                        <td onclick="document.o.location= '/works/device/mini?Id={{.OrderId}}'" >{{.Id1C}}</td>
+                        <td onclick="document.o.location= '/works/device/mini?Id={{.OrderId}}'" >{{.Meneger}}</td>
+                        <td onclick="document.o.location= '/works/device/mini?Id={{.OrderId}}'" >{{.OrderDate}}</td>
+                        <td onclick="document.o.location= '/works/device/mini?Id={{.OrderId}}'" >{{.Customer}}</td>
+                        <td onclick="document.o.location= '/works/device/mini?Id={{.OrderId}}'" >{{.Partner}}</td>
+                        <td onclick="document.o.location= '/works/device/mini?Id={{.OrderId}}'" >{{.Distributor}}</td>
+                        <td onclick="document.o.location= '/works/device/mini?Id={{.OrderId}}'" >{{.ReqDate}}</td>
+                        <td onclick="document.o.location= '/works/device/mini?Id={{.OrderId}}'" >{{.PromDate}}</td>
+                        <td onclick="document.o.location= '/works/device/mini?Id={{.OrderId}}'" >{{.ShDate}}</td>
+                        <td onclick="document.o.location= '/works/device/mini?Id={{.OrderId}}'" >{{.IsAct}}</td>
+                        <td onclick="document.o.location= '/works/device/mini?Id={{.OrderId}}'" >{{.Name}}</td>   
                     </tr>
                     
                     {{end}}

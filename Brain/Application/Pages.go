@@ -165,7 +165,18 @@ func MakeTMCPage(w http.ResponseWriter, devices []mytypes.DeviceClean, lable str
 
 	t := template.Must(template.ParseFiles("Face/html/TMC.html"))
 	t.Execute(w, table)
+}
 
+func MakeOrdersPage(w http.ResponseWriter, orders []mytypes.OrderRaw, lable string) {
+
+	type ordersPage struct {
+		Lable string
+		Tab   []mytypes.OrderRaw
+	}
+	table := ordersPage{lable, orders}
+
+	t := template.Must(template.ParseFiles("Face/html/orders.html"))
+	t.Execute(w, table)
 }
 
 func MakeStoragePage(w http.ResponseWriter, storage []mytypes.StorageCount, lable string) {
@@ -217,4 +228,25 @@ func (a App) TMCSearch(w http.ResponseWriter, r *http.Request, pr httprouter.Par
 		fmt.Println(err)
 	}
 	MakeTMCPage(w, devices, "Результаты поиска"+snString)
+}
+
+func (a App) OrderPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	orders, err := a.Db.TakeOrderById(a.ctx)
+	if err != nil {
+		fmt.Print(err)
+	}
+
+	MakeOrdersPage(w, orders, "Заказы")
+}
+
+func MakeOrderMiniPage(w http.ResponseWriter, order mytypes.OrderRaw, orderList []mytypes.OrderList) {
+	type orderPage struct {
+		Order mytypes.OrderRaw
+		List  []mytypes.OrderList
+	}
+
+	page := orderPage{order, orderList}
+
+	t := template.Must(template.ParseFiles("Face/html/order.html"))
+	t.Execute(w, page)
 }

@@ -73,3 +73,28 @@ type DeviceEvent struct {
 	EventTime time.Time
 	User      int
 }
+
+type OrderRaw struct {
+	OrderId     int
+	Id1C        int
+	Meneger     int
+	OrderDate   time.Time
+	Customer    string
+	Partner     string
+	Distributor string
+	ReqDate     time.Time
+	PromDate    time.Time
+	ShDate      time.Time
+	IsAct       bool
+	Comment     string
+	Name        string
+}
+
+type OrderList struct {
+	Order       int
+	Model       string
+	Amout       int
+	ServType    int
+	ServActDate time.Time
+	LastRed     time.Time
+}
