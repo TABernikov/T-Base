@@ -250,3 +250,17 @@ func MakeOrderMiniPage(w http.ResponseWriter, order mytypes.OrderRaw, orderList 
 	t := template.Must(template.ParseFiles("Face/html/order.html"))
 	t.Execute(w, page)
 }
+
+func (a App) OrderMiniPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+
+	var order mytypes.OrderRaw
+	var err error
+
+	if r.FormValue("Id") == "nil" { // Нужно сделать как в TMCMiniPage
+		order, err = a.Db.TakeOrderById(a.ctx, 0)
+		if err != nil {
+			fmt.Fprintln(w, err)
+		}
+	}
+
+}
