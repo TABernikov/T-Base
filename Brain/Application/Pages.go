@@ -253,7 +253,7 @@ func MakeOrderMiniPage(w http.ResponseWriter, order mytypes.OrderRaw, orderList 
 
 func (a App) OrderMiniPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 
-	var order mytypes.OrderRaw
+	var order []mytypes.OrderRaw
 	var err error
 
 	if r.FormValue("Id") == "nil" { // Нужно сделать как в TMCMiniPage
