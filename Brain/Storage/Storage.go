@@ -25,9 +25,9 @@ func NewBase(user, pass, ip, baseName string) (*Base, error) {
 	return &Base{db: BasePointer}, nil
 }
 
-////////////////////////////////////
-// Функции получения пользователей//
-////////////////////////////////////
+/////////////////////////////////////
+// Функции получения пользователей //
+/////////////////////////////////////
 
 // Получение пользователя по логину
 func (base Base) TakeUserByLogin(ctx context.Context, inlogin string) (mytypes.User, error) {
@@ -436,16 +436,68 @@ func (base Base) TakeOrderById(ctx context.Context, inId ...int) ([]mytypes.Orde
 			}
 			orders = append(orders, order)
 		}
+	} else {
+
+		for _, Id := range inId {
+
+			row := base.db.QueryRow(ctx, `SELECT "orderId", meneger, "orderDate", "reqDate", "promDate", "shDate", "isAct", coment, customer, partner, disributor, name, "1СName" FROM public.orders Where "orderId" = $1`, Id)
+			err := row.Scan(&order.OrderId, &order.Meneger, &order.OrderDate, &order.ReqDate, &order.PromDate, &order.ShDate, &order.IsAct, &order.Comment, &order.Customer, &order.Partner, &order.Distributor, &order.Name, &order.Id1C)
+			if err != nil {
+				return orders, err
+			}
+			orders = append(orders, order)
+		}
 	}
 
-	for _, Id := range inId {
+	return orders, nil
+}
 
-		row := base.db.QueryRow(ctx, `SELECT "orderId", meneger, "orderDate", "reqDate", "promDate", "shDate", "isAct", coment, customer, partner, disributor, name, "1СName" FROM public.orders Where "orderId" = $1`, Id)
-		err := row.Scan(&order.OrderId, &order.Meneger, &order.OrderDate, &order.ReqDate, &order.PromDate, &order.ShDate, &order.IsAct, &order.Comment, &order.Customer, &order.Partner, &order.Distributor, &order.Name, &order.Id1C)
+//////////////////////////////////////////
+// Функции получения читабельных заказов//
+//////////////////////////////////////////
+
+func (bace Base) TakeCleanOrderById(ctx context.Context, inId ...int) ([]mytypes.OrderClean, error) {
+	var orders []mytypes.OrderClean
+	var order mytypes.OrderClean
+	var orderDate, reqDate, promDate, shDate time.Time
+	var isAct bool
+
+	if len(inId) == 0 {
+		rows, err := bace.db.Query(ctx, `SELECT "orderId", meneger, "orderDate", "reqDate", "promDate", "shDate", "isAct", coment, customer, partner, disributor, name, "1СName" FROM public."cleanOrder"`)
 		if err != nil {
 			return orders, err
 		}
-		orders = append(orders, order)
+
+		for rows.Next() {
+			err := rows.Scan(&order.OrderId, &order.Meneger, &orderDate, &reqDate, &promDate, &shDate, &isAct, &order.Comment, &order.Customer, &order.Partner, &order.Distributor, &order.Name, &order.Id1C)
+			if err != nil {
+				return orders, err
+			}
+			order.OrderDate = orderDate.Format("02.01.2006")
+			order.ReqDate = reqDate.Format("02.01.2006")
+			order.PromDate = promDate.Format("02.01.2006")
+			order.ShDate = shDate.Format("02.01.2006")
+			order.IsAct = strconv.FormatBool(isAct)
+			orders = append(orders, order)
+		}
+	} else {
+
+		for _, id := range inId {
+
+			row := bace.db.QueryRow(ctx, `SELECT "orderId", meneger, "orderDate", "reqDate", "promDate", "shDate", "isAct", coment, customer, partner, disributor, name, "1СName" FROM public."cleanOrder" WHERE "orderId" = $1`, id)
+			err := row.Scan(&order.OrderId, &order.Meneger, &orderDate, &reqDate, &promDate, &shDate, &isAct, &order.Comment, &order.Customer, &order.Partner, &order.Distributor, &order.Name, &order.Id1C)
+			if err != nil {
+				return orders, err
+			}
+
+			order.OrderDate = orderDate.Format("02.01.2006")
+			order.ReqDate = reqDate.Format("02.01.2006")
+			order.PromDate = promDate.Format("02.01.2006")
+			order.ShDate = shDate.Format("02.01.2006")
+			order.IsAct = strconv.FormatBool(isAct)
+			orders = append(orders, order)
+
+		}
 	}
 
 	return orders, nil
@@ -475,6 +527,54 @@ func (base Base) TakeOrderList(ctx context.Context, orderId int) ([]mytypes.Orde
 	}
 
 	return orderList, nil
+}
+
+/////////////////////////////////////////////////
+// функции получения читабельного листа заказов//
+/////////////////////////////////////////////////
+
+// Получение читабельного листа заказа по его ID
+func (base Base) TakeCleanOrderList(ctx context.Context, orderId int) ([]mytypes.OrderListClean, error) {
+	var orderList []mytypes.OrderListClean
+	var pos mytypes.OrderListClean
+	var servActDate, lastRed time.Time
+
+	rows, err := base.db.Query(ctx, `SELECT "orderId", model, amout, "servType", "srevActDate", "lastRed" FROM public."cleanOrderList" WHERE "orderId" = $1`, orderId)
+	if err != nil {
+		return orderList, err
+	}
+
+	for rows.Next() {
+		err := rows.Scan(&pos.Order, &pos.Model, &pos.Amout, &pos.ServType, &servActDate, &lastRed)
+		if err != nil {
+			return orderList, err
+		}
+
+		pos.ServActDate = servActDate.Format("02.01.2006")
+		pos.LastRed = lastRed.Format("02.01.2006 15:04:05")
+		orderList = append(orderList, pos)
+	}
+
+	return orderList, nil
+}
+
+/////////////////////////////////
+// Функции изменения устройств //
+/////////////////////////////////
+
+func (base Base) SnToWork(ctx context.Context, InSn ...string) (int, error) {
+	qq := `UPDATE public.sns SET condition = 3, place= 0 WHERE`
+	for i, sn := range InSn {
+		if i == 0 {
+			qq += (`( sn = '` + sn + `') `)
+		} else {
+			qq += (`OR ( sn = '` + sn + `') `)
+		}
+	}
+
+	res, err := base.db.Exec(ctx, qq)
+
+	return int(res.RowsAffected()), err
 }
 
 ///////////////////

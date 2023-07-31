@@ -30,112 +30,129 @@
                     </nav>
                     
                     <div class="tab-content" id="nav-tabContent">
-                    <div class="tab-pane fade active show" id="nav-home" role="tabpanel" aria-labelledby="nav-home-tab">
-                        <table class="table" style="font-size: 80%;">
-                            <tbody>
-                                <tr>
-                                    <th>1С номер:</th>
-                                    <td>{{.Order.Id1C}}</td>
-                                    <th>Имя заказа:</th>
-                                    <td>{{.Order.Name}}</td>
-                                </tr>
-                                <tr>
-                                    <th>Менеджер:</th>
-                                    <td>{{.Order.Meneger}}</td>
-                                    <th>Заказчик:</th>
-                                    <td>{{.Order.Customer}}</td>
-                                </tr>
-                                <tr>
-                                    <th>Дата заказа:</th>
-                                    <td>{{.Order.OrderDate}}</td>
-                                    <th>Требуемая дата</th>
-                                    <td>{{.Order.ReqDate}}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="tab-pane fade" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab">
-                        <table class="table" style="font-size: 80%;">
-                            <tbody>
-                                <tr>
-                                    <th>1с номер:</th>
-                                    <td>{{.Order.Id1C}}</td>
-                                    <th>Имя заказа:</th>
-                                    <td>{{.Order.Name}}</td>
+                        <div class="tab-pane fade active show" id="nav-home" role="tabpanel" aria-labelledby="nav-home-tab">
+                            <table class="table" style="font-size: 80%;">
+                                <tbody>
+                                    <tr>
+                                        <th>1С номер:</th>
+                                        <td>{{.Order.Id1C}}</td>
+                                        <th>Имя заказа:</th>
+                                        <td>{{.Order.Name}}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Менеджер:</th>
+                                        <td>{{.Order.Meneger}}</td>
+                                        <th>Заказчик:</th>
+                                        <td>{{.Order.Customer}}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Дата заказа:</th>
+                                        <td>{{.Order.OrderDate}}</td>
+                                        <th>Требуемая дата</th>
+                                        <td>{{.Order.ReqDate}}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="tab-pane fade" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab">
+                            <table class="table" style="font-size: 80%;">
+                                <tbody>
+                                    <tr>
+                                        <th>1с номер:</th>
+                                        <td>{{.Order.Id1C}}</td>
+                                        <th>Имя заказа:</th>
+                                        <td>{{.Order.Name}}</td>
 
-                                </tr>
-                                <tr>
-                                    <th>Менеджер:</th>
-                                    <td>{{.Order.Meneger}}</td>
-                                    <th>Id:</th>
-                                    <td>{{.Order.OrderId}}</td>
-                                </tr>
-                                <tr>
-                                    <th>Заказчик:</th>
-                                    <td>{{.Order.Customer}}</td>
-                                    <th>Партнер:</th>
-                                    <td>{{.Order.Partner}}</td>
-                                </tr>
-                                <tr>
-                                    <th>Дистрибьютор:</th>
-                                    <td>{{.Order.Distributor}}</td>
-                                    <th>Комментарий:</th>
-                                    <td>{{.Order.Comment}}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="tab-pane fade" id="nav-contact" role="tabpanel" aria-labelledby="nav-contact-tab">
-                        <table class="table" style="font-size: 80%;">
-                            <tbody>
-                                <tr>
-                                    <th>Дата заказа:</th>
-                                    <td>{{.Order.OrderDate}}</td>
-                                    <th>Требуемая дата:</th>
-                                    <td>{{.Order.ReqDate}}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Менеджер:</th>
+                                        <td>{{.Order.Meneger}}</td>
+                                        <th>Id:</th>
+                                        <td>{{.Order.OrderId}}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Заказчик:</th>
+                                        <td>{{.Order.Customer}}</td>
+                                        <th>Партнер:</th>
+                                        <td>{{.Order.Partner}}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Дистрибьютор:</th>
+                                        <td>{{.Order.Distributor}}</td>
+                                        <th>Комментарий:</th>
+                                        <td>{{.Order.Comment}}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="tab-pane fade" id="nav-contact" role="tabpanel" aria-labelledby="nav-contact-tab">
+                            <table class="table" style="font-size: 80%;">
+                                <tbody>
+                                    <tr>
+                                        <th>Дата заказа:</th>
+                                        <td>{{.Order.OrderDate}}</td>
+                                        <th>Требуемая дата:</th>
+                                        <td>{{.Order.ReqDate}}</td>
 
-                                </tr>
-                                <tr>
-                                    <th>Обещаная дата:</th>
-                                    <td>{{.Order.PromDate}}</td>
-                                    <th>Дата отгрузки:</th>
-                                    <td>{{.Order.ShDate}}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                                    </tr>
+                                    <tr>
+                                        <th>Обещаная дата:</th>
+                                        <td>{{.Order.PromDate}}</td>
+                                        <th>Дата отгрузки:</th>
+                                        <td>{{.Order.ShDate}}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                     
                 </div>
 
-                {{if .List}}
+                
                 <div class="col">
-                    <div class="container-fluid" style="height: 100vh; overflow-y: scroll;">
-                        <table class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th scope="col">Модель</th>
-                                    <th scope="col">Кол-во</th>
-                                    <th scope="col">Тип сервиса</th>
-                                    <th scope="col">Дата активации сервиса</th>
-                                    <th scope="col">Последниее редактирование</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {{range .List}}
-                                <tr>
-                                    <th scope="row">{{.Model}}</th>
-                                    <td>{{.Amout}}</td>
-                                    <td>{{.ServType}}</td>
-                                    <td>{{.ServActDate}}</td> 
-                                    <td>{{.LastRed}}</td>
-                                </tr>
-                                {{end}}
-                            </tbody>
-                        </table>
+                    <nav>
+                        <div class="nav nav-tabs mb-3" id="nav-tab" role="tablist">
+                            {{if .List}}<button class="nav-link active" id="nav-list-tab" data-bs-toggle="tab" data-bs-target="#nav-list" type="button" role="tab" aria-controls="nav-list" aria-selected="true">Состав заказа</button>{{end}}
+                            <button class="nav-link" id="nav-res-tab" data-bs-toggle="tab" data-bs-target="#nav-res" type="button" role="tab" aria-controls="nav-res" aria-selected="false" tabindex="-1">Резерв</button>
+                        </div>
+                    </nav>
+
+                    <div class="tab-content" id="nav-tabContent">
+                        {{if .List}}
+                        <div class="tab-pane fade active show" id="nav-list" role="tabpanel" aria-labelledby="nav-list-tab">
+                            <div class="container-fluid" style="height: 80vh; overflow-y: scroll;">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Модель</th>
+                                            <th scope="col">Кол-во</th>
+                                            <th scope="col">Тип сервиса</th>
+                                            <th scope="col">Дата активации сервиса</th>
+                                            <th scope="col">Последниее редактирование</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {{range .List}}
+                                        <tr>
+                                            <td>{{.Model}}</td>
+                                            <td>{{.Amout}}</td>
+                                            <td>{{.ServType}}</td>
+                                            <td>{{.ServActDate}}</td> 
+                                            <td>{{.LastRed}}</td>
+                                        </tr>
+                                        {{end}}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        {{end}}
+                        <div class="tab-pane fade" id="nav-res" role="tabpanel" aria-labelledby="nav-res-tab">
+                            <button type="button" class="btn btn-outline-info">Открыть резерв в ТМЦ</button>
+                            //В разработке// 
+                        </div>
                     </div>
                 </div>
-                {{end}}
+                
             </div>
                 
            

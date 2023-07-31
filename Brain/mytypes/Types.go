@@ -90,11 +90,36 @@ type OrderRaw struct {
 	Name        string
 }
 
+type OrderClean struct {
+	OrderId     int
+	Id1C        int
+	Meneger     string
+	OrderDate   string
+	Customer    string
+	Partner     string
+	Distributor string
+	ReqDate     string
+	PromDate    string
+	ShDate      string
+	IsAct       string
+	Comment     string
+	Name        string
+}
+
 type OrderList struct {
 	Order       int
-	Model       string
+	Model       int
 	Amout       int
 	ServType    int
 	ServActDate time.Time
 	LastRed     time.Time
+}
+
+type OrderListClean struct {
+	Order       int
+	Model       string
+	Amout       int
+	ServType    int
+	ServActDate string
+	LastRed     string
 }

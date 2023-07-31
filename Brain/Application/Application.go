@@ -47,9 +47,11 @@ func (a App) Routs(r *httprouter.Router) {
 	r.GET("/works/storage", a.authtorized(a.StoragePage))
 	r.GET("/works/places", a.authtorized(a.StorageByPlacePage))
 	r.GET("/works/orders", a.authtorized(a.OrderPage))
-	r.GET("/works/order/mini", a.authtorized((a.OrderMiniPage)))
+	r.GET("/works/order/mini", a.authtorized(a.OrderMiniPage))
+	r.GET("/works/towork", a.authtorized(a.ToWorkPage))
 	r.POST("/works/snsearch", a.authtorized(a.SnSearch))
 	r.POST("/works/tmcsearch", a.authtorized(a.TMCSearch))
+	r.POST("/works/towork", a.authtorized(a.ToWork))
 	//r.GET("/works/new", a.authtorized(a.NewSns))
 }
 
