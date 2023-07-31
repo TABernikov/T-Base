@@ -322,7 +322,15 @@ func MakeImputPage(w http.ResponseWriter, postPath, title, imputText, btnText st
 }
 
 func MakeAlertPage(w http.ResponseWriter) {
-	type alertPage struct{}
+	type alertPage struct {
+		lable   string
+		title   string
+		status  int
+		text    string
+		subText string
+		btnText string
+		btnLink string
+	}
 
 	tmp := alertPage{}
 
