@@ -31,6 +31,7 @@ func (a App) Routs(r *httprouter.Router) {
 	// открытые пути
 	r.ServeFiles("/works/Face/*filepath", http.Dir("Face"))
 	r.ServeFiles("/works/device/Face/*filepath", http.Dir("Face"))
+	r.ServeFiles("/works/order/Face/*filepath", http.Dir("Face"))
 	r.GET("/", a.startPage)
 	r.GET("/works/login", func(w http.ResponseWriter, r *http.Request, pr httprouter.Params) { a.LoginPage(w, "") })
 	r.GET("/works/home", a.homePage)
@@ -46,6 +47,7 @@ func (a App) Routs(r *httprouter.Router) {
 	r.GET("/works/storage", a.authtorized(a.StoragePage))
 	r.GET("/works/places", a.authtorized(a.StorageByPlacePage))
 	r.GET("/works/orders", a.authtorized(a.OrderPage))
+	r.GET("/works/order/mini", a.authtorized((a.OrderMiniPage)))
 	r.POST("/works/snsearch", a.authtorized(a.SnSearch))
 	r.POST("/works/tmcsearch", a.authtorized(a.TMCSearch))
 	//r.GET("/works/new", a.authtorized(a.NewSns))

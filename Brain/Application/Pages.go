@@ -91,9 +91,6 @@ func (a App) DeviceMiniPage(w http.ResponseWriter, r *http.Request, pr httproute
 
 		Id, err := strconv.Atoi(r.FormValue("Id"))
 		if err != nil {
-
-			t := template.Must(template.ParseFiles("Face/html/komm.html"))
-			t.Execute(w, nil)
 			fmt.Fprintln(w, "Устройство не найдено")
 			return
 		}
@@ -105,7 +102,11 @@ func (a App) DeviceMiniPage(w http.ResponseWriter, r *http.Request, pr httproute
 		device = devices[0]
 	}
 
-	events, _ := a.Db.TakeDeviceEvent(a.ctx, device.Id)
+	events, err := a.Db.TakeDeviceEvent(a.ctx, device.Id)
+	if err != nil {
+		fmt.Fprintln(w, err)
+		return
+	}
 
 	MakeDeviceMiniPage(w, device, events)
 }
@@ -253,14 +254,35 @@ func MakeOrderMiniPage(w http.ResponseWriter, order mytypes.OrderRaw, orderList 
 
 func (a App) OrderMiniPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 
-	var order []mytypes.OrderRaw
-	var err error
+	var order mytypes.OrderRaw
 
 	if r.FormValue("Id") == "nil" { // Нужно сделать как в TMCMiniPage
-		order, err = a.Db.TakeOrderById(a.ctx, 0)
+		orders, err := a.Db.TakeOrderById(a.ctx, 0)
 		if err != nil {
 			fmt.Fprintln(w, err)
+			return
 		}
+		order = orders[0]
+
+	} else {
+		Id, err := strconv.Atoi(r.FormValue("Id"))
+		if err != nil {
+			fmt.Fprintln(w, err)
+			return
+		}
+		orders, err := a.Db.TakeOrderById(a.ctx, Id)
+		if err != nil {
+			fmt.Fprintln(w, err)
+			return
+		}
+		order = orders[0]
 	}
 
+	orderList, err := a.Db.TakeOrderList(a.ctx, order.OrderId)
+	if err != nil {
+		fmt.Fprintln(w, "Ошибка поиска состава заказа", err)
+		return
+	}
+
+	MakeOrderMiniPage(w, order, orderList)
 }

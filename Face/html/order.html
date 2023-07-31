@@ -22,10 +22,10 @@
                 <div class="col">
                     <nav>
                     <div class="nav nav-tabs mb-3" id="nav-tab" role="tablist">
-                        <button class="text-sm-center nav-link disabled" >{{.Device.Name}}&nbsp;&nbsp;Sn:{{.Device.Sn}}</button>
+                        <button class="text-sm-center nav-link disabled" >{{.Order.Name}}&nbsp;&nbsp;#:{{.Order.Id1C}}</button>
                         <button class="nav-link active" id="nav-home-tab" data-bs-toggle="tab" data-bs-target="#nav-home" type="button" role="tab" aria-controls="nav-home" aria-selected="true">Главная</button>
                         <button class="nav-link" id="nav-profile-tab" data-bs-toggle="tab" data-bs-target="#nav-profile" type="button" role="tab" aria-controls="nav-profile" aria-selected="false" tabindex="-1">Детали</button>
-                        <button class="nav-link" id="nav-contact-tab" data-bs-toggle="tab" data-bs-target="#nav-contact" type="button" role="tab" aria-controls="nav-contact" aria-selected="false" tabindex="-1">Приемка/Отгрузка</button>
+                        <button class="nav-link" id="nav-contact-tab" data-bs-toggle="tab" data-bs-target="#nav-contact" type="button" role="tab" aria-controls="nav-contact" aria-selected="false" tabindex="-1">Даты</button>
                     </div>
                     </nav>
                     
@@ -34,28 +34,22 @@
                         <table class="table" style="font-size: 80%;">
                             <tbody>
                                 <tr>
-                                    <th>Наименование:</th>
-                                    <td>{{.Device.Name}}</td>
-                                    <th>SN:</th>
-                                    <td>{{.Device.Sn}}</td>
+                                    <th>1С номер:</th>
+                                    <td>{{.Order.Id1C}}</td>
+                                    <th>Имя заказа:</th>
+                                    <td>{{.Order.Name}}</td>
                                 </tr>
                                 <tr>
-                                    <th>DModel:</th>
-                                    <td>{{.Device.DModel}}</td>
-                                    <th>Место:</th>
-                                    <td>{{.Device.Place}}</td>
+                                    <th>Менеджер:</th>
+                                    <td>{{.Order.Meneger}}</td>
+                                    <th>Заказчик:</th>
+                                    <td>{{.Order.Customer}}</td>
                                 </tr>
                                 <tr>
-                                    <th>TModel:</th>
-                                    <td>{{.Device.TModel}}</td>
-                                    <th>Статус</th>
-                                    <td>{{.Device.Condition}}</td>
-                                </tr>
-                                <tr>
-                                    <th>Заказ:</th>
-                                    <td>{{.Device.Order}}</td>
-                                    <th>Изм. статус.</th>
-                                    <td>{{.Device.CondDate}}</td>
+                                    <th>Дата заказа:</th>
+                                    <td>{{.Order.OrderDate}}</td>
+                                    <th>Требуемая дата</th>
+                                    <td>{{.Order.ReqDate}}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -64,23 +58,29 @@
                         <table class="table" style="font-size: 80%;">
                             <tbody>
                                 <tr>
-                                    <th>Id:</th>
-                                    <td>{{.Device.Id}}</td>
-                                    <th>DModel:</th>
-                                    <td>{{.Device.DModel}}</td>
+                                    <th>1с номер:</th>
+                                    <td>{{.Order.Id1C}}</td>
+                                    <th>Имя заказа:</th>
+                                    <td>{{.Order.Name}}</td>
 
                                 </tr>
                                 <tr>
-                                    <th>SN:</th>
-                                    <td>{{.Device.Sn}}</td>
-                                    <th>TModel:</th>
-                                    <td>{{.Device.TModel}}</td>
+                                    <th>Менеджер:</th>
+                                    <td>{{.Order.Meneger}}</td>
+                                    <th>Id:</th>
+                                    <td>{{.Order.OrderId}}</td>
                                 </tr>
                                 <tr>
-                                    <th>MAC:</th>
-                                    <td>{{.Device.Mac}}</td>
-                                    <th>Ревизия:</th>
-                                    <td>{{.Device.Rev}}</td>
+                                    <th>Заказчик:</th>
+                                    <td>{{.Order.Customer}}</td>
+                                    <th>Партнер:</th>
+                                    <td>{{.Order.Partner}}</td>
+                                </tr>
+                                <tr>
+                                    <th>Дистрибьютор:</th>
+                                    <td>{{.Order.Distributor}}</td>
+                                    <th>Комментарий:</th>
+                                    <td>{{.Order.Comment}}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -89,23 +89,17 @@
                         <table class="table" style="font-size: 80%;">
                             <tbody>
                                 <tr>
-                                    <th>Отгрузка:</th>
-                                    <td>{{.Device.Shiped}}</td>
-                                    <th>Заказ приёмки:</th>
-                                    <td>{{.Device.TakenOrder}}</td>
+                                    <th>Дата заказа:</th>
+                                    <td>{{.Order.OrderDate}}</td>
+                                    <th>Требуемая дата:</th>
+                                    <td>{{.Order.ReqDate}}</td>
 
                                 </tr>
                                 <tr>
+                                    <th>Обещаная дата:</th>
+                                    <td>{{.Order.PromDate}}</td>
                                     <th>Дата отгрузки:</th>
-                                    <td>{{.Device.ShipedDate}}</td>
-                                    <th>Дата приемки:</th>
-                                    <td>{{.Device.TakenDate}}</td>
-                                </tr>
-                                <tr>
-                                    <th>Место отгрузки:</th>
-                                    <td>{{.Device.ShippedDest}}</td>
-                                    <th>Документ приемки:</th>
-                                    <td>{{.Device.TakenDoc}}</td>
+                                    <td>{{.Order.ShDate}}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -114,31 +108,31 @@
                     
                 </div>
 
-                {{if .Events}}
+                {{if .List}}
                 <div class="col">
                     <div class="container-fluid" style="height: 100vh; overflow-y: scroll;">
                         <table class="table table-striped">
                             <thead>
                                 <tr>
-                                    <th scope="col">ID</th>
-                                    <th scope="col">Событие</th>
-                                    <th scope="col">Текст</th>
-                                    <th scope="col">Дата</th>
-                                    <th scope="col">Сотрудник</th>
+                                    <th scope="col">Модель</th>
+                                    <th scope="col">Кол-во</th>
+                                    <th scope="col">Тип сервиса</th>
+                                    <th scope="col">Дата активации сервиса</th>
+                                    <th scope="col">Последниее редактирование</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {{range .Events}}
+                                {{range .List}}
                                 <tr>
-                                    <th scope="row">{{.LogId}}</th>
-                                    <td>{{.EventType}}</td>
-                                    <td>{{.EventText}}</td>
-                                    <td>{{.EventTime}}</td> 
-                                    <td>{{.User}}</td>
+                                    <th scope="row">{{.Model}}</th>
+                                    <td>{{.Amout}}</td>
+                                    <td>{{.ServType}}</td>
+                                    <td>{{.ServActDate}}</td> 
+                                    <td>{{.LastRed}}</td>
                                 </tr>
                                 {{end}}
                             </tbody>
-                      </table>
+                        </table>
                     </div>
                 </div>
                 {{end}}
