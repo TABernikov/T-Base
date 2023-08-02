@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <title>Уведомление</title>
+    <title>{{.Lable}}</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" href="Face\img\t-kom-ico.svg">
@@ -16,16 +16,16 @@
 <body>
     <div class="d-inline-flex justify-content-center" style="height: 100vh; width: 100vw;" >
         <div class="container align-self-center">
-            <div class="alert alert-warning" role="alert">
-                <h4 class="alert-heading ">Отлично сработано!</h4>
-                <p>О да, Вы успешно прочитали это важное уведомляющее сообщение. Этот пример текста будет работать немного дольше, чтобы Вы могли увидеть, как интервалы в уведомлении работают с этим типом контента.</p>
+            <div class="alert {{if(eq .Status 1 )}} {{print "alert-success"}} {{else if(eq .Status 2 )}} {{print "alert-warning"}} {{else if(eq .Status 3 )}} {{print "alert-info"}} {{else if(eq .Status 4 )}} {{print "alert-primary"}} {{else if(eq .Status  5 )}} {{print "alert-danger"}} {{end}}" role="alert">
+                <h4 class="alert-heading ">{{.Heading}}</h4>
+                <p>{{.Text}}</p>
                 <hr>
-                <p class="mb-0">Когда Вам нужно, обязательно используйте утилиты полей, чтобы все было в хорошо и аккуратно.</p>
+                <p class="mb-0">{{.SubText}}</p>
                <div class="d-flex justify-content-end">
                 
-                    <a type="button" class="btn btn-outline-warning " href="">Назад</a>
+                    <a type="button" class="btn {{if(eq .Status 1 )}} {{print "btn-outline-success"}} {{else if(eq .Status 2 )}} {{print "btn-outline-warning"}} {{else if(eq .Status 3 )}} {{print "btn-outline-info"}} {{else if(eq .Status 4 )}} {{print "btn-outline-primary"}} {{else if(eq .Status 5 )}} {{print "btn-outline-danger"}} {{end}} " href="">Назад</a>
                     <p>&nbsp;</p>
-                    <a type="button" class="btn btn-outline-warning " href="#">Текст кнопки</a>
+                    <a type="button" class="btn {{if(eq .Status 1 )}} {{print "btn-outline-success"}} {{else if(eq .Status 2 )}} {{print "btn-outline-warning"}} {{else if(eq .Status 3 )}} {{print "btn-outline-info"}} {{else if(eq .Status 4 )}} {{print "btn-outline-primary"}} {{else if(eq .Status 5 )}} {{print "btn-outline-danger"}} {{end}} " href="{{.BtnLink}}">{{.BtnText}}</a>
                 
             </div>
                 

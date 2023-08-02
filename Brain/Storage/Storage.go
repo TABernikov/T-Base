@@ -8,17 +8,18 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 // Объект базы данных
 type Base struct {
-	db *pgx.Conn
+	db *pgxpool.Pool
 }
 
 // инициализация базы
 func NewBase(user, pass, ip, baseName string) (*Base, error) {
-	BasePointer, err := pgx.Connect(context.Background(), "postgres://"+user+":"+pass+"@localhost:5432/"+baseName+"")
+	BasePointer, err := pgxpool.New(context.Background(), "postgres://"+user+":"+pass+"@localhost:5432/"+baseName+"")
+	fmt.Println("postgres://" + user + ":" + pass + "@localhost:5432/" + baseName + "")
 	if err != nil {
 		return &Base{}, err
 	}
@@ -358,6 +359,28 @@ func (base Base) TakeDeviceEvent(ctx context.Context, deviceId int) ([]mytypes.D
 		if err != nil {
 			return events, err
 		}
+		events = append(events, event)
+	}
+
+	return events, nil
+}
+
+func (base Base) TakeCleanDeviceEvent(ctx context.Context, deviceId int) ([]mytypes.DeviceEventClean, error) {
+	var events []mytypes.DeviceEventClean
+	var event mytypes.DeviceEventClean
+	var eventTime time.Time
+
+	rows, err := base.db.Query(ctx, `SELECT "logId", "eventType", "eventText", "eventTime", "user" FROM public."cleanDeviceLog" WHERE "deviceId" = $1 ORDER BY "logId"`, deviceId)
+	if err != nil {
+		return events, err
+	}
+
+	for rows.Next() {
+		err := rows.Scan(&event.LogId, &event.EventType, &event.EventText, &eventTime, &event.User)
+		if err != nil {
+			return events, err
+		}
+		event.EventTime = eventTime.Format("02.01.2006")
 		events = append(events, event)
 	}
 

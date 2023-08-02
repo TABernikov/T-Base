@@ -74,6 +74,14 @@ type DeviceEvent struct {
 	User      int
 }
 
+type DeviceEventClean struct {
+	LogId     int
+	EventType string
+	EventText string
+	EventTime string
+	User      string
+}
+
 type OrderRaw struct {
 	OrderId     int
 	Id1C        int

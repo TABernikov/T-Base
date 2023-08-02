@@ -82,7 +82,7 @@ func (a App) DeviceMiniPage(w http.ResponseWriter, r *http.Request, pr httproute
 		device = devices[0]
 	}
 
-	events, err := a.Db.TakeDeviceEvent(a.ctx, device.Id)
+	events, err := a.Db.TakeCleanDeviceEvent(a.ctx, device.Id)
 	if err != nil {
 		fmt.Fprintln(w, err)
 		return
@@ -225,11 +225,20 @@ func (a App) ToWork(w http.ResponseWriter, r *http.Request, pr httprouter.Params
 	count, err := a.Db.SnToWork(a.ctx, Sns...)
 	if err != nil {
 		fmt.Fprintln(w, err)
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
 		return
 	}
 
-	fmt.Println("Успешно: ", count)
-	MakeAlertPage(w)
+	if count == 0 {
+		MakeAlertPage(w, 5, "Предупреждение", "Не передано", "Устройства не были переданы в работу", "Внесено "+strconv.Itoa(len(Sns))+" серийных номеров	Передано "+strconv.Itoa(count)+"  серийных номеров", "Главная", "/works/prof")
+		return
+	} else if len(Sns)-count == 0 {
+		MakeAlertPage(w, 1, "Готово", "Передано", "Все устройства переданы в работу", "Внесено "+strconv.Itoa(len(Sns))+" серийных номеров	Передано "+strconv.Itoa(count)+"  серийных номеров", "Главная", "/works/prof")
+		return
+	} else if len(Sns)-count > 0 {
+		MakeAlertPage(w, 2, "Готово", "Частично", "Часть устройств не передана в работу", "Внесено "+strconv.Itoa(len(Sns))+" серийных номеров	Передано "+strconv.Itoa(count)+"  серийных номеров", "Главная", "/works/prof")
+		return
+	}
 }
 
 //////////////////////////
@@ -248,10 +257,10 @@ func MakeTMCPage(w http.ResponseWriter, devices []mytypes.DeviceClean, lable str
 	t.Execute(w, table)
 }
 
-func MakeDeviceMiniPage(w http.ResponseWriter, device mytypes.DeviceClean, events []mytypes.DeviceEvent) {
+func MakeDeviceMiniPage(w http.ResponseWriter, device mytypes.DeviceClean, events []mytypes.DeviceEventClean) {
 	type devicePage struct {
 		Device mytypes.DeviceClean
-		Events []mytypes.DeviceEvent
+		Events []mytypes.DeviceEventClean
 	}
 
 	page := devicePage{device, events}
@@ -321,19 +330,28 @@ func MakeImputPage(w http.ResponseWriter, postPath, title, imputText, btnText st
 	t.Execute(w, tmp)
 }
 
-func MakeAlertPage(w http.ResponseWriter) {
+func MakeAlertPage(w http.ResponseWriter, status int, lable, heading, text, subText, btnText, btnLink string) {
 	type alertPage struct {
-		lable   string
-		title   string
-		status  int
-		text    string
-		subText string
-		btnText string
-		btnLink string
+		Lable   string
+		Heading string
+		Status  int
+		Text    string
+		SubText string
+		BtnText string
+		BtnLink string
 	}
 
-	tmp := alertPage{}
+	tmp := alertPage{
+		Lable:   lable,
+		Heading: heading,
+		Status:  status,
+		Text:    text,
+		SubText: subText,
+		BtnText: btnText,
+		BtnLink: btnLink,
+	}
 
-	t := template.Must(template.ParseFiles("Face/html/alert.html"))
-	t.Execute(w, tmp)
+	testTemplate := template.Must(template.ParseFiles("Face/html/alert.html"))
+
+	testTemplate.Execute(w, tmp)
 }

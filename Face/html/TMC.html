@@ -69,11 +69,11 @@
     <div class="container-fluid" style="overflow-y:hidden; width: 2800px;  height: 55vh; overflow-x:hidden;">
         <div class="" >
                 <table class="table table-hover table-striped"style = "table-layout: fixed;" >
-                  <col span="18" style="width: 150px;">
+                  <col span="17" style="width: 150px;">
                     <thead>
                         <tr>
                             <th scope="col">Id</th>
-                            <th scope="col">Перейти</th>
+                            
                             <th scope="col">SN</th>
                             <th scope="col">MAC</th>
                             <th scope="col">D-Model</th>
@@ -99,13 +99,13 @@
         <div  style=" ">
             <div class="" style="height: 45vh;  overflow-x:hidden; overflow-y:scroll; ">
                 <table class="table table-hover table-striped table-bordered"style = "table-layout: fixed" >
-                  <col span="18" style="width: 150px;">
+                  <col span="17" style="width: 150px;">
                     <tbody>
                     {{range .Tab}}
                     
-                    <tr class="{{if(eq .Condition "Не собрано")}} {{print "table-warning"}} {{end}} {{if(eq .Condition "Собрано")}} {{print "table-success"}} {{end}}">
-                        <th scope="row" onclick="document.o.location= '/works/device/mini?Id={{.Id}}'" >{{.Id}}</th>
-                        <td><a class="btn btn-outline-info" role="button" href="/works/device/mini?Id={{.Id}}" >Открыть</a></td>
+                    <tr class="{{if(eq .Condition "Не собрано")}} {{print "table-warning"}} {{else if(eq .Condition "Собрано" )}} {{print "table-success"}} {{else if(eq .Condition "В работе" )}} {{print "table-primary"}}     {{else if(eq .Condition "Отгружено" )}} {{print "table-secondary"}} {{end}}">
+                        <th scope="row" onclick="document.o.location= '/works/device/mini?Id={{.Id}}'" style="display: flexbox; "> &nbsp;{{.Id}} <a class="btn btn-sm {{if(eq .Condition "Не собрано")}} {{print "btn-outline-warning"}} {{else if(eq .Condition "Собрано" )}} {{print "btn-outline-success"}} {{else if(eq .Condition "В работе" )}} {{print "btn-outline-primary"}}     {{else if(eq .Condition "Отгружено" )}} {{print "btn-outline-secondary"}} {{end}}" role="button" href="/works/device/mini?Id={{.Id}}" style="width: 100%; ">Открыть</a> </th>
+                        
                         <td onclick="document.o.location= '/works/device/mini?Id={{.Id}}'" >{{.Sn}}</td>
                         <td onclick="document.o.location= '/works/device/mini?Id={{.Id}}'" >{{.Mac}}</td>
                         <td onclick="document.o.location= '/works/device/mini?Id={{.Id}}'" >{{.DModel}}</td>
