@@ -13,17 +13,16 @@ import (
 
 // Объект базы данных
 type Base struct {
-	db *pgxpool.Pool
+	Db *pgxpool.Pool
 }
 
 // инициализация базы
 func NewBase(user, pass, ip, baseName string) (*Base, error) {
 	BasePointer, err := pgxpool.New(context.Background(), "postgres://"+user+":"+pass+"@localhost:5432/"+baseName+"")
-	fmt.Println("postgres://" + user + ":" + pass + "@localhost:5432/" + baseName + "")
 	if err != nil {
 		return &Base{}, err
 	}
-	return &Base{db: BasePointer}, nil
+	return &Base{Db: BasePointer}, nil
 }
 
 /////////////////////////////////////
@@ -34,7 +33,7 @@ func NewBase(user, pass, ip, baseName string) (*Base, error) {
 func (base Base) TakeUserByLogin(ctx context.Context, inlogin string) (mytypes.User, error) {
 	u := mytypes.User{}
 
-	row := base.db.QueryRow(ctx, "SELECT UserId, login, pass, access, name, email FROM users WHERE users.login = $1", inlogin)
+	row := base.Db.QueryRow(ctx, "SELECT UserId, login, pass, access, name, email FROM users WHERE users.login = $1", inlogin)
 	err := row.Scan(&u.UserId, &u.Login, &u.Pass, &u.Acces, &u.Name, &u.Email)
 
 	return u, err
@@ -46,7 +45,7 @@ func (base Base) TakeUserById(ctx context.Context, inId ...int) ([]mytypes.User,
 
 	if len(inId) == 0 {
 		u := mytypes.User{}
-		rows, err := base.db.Query(ctx, "SELECT UserId, login, pass, access, name, email FROM users")
+		rows, err := base.Db.Query(ctx, "SELECT UserId, login, pass, access, name, email FROM users")
 		if err != nil {
 			return users, err
 		}
@@ -63,7 +62,7 @@ func (base Base) TakeUserById(ctx context.Context, inId ...int) ([]mytypes.User,
 		u := mytypes.User{}
 
 		for _, id := range inId {
-			row := base.db.QueryRow(ctx, "SELECT UserId, login, pass, access, name, email FROM users where id = $1", id)
+			row := base.Db.QueryRow(ctx, "SELECT UserId, login, pass, access, name, email FROM users where id = $1", id)
 			err := row.Scan(&u.UserId, &u.Login, &u.Pass, &u.Acces, &u.Name, &u.Email)
 			if err != nil {
 				return users, err
@@ -85,7 +84,7 @@ func (base Base) TakeDeviceById(ctx context.Context, inId ...int) ([]mytypes.Dev
 	device := mytypes.DeviceRaw{}
 
 	if len(inId) == 0 {
-		rows, err := base.db.Query(ctx, `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder" FROM sns`)
+		rows, err := base.Db.Query(ctx, `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder" FROM sns`)
 		if err != nil {
 			return devices, err
 		}
@@ -100,7 +99,7 @@ func (base Base) TakeDeviceById(ctx context.Context, inId ...int) ([]mytypes.Dev
 
 	} else {
 		for _, id := range inId {
-			row := base.db.QueryRow(ctx, `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder" FROM sns Where "snsId" = $1`, id)
+			row := base.Db.QueryRow(ctx, `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder" FROM sns Where "snsId" = $1`, id)
 			err := row.Scan(&device.Id, &device.Sn, &device.Mac, &device.DModel, &device.Rev, &device.TModel, &device.Name, &device.Condition, &device.CondDate, &device.Order, &device.Place, &device.Shiped, &device.ShipedDate, &device.ShippedDest, &device.TakenDate, &device.TakenDoc, &device.TakenOrder)
 			if err != nil {
 				return devices, err
@@ -118,7 +117,7 @@ func (base Base) TakeDeviceByRequest(ctx context.Context, request string) ([]myt
 
 	qq := `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder" FROM sns `
 
-	rows, err := base.db.Query(ctx, qq+request)
+	rows, err := base.Db.Query(ctx, qq+request)
 	if err != nil {
 		return devices, err
 	}
@@ -140,7 +139,7 @@ func (base Base) TakeDeviceBySn(ctx context.Context, inSn ...string) ([]mytypes.
 	device := mytypes.DeviceRaw{}
 
 	if len(inSn) == 0 {
-		rows, err := base.db.Query(ctx, `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder" FROM sns`)
+		rows, err := base.Db.Query(ctx, `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder" FROM sns`)
 		if err != nil {
 			return devices, err
 		}
@@ -155,7 +154,7 @@ func (base Base) TakeDeviceBySn(ctx context.Context, inSn ...string) ([]mytypes.
 
 	} else {
 		for _, sn := range inSn {
-			row := base.db.QueryRow(ctx, `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder" FROM sns Where sn = $1`, sn)
+			row := base.Db.QueryRow(ctx, `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder" FROM sns Where sn = $1`, sn)
 			err := row.Scan(&device.Id, &device.Sn, &device.Mac, &device.DModel, &device.Rev, &device.TModel, &device.Name, &device.Condition, &device.CondDate, &device.Order, &device.Place, &device.Shiped, &device.ShipedDate, &device.ShippedDest, &device.TakenDate, &device.TakenDoc, &device.TakenOrder)
 			if err != nil {
 				continue
@@ -178,7 +177,7 @@ func (base Base) TakeCleanDeviceById(ctx context.Context, inId ...int) ([]mytype
 	var Shiped bool
 
 	if len(inId) == 0 {
-		rows, err := base.db.Query(ctx, `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder" FROM "cleanSns" order by "snsId"`)
+		rows, err := base.Db.Query(ctx, `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder" FROM "cleanSns" order by "snsId"`)
 		if err != nil {
 			return devices, err
 		}
@@ -197,7 +196,7 @@ func (base Base) TakeCleanDeviceById(ctx context.Context, inId ...int) ([]mytype
 
 	} else {
 		for _, id := range inId {
-			row := base.db.QueryRow(ctx, `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder" FROM "cleanSns" Where "snsId" = $1 order by "snsId"`, id)
+			row := base.Db.QueryRow(ctx, `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder" FROM "cleanSns" Where "snsId" = $1 order by "snsId"`, id)
 			err := row.Scan(&device.Id, &device.Sn, &device.Mac, &device.DModel, &device.Rev, &device.TModel, &device.Name, &device.Condition, &CondDate, &device.Order, &device.Place, &Shiped, &ShipedDate, &device.ShippedDest, &TakenDate, &device.TakenDoc, &device.TakenOrder)
 			if err != nil {
 				return devices, err
@@ -221,8 +220,7 @@ func (base Base) TakeCleanDeviceByRequest(ctx context.Context, request string) (
 
 	qq := `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder" FROM "cleanSns" `
 
-	rows, err := base.db.Query(ctx, qq+request)
-	fmt.Println(request)
+	rows, err := base.Db.Query(ctx, qq+request)
 	fmt.Println(qq + request)
 	if err != nil {
 		return devices, err
@@ -251,7 +249,7 @@ func (base Base) TakeCleanDeviceBySn(ctx context.Context, inSn ...string) ([]myt
 	var Shiped bool
 
 	if len(inSn) == 0 {
-		rows, err := base.db.Query(ctx, `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder" FROM "cleanSns"`)
+		rows, err := base.Db.Query(ctx, `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder" FROM "cleanSns"`)
 		if err != nil {
 			return devices, err
 		}
@@ -271,7 +269,7 @@ func (base Base) TakeCleanDeviceBySn(ctx context.Context, inSn ...string) ([]myt
 
 	} else {
 		for _, sn := range inSn {
-			row := base.db.QueryRow(ctx, `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder" FROM "cleanSns" Where sn = $1`, sn)
+			row := base.Db.QueryRow(ctx, `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder" FROM "cleanSns" Where sn = $1`, sn)
 			err := row.Scan(&device.Id, &device.Sn, &device.Mac, &device.DModel, &device.Rev, &device.TModel, &device.Name, &device.Condition, &CondDate, &device.Order, &device.Place, &Shiped, &ShipedDate, &device.ShippedDest, &TakenDate, &device.TakenDoc, &device.TakenOrder)
 			if err != nil {
 				continue
@@ -281,6 +279,57 @@ func (base Base) TakeCleanDeviceBySn(ctx context.Context, inSn ...string) ([]myt
 			device.TakenDate = TakenDate.Format("02.01.2006")
 			device.Shiped = strconv.FormatBool(Shiped)
 			devices = append(devices, device)
+		}
+	}
+	return devices, nil
+}
+
+// Получение стлайса читабельных устройств по заказу
+func (base Base) TakeCleanDeviceByOrder(ctx context.Context, inOrders ...int) ([]mytypes.DeviceClean, error) {
+	devices := []mytypes.DeviceClean{}
+	device := mytypes.DeviceClean{}
+	var CondDate, ShipedDate, TakenDate time.Time
+	var Shiped bool
+
+	if len(inOrders) == 0 {
+		rows, err := base.Db.Query(ctx, `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder" FROM "cleanSns"`)
+		if err != nil {
+			return devices, err
+		}
+
+		for rows.Next() {
+			err := rows.Scan(&device.Id, &device.Sn, &device.Mac, &device.DModel, &device.Rev, &device.TModel, &device.Name, &device.Condition, &CondDate, &device.Order, &device.Place, &Shiped, &ShipedDate, &device.ShippedDest, &TakenDate, &device.TakenDoc, &device.TakenOrder)
+			if err != nil {
+				return devices, err
+			}
+			device.CondDate = CondDate.Format("02.01.2006")
+			device.ShipedDate = ShipedDate.Format("02.01.2006")
+			device.TakenDate = TakenDate.Format("02.01.2006")
+			device.Shiped = strconv.FormatBool(Shiped)
+			devices = append(devices, device)
+
+		}
+
+	} else {
+		for _, order := range inOrders {
+			rows, err := base.Db.Query(ctx, `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder" FROM "cleanSns" Where "order" = $1`, order)
+			if err != nil {
+				continue
+			}
+
+			for rows.Next() {
+				err := rows.Scan(&device.Id, &device.Sn, &device.Mac, &device.DModel, &device.Rev, &device.TModel, &device.Name, &device.Condition, &CondDate, &device.Order, &device.Place, &Shiped, &ShipedDate, &device.ShippedDest, &TakenDate, &device.TakenDoc, &device.TakenOrder)
+				if err != nil {
+					continue
+				}
+				device.CondDate = CondDate.Format("02.01.2006")
+				device.ShipedDate = ShipedDate.Format("02.01.2006")
+				device.TakenDate = TakenDate.Format("02.01.2006")
+				device.Shiped = strconv.FormatBool(Shiped)
+				devices = append(devices, device)
+
+			}
+
 		}
 	}
 	return devices, nil
@@ -318,7 +367,7 @@ func (base Base) TakeCleanDeviceByAnything(ctx context.Context, request ...strin
 	var CondDate, ShipedDate, TakenDate time.Time
 	var Shiped bool
 
-	rows, err := base.db.Query(ctx, qq)
+	rows, err := base.Db.Query(ctx, qq)
 	fmt.Println(request)
 	fmt.Println(qq)
 	if err != nil {
@@ -349,7 +398,7 @@ func (base Base) TakeDeviceEvent(ctx context.Context, deviceId int) ([]mytypes.D
 	var events []mytypes.DeviceEvent
 	var event mytypes.DeviceEvent
 
-	rows, err := base.db.Query(ctx, `SELECT "logId", "eventType", "eventText", "eventTime", "user" FROM public."deviceLog" WHERE "deviceId" = $1`, deviceId)
+	rows, err := base.Db.Query(ctx, `SELECT "logId", "eventType", "eventText", "eventTime", "user" FROM public."deviceLog" WHERE "deviceId" = $1`, deviceId)
 	if err != nil {
 		return events, err
 	}
@@ -370,7 +419,7 @@ func (base Base) TakeCleanDeviceEvent(ctx context.Context, deviceId int) ([]myty
 	var event mytypes.DeviceEventClean
 	var eventTime time.Time
 
-	rows, err := base.db.Query(ctx, `SELECT "logId", "eventType", "eventText", "eventTime", "user" FROM public."cleanDeviceLog" WHERE "deviceId" = $1 ORDER BY "logId"`, deviceId)
+	rows, err := base.Db.Query(ctx, `SELECT "logId", "eventType", "eventText", "eventTime", "user" FROM public."cleanDeviceLog" WHERE "deviceId" = $1 ORDER BY "logId"`, deviceId)
 	if err != nil {
 		return events, err
 	}
@@ -398,7 +447,7 @@ func (base Base) TakeStorageCount(ctx context.Context) ([]mytypes.StorageCount, 
 
 	qq := `SELECT "order", name, count FROM wear`
 
-	rows, err := base.db.Query(ctx, qq)
+	rows, err := base.Db.Query(ctx, qq)
 	if err != nil {
 		return storage, err
 	}
@@ -421,13 +470,35 @@ func (base Base) TakeStorageCountByPlace(ctx context.Context) ([]mytypes.Storage
 
 	qq := `SELECT "place", name, count FROM "wearByPlace"`
 
-	rows, err := base.db.Query(ctx, qq)
+	rows, err := base.Db.Query(ctx, qq)
 	if err != nil {
 		return storage, err
 	}
 
 	for rows.Next() {
 		err := rows.Scan(&deviceCount.Place, &deviceCount.Name, &deviceCount.Amout)
+		if err != nil {
+			return storage, err
+		}
+
+		storage = append(storage, deviceCount)
+	}
+	return storage, nil
+}
+
+func (base Base) TakeStorageByTModelClean(ctx context.Context) ([]mytypes.StorageByTModelClean, error) {
+	storage := []mytypes.StorageByTModelClean{}
+	deviceCount := mytypes.StorageByTModelClean{}
+
+	qq := `SELECT tmodel, name, condition, count FROM public."cleanWearByTModel";`
+
+	rows, err := base.Db.Query(ctx, qq)
+	if err != nil {
+		return storage, err
+	}
+
+	for rows.Next() {
+		err := rows.Scan(&deviceCount.Model, &deviceCount.Name, &deviceCount.Condition, &deviceCount.Amout)
 		if err != nil {
 			return storage, err
 		}
@@ -447,7 +518,7 @@ func (base Base) TakeOrderById(ctx context.Context, inId ...int) ([]mytypes.Orde
 	var order mytypes.OrderRaw
 
 	if len(inId) == 0 {
-		rows, err := base.db.Query(ctx, `SELECT "orderId", meneger, "orderDate", "reqDate", "promDate", "shDate", "isAct", coment, customer, partner, disributor, name, "1СName" FROM public.orders`)
+		rows, err := base.Db.Query(ctx, `SELECT "orderId", meneger, "orderDate", "reqDate", "promDate", "shDate", "isAct", coment, customer, partner, disributor, name, "1СName" FROM public.orders`)
 		if err != nil {
 			return orders, err
 		}
@@ -463,7 +534,7 @@ func (base Base) TakeOrderById(ctx context.Context, inId ...int) ([]mytypes.Orde
 
 		for _, Id := range inId {
 
-			row := base.db.QueryRow(ctx, `SELECT "orderId", meneger, "orderDate", "reqDate", "promDate", "shDate", "isAct", coment, customer, partner, disributor, name, "1СName" FROM public.orders Where "orderId" = $1`, Id)
+			row := base.Db.QueryRow(ctx, `SELECT "orderId", meneger, "orderDate", "reqDate", "promDate", "shDate", "isAct", coment, customer, partner, disributor, name, "1СName" FROM public.orders Where "orderId" = $1`, Id)
 			err := row.Scan(&order.OrderId, &order.Meneger, &order.OrderDate, &order.ReqDate, &order.PromDate, &order.ShDate, &order.IsAct, &order.Comment, &order.Customer, &order.Partner, &order.Distributor, &order.Name, &order.Id1C)
 			if err != nil {
 				return orders, err
@@ -479,14 +550,14 @@ func (base Base) TakeOrderById(ctx context.Context, inId ...int) ([]mytypes.Orde
 // Функции получения читабельных заказов//
 //////////////////////////////////////////
 
-func (bace Base) TakeCleanOrderById(ctx context.Context, inId ...int) ([]mytypes.OrderClean, error) {
+func (base Base) TakeCleanOrderById(ctx context.Context, inId ...int) ([]mytypes.OrderClean, error) {
 	var orders []mytypes.OrderClean
 	var order mytypes.OrderClean
 	var orderDate, reqDate, promDate, shDate time.Time
 	var isAct bool
 
 	if len(inId) == 0 {
-		rows, err := bace.db.Query(ctx, `SELECT "orderId", meneger, "orderDate", "reqDate", "promDate", "shDate", "isAct", coment, customer, partner, disributor, name, "1СName" FROM public."cleanOrder"`)
+		rows, err := base.Db.Query(ctx, `SELECT "orderId", meneger, "orderDate", "reqDate", "promDate", "shDate", "isAct", coment, customer, partner, disributor, name, "1СName" FROM public."cleanOrder"`)
 		if err != nil {
 			return orders, err
 		}
@@ -507,7 +578,7 @@ func (bace Base) TakeCleanOrderById(ctx context.Context, inId ...int) ([]mytypes
 
 		for _, id := range inId {
 
-			row := bace.db.QueryRow(ctx, `SELECT "orderId", meneger, "orderDate", "reqDate", "promDate", "shDate", "isAct", coment, customer, partner, disributor, name, "1СName" FROM public."cleanOrder" WHERE "orderId" = $1`, id)
+			row := base.Db.QueryRow(ctx, `SELECT "orderId", meneger, "orderDate", "reqDate", "promDate", "shDate", "isAct", coment, customer, partner, disributor, name, "1СName" FROM public."cleanOrder" WHERE "orderId" = $1`, id)
 			err := row.Scan(&order.OrderId, &order.Meneger, &orderDate, &reqDate, &promDate, &shDate, &isAct, &order.Comment, &order.Customer, &order.Partner, &order.Distributor, &order.Name, &order.Id1C)
 			if err != nil {
 				return orders, err
@@ -526,6 +597,60 @@ func (bace Base) TakeCleanOrderById(ctx context.Context, inId ...int) ([]mytypes
 	return orders, nil
 }
 
+func (base Base) TakeCleanOrderByAnything(ctx context.Context, reqest ...string) ([]mytypes.OrderClean, error) {
+	var qq string
+
+	for i, a := range reqest {
+		a = strings.TrimSpace(a)
+		if i != 0 {
+			qq += " UNION "
+		} else if a == "" {
+			device, err := base.TakeCleanOrderById(ctx)
+			return device, err
+		}
+
+		qq += `SELECT "orderId", meneger, "orderDate", "reqDate", "promDate", "shDate", "isAct", coment, customer, partner, disributor, name, "1СName" FROM public."cleanOrder" WHERE meneger = '` + a + `' OR coment = '` + a + `' OR customer = '` + a + `' OR partner = '` + a + `' OR disributor = '` + a + `' OR name = '` + a + `'`
+
+		_, err := strconv.Atoi(a)
+		if err == nil {
+			qq += ` OR "orderId" = ` + a + ` OR "1СName" = ` + a
+		}
+
+		date, err := time.Parse("02.01.2006", a)
+		if err == nil {
+			a = date.Format("2006-01-02")
+			qq += ` OR "orderDate" = '` + a + `' OR "reqDate" = '` + a + `' OR "promDate" = '` + a + `' OR "shDate" = '` + a + `'`
+		}
+
+	}
+
+	var orders []mytypes.OrderClean
+	var order mytypes.OrderClean
+	var orderDate, reqDate, promDate, shDate time.Time
+	var isAct bool
+
+	rows, err := base.Db.Query(ctx, qq)
+
+	if err != nil {
+		return orders, err
+	}
+
+	for rows.Next() {
+		err := rows.Scan(&order.OrderId, &order.Meneger, &orderDate, &reqDate, &promDate, &shDate, &isAct, &order.Comment, &order.Customer, &order.Partner, &order.Distributor, &order.Name, &order.Id1C)
+		if err != nil {
+			return orders, err
+		}
+		order.OrderDate = orderDate.Format("02.01.2006")
+		order.ReqDate = reqDate.Format("02.01.2006")
+		order.PromDate = promDate.Format("02.01.2006")
+		order.ShDate = shDate.Format("02.01.2006")
+		order.IsAct = strconv.FormatBool(isAct)
+		orders = append(orders, order)
+	}
+
+	return orders, nil
+}
+
 ////////////////////////////////////
 // функции получения листа заказов//
 ////////////////////////////////////
@@ -535,7 +660,7 @@ func (base Base) TakeOrderList(ctx context.Context, orderId int) ([]mytypes.Orde
 	var orderList []mytypes.OrderList
 	var pos mytypes.OrderList
 
-	rows, err := base.db.Query(ctx, `SELECT "orderId", model, amout, "servType", "srevActDate", "lastRed" FROM public."orderList" WHERE "orderId" = $1`, orderId)
+	rows, err := base.Db.Query(ctx, `SELECT "orderId", model, amout, "servType", "srevActDate", "lastRed" FROM public."orderList" WHERE "orderId" = $1`, orderId)
 	if err != nil {
 		return orderList, err
 	}
@@ -562,7 +687,7 @@ func (base Base) TakeCleanOrderList(ctx context.Context, orderId int) ([]mytypes
 	var pos mytypes.OrderListClean
 	var servActDate, lastRed time.Time
 
-	rows, err := base.db.Query(ctx, `SELECT "orderId", model, amout, "servType", "srevActDate", "lastRed" FROM public."cleanOrderList" WHERE "orderId" = $1`, orderId)
+	rows, err := base.Db.Query(ctx, `SELECT "orderId", model, amout, "servType", "srevActDate", "lastRed" FROM public."cleanOrderList" WHERE "orderId" = $1`, orderId)
 	if err != nil {
 		return orderList, err
 	}
@@ -586,6 +711,10 @@ func (base Base) TakeCleanOrderList(ctx context.Context, orderId int) ([]mytypes
 /////////////////////////////////
 
 func (base Base) SnToWork(ctx context.Context, InSn ...string) (int, error) {
+	if len(InSn) == 0 {
+		return 0, fmt.Errorf("не введены серийные номера")
+	}
+
 	qq := `UPDATE public.sns SET condition = 3, place= 0 WHERE`
 	for i, sn := range InSn {
 		if i == 0 {
@@ -595,7 +724,45 @@ func (base Base) SnToWork(ctx context.Context, InSn ...string) (int, error) {
 		}
 	}
 
-	res, err := base.db.Exec(ctx, qq)
+	res, err := base.Db.Exec(ctx, qq)
+
+	return int(res.RowsAffected()), err
+}
+
+func (base Base) SnSetOrder(ctx context.Context, inOrder int, InSn ...string) (int, error) {
+	if len(InSn) == 0 {
+		return 0, fmt.Errorf("не введены серийные номера")
+	}
+
+	qq := `UPDATE public.sns SET "order" = $1 WHERE`
+	for i, sn := range InSn {
+		if i == 0 {
+			qq += (`( sn = '` + sn + `') `)
+		} else {
+			qq += (`OR ( sn = '` + sn + `') `)
+		}
+	}
+
+	res, err := base.Db.Exec(ctx, qq, inOrder)
+
+	return int(res.RowsAffected()), err
+}
+
+func (base Base) SnSetPlace(ctx context.Context, inPlace int, InSn ...string) (int, error) {
+	if len(InSn) == 0 {
+		return 0, fmt.Errorf("не введены серийные номера")
+	}
+
+	qq := `UPDATE public.sns SET "place" = $1 WHERE`
+	for i, sn := range InSn {
+		if i == 0 {
+			qq += (`( sn = '` + sn + `') `)
+		} else {
+			qq += (`OR ( sn = '` + sn + `') `)
+		}
+	}
+
+	res, err := base.Db.Exec(ctx, qq, inPlace)
 
 	return int(res.RowsAffected()), err
 }
@@ -606,7 +773,7 @@ func (base Base) SnToWork(ctx context.Context, InSn ...string) (int, error) {
 
 // запись токена генерации
 func (base Base) NewRegenToken(user string, token string, ctx context.Context) {
-	res, err := base.db.Exec(ctx, "UPDATE users set token = $1 where login = $2", token, user)
+	res, err := base.Db.Exec(ctx, "UPDATE users set token = $1 where login = $2", token, user)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -621,7 +788,7 @@ func (base Base) InsertDiviceToSns(ctx context.Context, devices ...mytypes.Devic
 		qq := `INSERT INTO sns(
 			sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder")
 			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)`
-		_, err := base.db.Exec(ctx, qq, device.Sn, device.Mac, device.DModel, device.Rev, device.TModel, device.Name, device.Condition, device.CondDate, device.Order, device.Place, device.Shiped, device.ShipedDate, device.ShippedDest, device.TakenDate, device.TakenDoc, device.TakenOrder)
+		_, err := base.Db.Exec(ctx, qq, device.Sn, device.Mac, device.DModel, device.Rev, device.TModel, device.Name, device.Condition, device.CondDate, device.Order, device.Place, device.Shiped, device.ShipedDate, device.ShippedDest, device.TakenDate, device.TakenDoc, device.TakenOrder)
 		if err != nil {
 			return err
 		}

@@ -113,7 +113,7 @@
                     <nav>
                         <div class="nav nav-tabs mb-3" id="nav-tab" role="tablist">
                             {{if .List}}<button class="nav-link active" id="nav-list-tab" data-bs-toggle="tab" data-bs-target="#nav-list" type="button" role="tab" aria-controls="nav-list" aria-selected="true">Состав заказа</button>{{end}}
-                            <button class="nav-link" id="nav-res-tab" data-bs-toggle="tab" data-bs-target="#nav-res" type="button" role="tab" aria-controls="nav-res" aria-selected="false" tabindex="-1">Резерв</button>
+                            <button class="nav-link" id="nav-res-tab" data-bs-toggle="tab" data-bs-target="#nav-res" type="button" role="tab" aria-controls="nav-res" aria-selected="false" tabindex="-1">Резерв <a target = "_parent" type="button" class="btn btn-sm btn-outline-info"  href="/works/tmc?Search=1&Order={{.Order.OrderId}}">Открыть в ТМЦ</a></button>
                         </div>
                     </nav>
 
@@ -147,8 +147,33 @@
                         </div>
                         {{end}}
                         <div class="tab-pane fade" id="nav-res" role="tabpanel" aria-labelledby="nav-res-tab">
-                            <button type="button" class="btn btn-outline-info">Открыть резерв в ТМЦ</button>
-                            //В разработке// 
+                            
+                            <div class="container-fluid" style="height: 80vh; overflow-y: scroll;">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Модель</th>
+                                            <th scope="col">Наименование</th>
+                                            <th scope="col">Кол-во</th>
+                                            <th scope="col">Состояние</th>
+                                            
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {{range .Reservs}}
+                                        <tr class=" {{if(eq .Condition "Собрано" )}} {{print "table-success"}} {{else if(eq .Condition "В работе" )}} {{print "table-primary"}}     {{else if(eq .Condition "Не собрано")}} {{print "table-warning"}} {{end}}">
+                                            <td>{{.Model}}</td>
+                                            <td>{{.Name}}</td>
+                                            <td>{{.Amout}}</td>
+                                            <td>{{.Condition}}</td> 
+                                        </tr>
+                                        {{end}}
+                                    </tbody>
+                                </table>
+                            </div>
+                        
+                                
+                            
                         </div>
                     </div>
                 </div>
@@ -164,3 +189,6 @@
 
 
 </html>
+
+
+    

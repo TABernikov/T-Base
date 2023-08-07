@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/julienschmidt/httprouter"
 )
@@ -47,12 +48,104 @@ func (a App) UserPage(w http.ResponseWriter, r *http.Request, pr httprouter.Para
 
 // Таблица ТМЦ
 func (a App) TMCPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
-	devices, err := a.Db.TakeCleanDeviceById(a.ctx)
-	if err != nil {
-		fmt.Println(err)
+	var devices []mytypes.DeviceClean
+	var err error
+	if r.FormValue("Search") == "" {
+		devices, err = a.Db.TakeCleanDeviceById(a.ctx)
+		if err != nil {
+			fmt.Println(err)
+		}
+	} else {
+		req := `WHERE true `
+		if r.FormValue("Id") != "" {
+			req += `AND "snsId" = ` + r.FormValue("Id") + ` `
+		}
+		if r.FormValue("Sn") != "" {
+			req += `AND "sn" = '` + r.FormValue("Sn") + `' `
+		}
+		if r.FormValue("Mac") != "" {
+			req += `AND "mac" = '` + r.FormValue("Mac") + `' `
+		}
+		if r.FormValue("DModel") != "" {
+			req += `AND "dmodel" = '` + r.FormValue("DModel") + `' `
+		}
+		if r.FormValue("Rev") != "" {
+			req += `AND "rev" = '` + r.FormValue("Rev") + `' `
+		}
+		if r.FormValue("TModel") != "" {
+			req += `AND "tmodel" = '` + r.FormValue("TModel") + `' `
+		}
+		if r.FormValue("Name") != "" {
+			req += `AND "name" = '` + r.FormValue("Name") + `' `
+		}
+		if r.FormValue("Condition") != "" {
+			req += `AND "condition" = '` + r.FormValue("Condition") + `' `
+		}
+		if r.FormValue("Order") != "" {
+			req += `AND "order" = ` + r.FormValue("Order") + ` `
+		}
+		if r.FormValue("Place") != "" {
+			req += `AND "place" = ` + r.FormValue("Place") + ` `
+		}
+		if r.FormValue("Shiped") != "" {
+			req += `AND "shiped" = ` + r.FormValue("Shiped") + ` `
+		}
+		if r.FormValue("ShippedDest") != "" {
+			req += `AND "shippedDest" = '` + r.FormValue("ShippedDest") + `' `
+		}
+		if r.FormValue("TakenDoc") != "" {
+			req += `AND "takenDoc" = '` + r.FormValue("TakenDoc") + `' `
+		}
+		if r.FormValue("TakenOrder") != "" {
+			req += `AND "takenOrder" = '` + r.FormValue("TakenOrder") + `' `
+		}
+		if r.FormValue("CondDate") != "" {
+			date, err := time.Parse("01.02.2006", r.FormValue("CondDate"))
+			if err == nil {
+				req += `AND "condDate" = '` + date.Format("2006-02-01") + `' `
+			}
+		}
+		if r.FormValue("ShipedDate") != "" {
+			date, err := time.Parse("01.02.2006", r.FormValue("ShipedDate"))
+			if err == nil {
+				req += `AND "shipedDate" = '` + date.Format("2006-02-01") + `' `
+			}
+		}
+		if r.FormValue("TakenDate") != "" {
+			date, err := time.Parse("01.02.2006", r.FormValue("TakenDate"))
+			if err == nil {
+				req += `AND "takenDate" = '` + date.Format("2006-02-01") + `' `
+			}
+		}
+
+		devices, err = a.Db.TakeCleanDeviceByRequest(a.ctx, req)
+		if err != nil {
+			fmt.Println(err)
+		}
 	}
 
-	MakeTMCPage(w, devices, "ТМЦ")
+	MakeTMCPage(w, devices, "ТМЦ устройств: "+strconv.Itoa(len(devices)))
+}
+
+func (a App) TMCSearchPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	a.MakeTMCAdvanceSearchPage(w)
+}
+
+// Таблица ТМЦ для конкретного заказа
+func (a App) TMCOrderSearch(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	order, err := strconv.Atoi(r.FormValue("Order"))
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	devices, err := a.Db.TakeCleanDeviceByOrder(a.ctx, order)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	MakeTMCPage(w, devices, "ТМЦ заказ "+r.FormValue("Order"))
 }
 
 // Компактное представление устройства
@@ -102,7 +195,7 @@ func (a App) StoragePage(w http.ResponseWriter, r *http.Request, pr httprouter.P
 	if err != nil {
 		return
 	}
-	MakeStoragePage(w, storage, "Склад")
+	MakeStoragePage(w, storage, "Склад заказы")
 }
 
 // Страница склада по местам
@@ -113,7 +206,18 @@ func (a App) StorageByPlacePage(w http.ResponseWriter, r *http.Request, pr httpr
 		return
 	}
 
-	MakeStorageByPlacePage(w, storage, "Места")
+	MakeStorageByPlacePage(w, storage, "Склад места")
+}
+
+// Страница склада по моделям
+func (a App) StorageByTModelPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	storage, err := a.Db.TakeStorageByTModelClean(a.ctx)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	MakeStorageByTModelPage(w, storage, "Склад модели")
 }
 
 // Таблица заказов
@@ -159,12 +263,42 @@ func (a App) OrderMiniPage(w http.ResponseWriter, r *http.Request, pr httprouter
 		return
 	}
 
-	MakeOrderMiniPage(w, order, orderList)
+	rows, err := a.Db.Db.Query(a.ctx, ` SELECT public."tModels"."tModelsName" AS tmodel, tmp.name, public."condNames"."condName", tmp.count From
+		(SELECT sns.tmodel, sns.name, sns.condition, count(sns."snsId") AS "count" FROM sns WHERE sns.shiped = false AND sns.order = $1 GROUP BY sns.tmodel, sns.condition, sns.name ORDER BY sns.tmodel, sns.condition) tmp
+		LEFT JOIN public."condNames" ON public."condNames"."condNamesId" = tmp.condition LEFT JOIN public."tModels" ON public."tModels"."tModelsId" = tmp.tmodel`, order.OrderId)
+	if err != nil {
+		fmt.Fprintln(w, "Ошибка поиска резерва заказа", err)
+		return
+	}
+	var reservs []mytypes.StorageByTModelClean
+	var reserv mytypes.StorageByTModelClean
+
+	for rows.Next() {
+		err := rows.Scan(&reserv.Model, &reserv.Name, &reserv.Condition, &reserv.Amout)
+		if err != nil {
+			fmt.Fprintln(w, "Ошибка поиска резерва заказа", err)
+			return
+		}
+		reservs = append(reservs, reserv)
+	}
+
+	fmt.Println(reservs)
+
+	MakeOrderMiniPage(w, order, orderList, reservs)
 }
 
 // Страница передачи в производство
 func (a App) ToWorkPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	MakeImputPage(w, "/works/towork", "Передать в производство", "Введите серийные номера для передачи", "Передать")
+}
+
+// Страница назначения резерва
+func (a App) SetOrderPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	MakeDobleImputPage(w, "/works/setorder", "Назначить заказ/резерв", "Введите серийные номера:", "Номер заказа", "Назначить заказ")
+}
+
+func (a App) SetPlacePage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	MakeDobleImputPage(w, "/works/setplace", "Установить место", "Введите серийные номера:", "Номер места", "Установить место")
 }
 
 //////////////////////
@@ -210,21 +344,38 @@ func (a App) SnSearch(w http.ResponseWriter, r *http.Request, pr httprouter.Para
 
 // универсальный поиск в тмц
 func (a App) TMCSearch(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
-	snString := r.FormValue("sn")
+	snString := r.FormValue("in")
 	Sns := strings.Split(snString, ";")
 	devices, err := a.Db.TakeCleanDeviceByAnything(a.ctx, Sns...)
 	if err != nil {
 		fmt.Println(err)
 	}
-	MakeTMCPage(w, devices, "Результаты поиска"+snString)
+	MakeTMCPage(w, devices, "Результаты поиска "+snString)
 }
 
+// универсальный поиск в заказах
+func (a App) OrderSearch(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	searchString := r.FormValue("in")
+	searchs := strings.Split(searchString, ";")
+	orders, err := a.Db.TakeCleanOrderByAnything(a.ctx, searchs...)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	MakeOrdersPage(w, orders, "Результаты поиска "+searchString)
+}
+
+// передача в работу
 func (a App) ToWork(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	snString := r.FormValue("in")
 	Sns := strings.Fields(snString)
+	if len(Sns) == 0 {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Не ввседены серийные номера", "", "Главная", "/works/prof")
+		return
+	}
+
 	count, err := a.Db.SnToWork(a.ctx, Sns...)
 	if err != nil {
-		fmt.Fprintln(w, err)
 		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
 		return
 	}
@@ -241,6 +392,75 @@ func (a App) ToWork(w http.ResponseWriter, r *http.Request, pr httprouter.Params
 	}
 }
 
+// установка заказа
+func (a App) SetOrder(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	snString := r.FormValue("in1")
+	Sns := strings.Fields(snString)
+	if len(Sns) == 0 {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Не ввседены серийные номера", "", "Главная", "/works/prof")
+		return
+	}
+
+	order, err := strconv.Atoi(r.FormValue("in2"))
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "В поле заказ введено не число", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	count, err := a.Db.SnSetOrder(a.ctx, order, Sns...)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	if count == 0 {
+		MakeAlertPage(w, 5, "Предупреждение", "Не назначено", "Устройствам не был назначен заказ", "Внесено "+strconv.Itoa(len(Sns))+" серийных номеров	Назначено "+strconv.Itoa(count)+"  серийных номеров", "Главная", "/works/prof")
+		return
+	} else if len(Sns)-count == 0 {
+		MakeAlertPage(w, 1, "Готово", "Назначено", "Всем устройствам был назначен заказ", "Внесено "+strconv.Itoa(len(Sns))+" серийных номеров	Назначено "+strconv.Itoa(count)+"  серийных номеров", "Главная", "/works/prof")
+		return
+	} else if len(Sns)-count > 0 {
+		MakeAlertPage(w, 2, "Готово", "Частично", "Части устройств не был назначен заказ", "Внесено "+strconv.Itoa(len(Sns))+" серийных номеров	Назначено "+strconv.Itoa(count)+"  серийных номеров", "Главная", "/works/prof")
+		return
+	}
+}
+
+func (a App) SetPlace(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	snString := r.FormValue("in1")
+	Sns := strings.Fields(snString)
+	if len(Sns) == 0 {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Не ввседены серийные номера", "", "Главная", "/works/prof")
+		return
+	}
+
+	place, err := strconv.Atoi(r.FormValue("in2"))
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "В поле место введено не число", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	count, err := a.Db.SnSetPlace(a.ctx, place, Sns...)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	if count == 0 {
+		MakeAlertPage(w, 5, "Предупреждение", "Не назначено", "Устройствам не было назначено место", "Внесено "+strconv.Itoa(len(Sns))+" серийных номеров	Назначено "+strconv.Itoa(count)+"  серийных номеров", "Главная", "/works/prof")
+		return
+	} else if len(Sns)-count == 0 {
+		MakeAlertPage(w, 1, "Готово", "Назначено", "Всем устройствам было назначено место", "Внесено "+strconv.Itoa(len(Sns))+" серийных номеров	Назначено "+strconv.Itoa(count)+"  серийных номеров", "Главная", "/works/prof")
+		return
+	} else if len(Sns)-count > 0 {
+		MakeAlertPage(w, 2, "Готово", "Частично", "Части устройств не было назначено место", "Внесено "+strconv.Itoa(len(Sns))+" серийных номеров	Назначено "+strconv.Itoa(count)+"  серийных номеров", "Главная", "/works/prof")
+		return
+	}
+}
+
+func (a App) AdvanceTMCSearch(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+
+}
+
 //////////////////////////
 // Конструкторы страниц //
 //////////////////////////
@@ -255,6 +475,43 @@ func MakeTMCPage(w http.ResponseWriter, devices []mytypes.DeviceClean, lable str
 
 	t := template.Must(template.ParseFiles("Face/html/TMC.html"))
 	t.Execute(w, table)
+}
+
+func (a App) MakeTMCAdvanceSearchPage(w http.ResponseWriter) {
+	type idChoise struct {
+		Id   int
+		Name string
+	}
+	type search struct {
+		TModels    []idChoise
+		DModels    []idChoise
+		Conditions []idChoise
+	}
+
+	var choise idChoise
+
+	var tmodelList []idChoise
+	rows, err := a.Db.Db.Query(a.ctx, `SELECT "tModelsId", "tModelsName" FROM public."tModels";`)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	for rows.Next() {
+		err := rows.Scan(&choise.Id, &choise.Name)
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		tmodelList = append(tmodelList, choise)
+	}
+
+	var dmodelList []idChoise
+	// тут остановился
+	tmp := search{tmodelList, dmodelList, tmodelList}
+
+	t := template.Must(template.ParseFiles("Face/html/TMCSearch.html"))
+	t.Execute(w, tmp)
 }
 
 func MakeDeviceMiniPage(w http.ResponseWriter, device mytypes.DeviceClean, events []mytypes.DeviceEventClean) {
@@ -281,13 +538,14 @@ func MakeOrdersPage(w http.ResponseWriter, orders []mytypes.OrderClean, lable st
 	t.Execute(w, table)
 }
 
-func MakeOrderMiniPage(w http.ResponseWriter, order mytypes.OrderClean, orderList []mytypes.OrderListClean) {
+func MakeOrderMiniPage(w http.ResponseWriter, order mytypes.OrderClean, orderList []mytypes.OrderListClean, reservs []mytypes.StorageByTModelClean) {
 	type orderPage struct {
-		Order mytypes.OrderClean
-		List  []mytypes.OrderListClean
+		Order   mytypes.OrderClean
+		List    []mytypes.OrderListClean
+		Reservs []mytypes.StorageByTModelClean
 	}
 
-	page := orderPage{order, orderList}
+	page := orderPage{order, orderList, reservs}
 
 	t := template.Must(template.ParseFiles("Face/html/order.html"))
 	t.Execute(w, page)
@@ -315,6 +573,17 @@ func MakeStorageByPlacePage(w http.ResponseWriter, storage []mytypes.StorageByPl
 	t.Execute(w, table)
 }
 
+func MakeStorageByTModelPage(w http.ResponseWriter, storage []mytypes.StorageByTModelClean, lable string) {
+	type storagePage struct {
+		Lable string
+		Tab   []mytypes.StorageByTModelClean
+	}
+	table := storagePage{lable, storage}
+
+	t := template.Must(template.ParseFiles("Face/html/storageByTModel.html"))
+	t.Execute(w, table)
+}
+
 func MakeImputPage(w http.ResponseWriter, postPath, title, imputText, btnText string) {
 
 	type imputPage struct {
@@ -327,6 +596,22 @@ func MakeImputPage(w http.ResponseWriter, postPath, title, imputText, btnText st
 	tmp := imputPage{title, imputText, btnText, postPath}
 
 	t := template.Must(template.ParseFiles("Face/html/insert.html"))
+	t.Execute(w, tmp)
+}
+
+func MakeDobleImputPage(w http.ResponseWriter, postPath, title, imputText1, imputText2, btnText string) {
+
+	type imputPage struct {
+		Title      string
+		InputText1 string
+		InputText2 string
+		BtnText    string
+		PostPath   string
+	}
+
+	tmp := imputPage{title, imputText1, imputText2, btnText, postPath}
+
+	t := template.Must(template.ParseFiles("Face/html/dobleinsert.html"))
 	t.Execute(w, tmp)
 }
 

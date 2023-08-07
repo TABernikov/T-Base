@@ -44,7 +44,7 @@ func ParseJWT(tokenStr string, key []byte) (mytypes.User, error) {
 				Acces:  claims.Acces,
 			}
 			if token.Valid {
-				fmt.Println("Тут тоже", user, "имя ", user.Name)
+
 				return user, nil
 			} else {
 				return user, err
@@ -62,7 +62,6 @@ func ParseJWT(tokenStr string, key []byte) (mytypes.User, error) {
 
 // Запись 2х токенов
 func MakeTokens(w http.ResponseWriter, r *http.Request, user mytypes.User, JwtKey []byte, db Storage.Base) {
-	fmt.Println("Делаю токен для ", user)
 	cleanCookies(w, r)
 	// генерируем токен авторизации
 	authToken := jwt.NewWithClaims(jwt.SigningMethodHS256, сlaims{
@@ -75,7 +74,6 @@ func MakeTokens(w http.ResponseWriter, r *http.Request, user mytypes.User, JwtKe
 		UName: user.Name,
 		Acces: user.Acces,
 	})
-	println(user.Name)
 
 	t, err := authToken.SignedString(JwtKey)
 	if err != nil { // Ошибка генерации токена
@@ -91,7 +89,6 @@ func MakeTokens(w http.ResponseWriter, r *http.Request, user mytypes.User, JwtKe
 	cookie := http.Cookie{Name: "Lolijoyu", Value: stringJsonToken, Expires: expiration, HttpOnly: true, SameSite: http.SameSiteStrictMode, Path: "/works"} // создание куки с покеном по именем LoKiujhuyg
 	http.SetCookie(w, &cookie)
 	r.AddCookie(&cookie)
-	println(user.Login + " авт: " + stringJsonToken)
 
 	// генерируем токен генерации
 	generToken := jwt.NewWithClaims(jwt.SigningMethodHS256, сlaims{
@@ -117,7 +114,6 @@ func MakeTokens(w http.ResponseWriter, r *http.Request, user mytypes.User, JwtKe
 	r.AddCookie(&cookie)
 	db.NewRegenToken(user.Login, stringJsonToken, context.Background())
 
-	println(user.Login + " ген: " + stringJsonToken)
 }
 
 // обработчик деавторизации удаление всех кук

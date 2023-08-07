@@ -63,6 +63,15 @@
 
 
       <div class="container">
+        <nav>
+          <div class="nav nav-tabs mb-3" id="nav-tab" role="tablist">
+             
+            <a class="nav-link" id="toOrders" href="/works/storage/orders" type="button">Заказы</a>
+            <a class="nav-link active" id="toPlaces" href="/works/storage/places" type="button" role="button" >Места</a>
+            <a class="nav-link" id="toModels" href="/works/storage/models" type="button">Модели</a>
+          </div>
+        </nav>
+
         <table class="table table-bordered table-hover table-striped">
             <thead>
                 <tr>
@@ -74,6 +83,9 @@
                     </th>
                     <th scope="col">
                         Кол-во
+                    </th>
+                    <th scope="col">
+
                     </th>
                 </tr>
             </thead>
@@ -88,6 +100,9 @@
                     </td>
                     <td>
                         {{.Amout}}
+                    </td>
+                    <td>
+                      <a class="btn btn-sm btn-outline-secondary" href="/works/tmc?Search=1&Place={{.Place}}&Name={{.Name}}&Shiped=false" type="button" style="width: 100%;">В ТМЦ</a>
                     </td>
                 </tr>
                 {{end}}

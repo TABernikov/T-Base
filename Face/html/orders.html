@@ -49,8 +49,8 @@
 
         
 
-        <form class="d-flex" role="search" action="/works/tmcsearch" method="post">
-          <input class="form-control" type="sn" id="sn" name="sn" placeholder="SN/Заказ/..." aria-label="Поиск">
+        <form class="d-flex" role="search" action="/works/ordersearch" method="post">
+          <input class="form-control" type="in" id="in" name="in" placeholder="1С/Менеджер/..." aria-label="Поиск">
           <button class="btn btn-outline-success" type="submit">Поиск</button>
         </form>
 
@@ -69,11 +69,10 @@
     <div class="container-fluid" style="overflow-y:hidden; width: 2800px;  height: 55vh; overflow-x:hidden;">
         <div class="" >
                 <table class="table table-hover table-striped"style = "table-layout: fixed;" >
-                  <col span="13" style="width: 150px;">
+                  <col span="12" style="width: 150px;">
                     <thead>
                         <tr>
                             <th scope="col">Id</th>
-                            <th scope="col">Открыть</th>
                             <th scope="col">№1С</th>
                             <th scope="col">Менеджер</th>
                             <th scope="col">Дата заказа</th>
@@ -94,13 +93,12 @@
         <div  style=" ">
             <div class="" style="height: 45vh;  overflow-x:hidden; overflow-y:scroll; ">
                 <table class="table table-hover table-striped table-bordered"style = "table-layout: fixed" >
-                  <col span="13" style="width: 150px;">
+                  <col span="12" style="width: 150px;">
                     <tbody>
                     {{range .Tab}}
                     
                     <tr class="">
-                        <th scope="row" onclick="document.o.location= '/works/order/mini?Id={{.OrderId}}'" >{{.OrderId}}</th>
-                        <td><a class="btn btn-outline-info" role="button" href="/works/order/mini?Id={{.OrderId}}" >Открыть</a></td>
+                        <th scope="row" onclick="document.o.location= '/works/order/mini?Id={{.OrderId}}'" >&nbsp;{{.OrderId}} <a class="btn btn-sm btn-outline-info" role="button" href="/works/order/mini?Id={{.OrderId}}" style="width: 100%; " >Открыть</a> </th>
                         <td onclick="document.o.location= '/works/order/mini?Id={{.OrderId}}'" >{{.Id1C}}</td>
                         <td onclick="document.o.location= '/works/order/mini?Id={{.OrderId}}'" >{{.Meneger}}</td>
                         <td onclick="document.o.location= '/works/order/mini?Id={{.OrderId}}'" >{{.OrderDate}}</td>

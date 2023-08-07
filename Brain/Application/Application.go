@@ -5,7 +5,6 @@ import (
 	"T-Base/Brain/Storage"
 	"T-Base/Brain/mytypes"
 	"context"
-	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -32,6 +31,7 @@ func (a App) Routs(r *httprouter.Router) {
 	r.ServeFiles("/works/Face/*filepath", http.Dir("Face"))
 	r.ServeFiles("/works/device/Face/*filepath", http.Dir("Face"))
 	r.ServeFiles("/works/order/Face/*filepath", http.Dir("Face"))
+	r.ServeFiles("/works/storage/Face/*filepath", http.Dir("Face"))
 	r.GET("/", a.startPage)
 	r.GET("/works/login", func(w http.ResponseWriter, r *http.Request, pr httprouter.Params) { a.LoginPage(w, "") })
 	r.GET("/works/home", a.homePage)
@@ -43,15 +43,25 @@ func (a App) Routs(r *httprouter.Router) {
 	r.GET("/works/prof", a.authtorized(a.UserPage))
 	r.GET("/works/device/mini", a.authtorized(a.DeviceMiniPage))
 	r.GET("/works/tmc", a.authtorized(a.TMCPage))
+	r.GET("/works/tmcadvancesearch", a.authtorized(a.TMCSearchPage))
 	r.GET("/works/snsearch", a.authtorized(a.SnSearchPage))
 	r.GET("/works/storage", a.authtorized(a.StoragePage))
-	r.GET("/works/places", a.authtorized(a.StorageByPlacePage))
+	r.GET("/works/storage/orders", a.authtorized(a.StoragePage))
+	r.GET("/works/storage/places", a.authtorized(a.StorageByPlacePage))
+	r.GET("/works/storage/models", a.authtorized(a.StorageByTModelPage))
 	r.GET("/works/orders", a.authtorized(a.OrderPage))
 	r.GET("/works/order/mini", a.authtorized(a.OrderMiniPage))
 	r.GET("/works/towork", a.authtorized(a.ToWorkPage))
+	r.GET("/works/setorder", a.authtorized(a.SetOrderPage))
+	r.GET("/works/setplace", a.authtorized(a.SetPlacePage))
+	r.GET("/works/tmcorder", a.authtorized(a.TMCOrderSearch))
 	r.POST("/works/snsearch", a.authtorized(a.SnSearch))
 	r.POST("/works/tmcsearch", a.authtorized(a.TMCSearch))
+	r.POST("/works/ordersearch", a.authtorized(a.OrderSearch))
 	r.POST("/works/towork", a.authtorized(a.ToWork))
+	r.POST("/works/setorder", a.authtorized(a.SetOrder))
+	r.POST("/works/setplace", a.authtorized(a.SetPlace))
+	r.POST("/works/tmc", a.authtorized(a.AdvanceTMCSearch))
 	//r.GET("/works/new", a.authtorized(a.NewSns))
 }
 
@@ -75,20 +85,18 @@ func (a App) authtorized(nestedFunction HandleUser) httprouter.Handle {
 				http.Redirect(w, r, "/works/login", http.StatusSeeOther)
 				return
 			}
-			regenUser, err := Auth.ParseJWT(gentoken, []byte(authToken))
-			fmt.Println("Тут обшибка", user, "имя ", regenUser.Name)
+			_, err = Auth.ParseJWT(gentoken, []byte(authToken))
+
 			if err != nil {
-				fmt.Println("Зашел в ошибку проверки токена")
+
 				http.Redirect(w, r, "/works/login", http.StatusSeeOther)
 				return
 			}
-			println("Делаю новый токен")
+
 			Auth.MakeTokens(w, r, user, a.JwtKey, *a.Db) //генерировать токен
 			http.Redirect(w, r, r.RequestURI, http.StatusSeeOther)
 			return
 		}
-
-		println(user.Name + " подтвердил себя")
 
 		// функция с логикой
 		nestedFunction(w, r, ps, user)

@@ -55,19 +55,29 @@
     <div class="container">
     <form id="in-form" name="in-form" action="{{.PostPath}}" method="post">
     <div class="container">
-        <div class="row">
-            <label for="in" class="form-label">{{.InputText}}</label>
-        </div>
-        <div class="row">    
+        <div class="row mt-3">    
             
             <div class="col-8">
-                <div class="mb-3">
-                    <textarea class="form-control" type="in" id="in" name="in"  placeholder="" ></textarea>
-                    <input type="date" class="form-control form-control" id="exampleColorInput"  title="Выбери свой цвет">
-                </div>
+              <div class="row mb-3">
+                <label for="in2" class="form-lable"> {{.InputText1}}</label>
+              </div>
+              <div class="row mb-3">
+                  <textarea class="form-control" type="in1" id="in1" name="in1"  placeholder="" ></textarea>
+              </div>
+                
             </div>
             <div class="col-4">
+              <div class="row mb-3">
+                <div class="row mb-3">
+                  <label for="in2" class="form-lable"> {{.InputText2}}</label>
+                </div>
+                <div class="row mb-3">
+                  <input class="form-control" type="in2" id="in2" name="in2"  placeholder="">
+                </div>
+              </div>
+              <div class="row mb-3">
                 <button type="submit" class="btn btn-primary">{{.BtnText}}</button>
+              </div>
             </div>
         </div>
     

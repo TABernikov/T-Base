@@ -1,0 +1,220 @@
+<!doctype html>
+<html>
+
+<head>
+    <title>Поиск в ТМЦ</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="Face\img\t-kom-ico.svg">
+
+    <link href="Face/html/css/bootstrap.min.css" rel="stylesheet">
+    <link href="Face/html/css/fontello.css" rel="stylesheet">
+    <link href="Face/html/css/style.css" rel="stylesheet">
+
+</head>
+<body>
+    
+    <nav class="navbar navbar-expand-lg sticky-top navbar-light bg-light" aria-label="Fifth navbar example">
+        <div class="container-fluid">
+        
+          <a class="navbar-brand" href="#">
+            <img src="Face\img\t-kom-logo.svg" width="100" height="50" alt="" loading="lazy">
+          </a>
+  
+          <button class="navbar-toggler collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#navbarsExample05" aria-controls="navbarsExample05" aria-expanded="false" aria-label="Переключить навигацию">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+    
+          <div class="navbar-collapse collapse" id="navbarsExample05">
+  
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+              
+              <li class="nav-item">
+                <a class="nav-link active" href="/works/prof">Профиль</a>
+              </li>
+              
+              
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false">Таблицы</a>
+                <ul class="dropdown-menu">
+                  <li><a class="dropdown-item" href="/works/tmc">ТМЦ</a></li>
+                <li><a class="dropdown-item" href="/works/orders">Заказы</a></li>
+                <li><a class="dropdown-item" href="/works/storage">Склад</a></li>
+                </ul>
+              </li>
+              <form id="logout" name="logout" action="/works/logout" method="post"> 
+                <input class="btn btn-outline-danger" type="submit" name="logoutBtn" value="Выйти">
+              </form>
+            </ul>
+  
+          </div>
+  
+        </div>
+      </nav>
+
+    <div class="container p-3">
+      <form id="in-form" name="in-form" action="/works/tmc" method="post">
+
+          <div class="row">
+            <label  class="form-label h5">Общее:</label>
+            
+            <div class="col input-group mb-3">
+              <span class="input-group-text">ID</span>
+              <input type="number" class="form-control" placeholder="Id" name="Id">
+            </div>
+
+            <div class="col input-group mb-3">
+              <span class="input-group-text">TModel</span>
+              <select class="form-select" name="TModel">
+                <option selected value="">Не выбрано</option>
+                <option value="1">Один</option>
+                <option value="2">Два</option>
+                <option value="3">Три</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row">    
+            <div class="col input-group mb-3">
+              <span class="input-group-text">SN</span>
+              <input type="text" class="form-control" placeholder="серийеый номер" name="Sn" id="Sn">
+            </div>
+
+            <div class="col input-group mb-3">
+              <span class="input-group-text">MAC</span>
+              <input type="text" class="form-control" placeholder="MAC адрес" name="Mac" id="Mac">
+            </div>
+          </div>
+
+          <div class="row">    
+
+            <div class="col mb-3">
+              <label for="Order" class="form-label">Номер заказа</label>
+              <div class="input-group">
+                <span class="input-group-text">№</span>
+                <input type="number" class="form-control" placeholder="Заказ" name="Order" id="Order">
+              </div>
+            </div>
+
+            <div class="col mb-3">
+              <label for="Place" class="form-label">Номер места</label>
+              <div class="input-group">
+                <span class="input-group-text">№</span>
+                <input type="number" class="form-control" placeholder="Место" name="Place" id="Place">
+              </div>
+            </div>
+          </div>
+
+          <div class="row">    
+            <div class="col input-group mb-3">
+              <span class="input-group-text">DModel</span>
+              <select class="form-select" name="DModel">
+                <option selected value="">Не выбрано</option>
+                <option value="1">Один</option>
+                <option value="2">Два</option>
+                <option value="3">Три</option>
+              </select>
+            </div>
+
+            <div class="col input-group mb-3">
+              <span class="input-group-text">Rev</span>
+              <input type="text" class="form-control" placeholder="Ревизия" name="Rev" id="Rev">
+            </div>
+          </div>
+
+          <div class="row">    
+            <div class="col mb-3">
+              <label for="CondDateFrom" class="form-label">Состояние</label>
+              <div class="input-group">
+                <select class="form-select" name="Condition">
+                  <option selected value="">Не выбрано</option>
+                  <option value="1">Один</option>
+                  <option value="2">Два</option>
+                  <option value="3">Три</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="col mb-3">
+              <label for="CondDateFrom" class="form-label">Даты сборки</label>
+              <div class="input-group">
+                <span class="input-group-text">C</span>
+                <input type="date" class="form-control" placeholder="" name="CondDateFrom" id="CondDateFrom">
+                <span class="input-group-text">По</span>
+                <input type="date" class="form-control" placeholder="" name="CondDateTo" id="CondDateTo">
+              </div>
+            </div>
+          </div>
+
+          <div class="row">   
+            <label  class="form-label h5">Отгрузка:</label>
+            <div class="col-2 mb-3">
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="Shiped" id="Shiped1" value="">
+                <label class="form-check-label" for="Shiped1">
+                  Все
+                </label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="Shiped" id="Shiped2" checked value="false">
+                <label class="form-check-label" for="Shiped2">
+                  Не отгруженые
+                </label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="Shiped" id="Shiped3" value="true">
+                <label class="form-check-label" for="Shiped3">
+                  Отгруженые
+                </label>
+              </div>
+            </div>
+            <div class="col-4 mb-3">
+              <label for="ShippedDest" class="form-label">Место отгрузки</label>
+              <input type="text" class="form-control" placeholder="Место отгрузки" name="ShippedDest" id="ShippedDest">
+            </div>
+            <div class="col-6 mb-3">
+              <label for="ShipedDateFrom" class="form-label">Даты отправки</label>
+              <div class="input-group">
+                <span class="input-group-text">C</span>
+                <input type="date" class="form-control" placeholder="" name="ShipedDateFrom" id="ShipedDateFrom">
+                <span class="input-group-text">По</span>
+                <input type="date" class="form-control" placeholder="" name="ShipedDateTo" id="ShipedDateTo">
+              </div>
+            </div>
+          </div>
+
+          <div class="row">   
+            <label  class="form-label h5">Приемка:</label>
+            
+            <div class="col-3 mb-3">
+              <label for="TakenDoc" class="form-label">Документ приемки</label>
+              <input type="text" class="form-control" placeholder="Документ приемки" name="TakenDoc" id="TakenDoc">
+            </div>
+            <div class="col-3 mb-3">
+              <label for="TakenOrder" class="form-label">Заказ приемки</label>
+              <input type="text" class="form-control" placeholder="Заказ приемки" name="TakenOrder" id="TakenOrder">
+            </div>
+
+            <div class="col-6 mb-3">
+              <label for="TakenDateFrom" class="form-label">Даты приемки</label>
+              <div class="input-group">
+                <span class="input-group-text">C</span>
+                <input type="date" class="form-control" placeholder="" name="TakenDateFrom" id="TakenDateFrom">
+                <span class="input-group-text">По</span>
+                <input type="date" class="form-control" placeholder="" name="TakenDateTo" id="TakenDateTo">
+              </div>
+            </div>
+          </div>
+
+          
+
+          <button class="btn btn-outline-success" type="submit">Поиск</button>
+      </form>
+    </div>
+
+    <script src="Face/html/js/bootstrap.bundle.js"></script>
+
+</body>
+
+
+</html>

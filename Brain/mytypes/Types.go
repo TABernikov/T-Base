@@ -66,6 +66,20 @@ type StorageByPlaceCount struct {
 	Amout int
 }
 
+type StorageByTModel struct {
+	Model     int
+	Name      string
+	Amout     int
+	Condition int
+}
+
+type StorageByTModelClean struct {
+	Model     string
+	Name      string
+	Amout     int
+	Condition string
+}
+
 type DeviceEvent struct {
 	LogId     int
 	EventType int
