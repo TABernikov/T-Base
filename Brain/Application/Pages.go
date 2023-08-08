@@ -507,8 +507,38 @@ func (a App) MakeTMCAdvanceSearchPage(w http.ResponseWriter) {
 	}
 
 	var dmodelList []idChoise
-	// тут остановился
-	tmp := search{tmodelList, dmodelList, tmodelList}
+	rows, err = a.Db.Db.Query(a.ctx, `SELECT "dModelsId", "dModelName" FROM public."dModels";`)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	for rows.Next() {
+		err := rows.Scan(&choise.Id, &choise.Name)
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		dmodelList = append(dmodelList, choise)
+	}
+
+	var condList []idChoise
+	rows, err = a.Db.Db.Query(a.ctx, `SELECT "condNamesId", "condName" FROM public."condNames";`)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	for rows.Next() {
+		err := rows.Scan(&choise.Id, &choise.Name)
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		condList = append(condList, choise)
+	}
+
+	tmp := search{tmodelList, dmodelList, condList}
 
 	t := template.Must(template.ParseFiles("Face/html/TMCSearch.html"))
 	t.Execute(w, tmp)

@@ -52,7 +52,7 @@
         </div>
       </nav>
 
-    <div class="container p-3">
+    <div class="container-xl p-3">
       <form id="in-form" name="in-form" action="/works/tmc" method="post">
 
           <div class="row">
@@ -67,9 +67,9 @@
               <span class="input-group-text">TModel</span>
               <select class="form-select" name="TModel">
                 <option selected value="">Не выбрано</option>
-                <option value="1">Один</option>
-                <option value="2">Два</option>
-                <option value="3">Три</option>
+                {{range .TModels}}
+                <option value="{{.Id}}">{{.Name}}</option>
+                {{end}}  
               </select>
             </div>
           </div>
@@ -110,9 +110,9 @@
               <span class="input-group-text">DModel</span>
               <select class="form-select" name="DModel">
                 <option selected value="">Не выбрано</option>
-                <option value="1">Один</option>
-                <option value="2">Два</option>
-                <option value="3">Три</option>
+                {{range .DModels}}
+                <option value="{{.Id}}">{{.Name}}</option>
+                {{end}}
               </select>
             </div>
 
@@ -128,9 +128,9 @@
               <div class="input-group">
                 <select class="form-select" name="Condition">
                   <option selected value="">Не выбрано</option>
-                  <option value="1">Один</option>
-                  <option value="2">Два</option>
-                  <option value="3">Три</option>
+                  {{range .Conditions}}
+                  <option value="{{.Id}}">{{.Name}}</option>
+                  {{end}}
                 </select>
               </div>
             </div>
