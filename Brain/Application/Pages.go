@@ -211,7 +211,7 @@ func (a App) StorageByPlacePage(w http.ResponseWriter, r *http.Request, pr httpr
 
 // Страница склада по моделям
 func (a App) StorageByTModelPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
-	storage, err := a.Db.TakeStorageByTModelClean(a.ctx)
+	storage, err := a.Db.TakeStorageByTModelClean(a.ctx, "")
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -263,26 +263,15 @@ func (a App) OrderMiniPage(w http.ResponseWriter, r *http.Request, pr httprouter
 		return
 	}
 
-	rows, err := a.Db.Db.Query(a.ctx, ` SELECT public."tModels"."tModelsName" AS tmodel, tmp.name, public."condNames"."condName", tmp.count From
-		(SELECT sns.tmodel, sns.name, sns.condition, count(sns."snsId") AS "count" FROM sns WHERE sns.shiped = false AND sns.order = $1 GROUP BY sns.tmodel, sns.condition, sns.name ORDER BY sns.tmodel, sns.condition) tmp
-		LEFT JOIN public."condNames" ON public."condNames"."condNamesId" = tmp.condition LEFT JOIN public."tModels" ON public."tModels"."tModelsId" = tmp.tmodel`, order.OrderId)
+	reqsest := ` SELECT public."tModels"."tModelsName" AS tmodel, tmp.name, public."condNames"."condName", tmp.count From
+	(SELECT sns.tmodel, sns.name, sns.condition, count(sns."snsId") AS "count" FROM sns WHERE sns.shiped = false AND sns.order = ` + strconv.Itoa(order.OrderId) + ` GROUP BY sns.tmodel, sns.condition, sns.name ORDER BY sns.tmodel, sns.condition) tmp
+	LEFT JOIN public."condNames" ON public."condNames"."condNamesId" = tmp.condition LEFT JOIN public."tModels" ON public."tModels"."tModelsId" = tmp.tmodel`
+
+	reservs, err := a.Db.TakeStorageByTModelClean(a.ctx, reqsest)
 	if err != nil {
-		fmt.Fprintln(w, "Ошибка поиска резерва заказа", err)
-		return
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		reservs = nil
 	}
-	var reservs []mytypes.StorageByTModelClean
-	var reserv mytypes.StorageByTModelClean
-
-	for rows.Next() {
-		err := rows.Scan(&reserv.Model, &reserv.Name, &reserv.Condition, &reserv.Amout)
-		if err != nil {
-			fmt.Fprintln(w, "Ошибка поиска резерва заказа", err)
-			return
-		}
-		reservs = append(reservs, reserv)
-	}
-
-	fmt.Println(reservs)
 
 	MakeOrderMiniPage(w, order, orderList, reservs)
 }
@@ -299,6 +288,14 @@ func (a App) SetOrderPage(w http.ResponseWriter, r *http.Request, pr httprouter.
 
 func (a App) SetPlacePage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	MakeDobleImputPage(w, "/works/setplace", "Установить место", "Введите серийные номера:", "Номер места", "Установить место")
+}
+
+func (a App) TakeDemoPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	MakeImputPage(w, "", "Приемка демо", "Введите серийные номера", "Принять")
+}
+
+func (a App) ToShipPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	MakeDobleImputPage(w, "", "Отгрузка", "Введите серийные номера", "Место отгрузки", "Отгрузить")
 }
 
 //////////////////////
@@ -458,6 +455,148 @@ func (a App) SetPlace(w http.ResponseWriter, r *http.Request, pr httprouter.Para
 }
 
 func (a App) AdvanceTMCSearch(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	rawSelect := `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder" FROM public.sns WHERE true`
+
+	if r.FormValue("Id") != "" {
+		rawSelect += ` AND "snsId" = ` + r.FormValue("Id")
+	}
+	if r.FormValue("TModel") != "" {
+		rawSelect += ` AND tmodel = ` + r.FormValue("TModel")
+	}
+
+	if r.FormValue("Sn") != "" {
+		rawSelect += ` AND sn = '` + r.FormValue("Sn") + `'`
+	}
+
+	if r.FormValue("Mac") != "" {
+		rawSelect += ` AND mac = '` + r.FormValue("Mac") + `'`
+	}
+
+	if r.FormValue("Order") != "" {
+		rawSelect += ` AND "order" = ` + r.FormValue("Order")
+	}
+
+	if r.FormValue("Place") != "" {
+		rawSelect += ` AND place = ` + r.FormValue("Place")
+	}
+
+	if r.FormValue("DModel") != "" {
+		rawSelect += ` And dmodel = ` + r.FormValue("DModel")
+	}
+
+	if r.FormValue("Rev") != "" {
+		rawSelect += ` AND rev =  '` + r.FormValue("Rev") + `'`
+	}
+
+	if r.FormValue("Condition") != "" {
+		rawSelect += ` AND condition = ` + r.FormValue("Condition")
+	}
+
+	if r.FormValue("CondDateFrom") != "" {
+		rawSelect += ` AND "condDate" BETWEEN '` + r.FormValue("CondDateFrom")
+	} else {
+		rawSelect += ` AND "condDate" BETWEEN '2000-01-01`
+	}
+
+	if r.FormValue("CondDateTo") != "" {
+		rawSelect += `' AND '` + r.FormValue("CondDateTo") + `'`
+	} else {
+		rawSelect += `' AND '2100-01-01'`
+	}
+
+	if r.FormValue("Shiped") != "" {
+		rawSelect += (` AND shiped = ` + r.FormValue("Shiped"))
+	}
+
+	if r.FormValue("ShippedDest") != "" {
+		rawSelect += ` AND "shippedDest" = '` + r.FormValue("ShippedDest") + `'`
+	}
+
+	if r.FormValue("ShipedDateFrom") != "" {
+		rawSelect += ``
+	}
+
+	if r.FormValue("ShipedDateTo") != "" {
+		rawSelect += ``
+	}
+
+	if r.FormValue("TakenDoc") != "" {
+		rawSelect += ` AND "takenDoc" = '` + r.FormValue("TakenDoc") + `'`
+	}
+
+	if r.FormValue("TakenOrder") != "" {
+		rawSelect += ` AND "takenOrder" = '` + r.FormValue("TakenOrder") + `'`
+	}
+
+	if r.FormValue("TakenDateFrom") != "" {
+		rawSelect += ``
+	}
+
+	if r.FormValue("TakenDateTo") != "" {
+		rawSelect += ``
+	}
+
+	cleanSelect := `SELECT tmp."snsId", tmp.sn, tmp.mac, "dModels"."dModelName" AS dmodel, tmp.rev, "tModels"."tModelsName" AS tmodel, tmp.name, "condNames"."condName" AS condition, tmp."condDate", tmp."order", tmp.place, tmp.shiped, tmp."shipedDate", tmp."shippedDest", tmp."takenDate", tmp."takenDoc", tmp."takenOrder" FROM (` + rawSelect + `)tmp LEFT JOIN "dModels" ON "dModels"."dModelsId" = tmp.dmodel LEFT JOIN "tModels" ON "tModels"."tModelsId" = tmp.tmodel LEFT JOIN "condNames" ON "condNames"."condNamesId" = tmp.condition`
+
+	devices, err := a.Db.TakeCleanDevice(a.ctx, cleanSelect)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	MakeTMCPage(w, devices, "Результаты поиска ТМЦ")
+}
+
+func (a App) TakeDemo(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	snString := r.FormValue("in")
+	Sns := strings.Fields(snString)
+	if len(Sns) == 0 {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Не ввседены серийные номера", "", "Главная", "/works/prof")
+		return
+	}
+
+	count, err := a.Db.SnTakeDemo(a.ctx, Sns...)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	if count == 0 {
+		MakeAlertPage(w, 5, "Предупреждение", "Не передано", "Устройства приняты", "Внесено "+strconv.Itoa(len(Sns))+" серийных номеров	Принято "+strconv.Itoa(count)+"  серийных номеров", "Главная", "/works/prof")
+		return
+	} else if len(Sns)-count == 0 {
+		MakeAlertPage(w, 1, "Готово", "Передано", "Все устройства приняты", "Внесено "+strconv.Itoa(len(Sns))+" серийных номеров	Принято "+strconv.Itoa(count)+"  серийных номеров", "Главная", "/works/prof")
+		return
+	} else if len(Sns)-count > 0 {
+		MakeAlertPage(w, 2, "Готово", "Частично", "Часть устройств не принята", "Внесено "+strconv.Itoa(len(Sns))+" серийных номеров	Принято "+strconv.Itoa(count)+"  серийных номеров", "Главная", "/works/prof")
+		return
+	}
+}
+
+func (a App) ToShip(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	snString := r.FormValue("in1")
+	Sns := strings.Fields(snString)
+	if len(Sns) == 0 {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Не ввседены серийные номера", "", "Главная", "/works/prof")
+		return
+	}
+
+	count, err := a.Db.SnToShip(a.ctx, r.FormValue("in2"), Sns...)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	if count == 0 {
+		MakeAlertPage(w, 5, "Предупреждение", "Не передано", "Устройства отгружены", "Внесено "+strconv.Itoa(len(Sns))+" серийных номеров	Отгружено "+strconv.Itoa(count)+"  серийных номеров", "Главная", "/works/prof")
+		return
+	} else if len(Sns)-count == 0 {
+		MakeAlertPage(w, 1, "Готово", "Передано", "Все устройства отгружены", "Внесено "+strconv.Itoa(len(Sns))+" серийных номеров	Отгружено "+strconv.Itoa(count)+"  серийных номеров", "Главная", "/works/prof")
+		return
+	} else if len(Sns)-count > 0 {
+		MakeAlertPage(w, 2, "Готово", "Частично", "Часть устройств не отгружена", "Внесено "+strconv.Itoa(len(Sns))+" серийных номеров	Отгружено "+strconv.Itoa(count)+"  серийных номеров", "Главная", "/works/prof")
+		return
+	}
 
 }
 

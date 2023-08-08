@@ -169,7 +169,38 @@ func (base Base) TakeDeviceBySn(ctx context.Context, inSn ...string) ([]mytypes.
 // Функции поучения читабельных устройств//
 ///////////////////////////////////////////
 
-// Получение слайса читабельных устройств по Id
+func (base Base) TakeCleanDevice(ctx context.Context, fullReqest string) ([]mytypes.DeviceClean, error) {
+	devices := []mytypes.DeviceClean{}
+	device := mytypes.DeviceClean{}
+	var CondDate, ShipedDate, TakenDate time.Time
+	var Shiped bool
+
+	if fullReqest == "" {
+		fullReqest = `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder" FROM "cleanSns" `
+	}
+
+	rows, err := base.Db.Query(ctx, fullReqest)
+	fmt.Println(fullReqest)
+	if err != nil {
+		return devices, err
+	}
+
+	for rows.Next() {
+		err := rows.Scan(&device.Id, &device.Sn, &device.Mac, &device.DModel, &device.Rev, &device.TModel, &device.Name, &device.Condition, &CondDate, &device.Order, &device.Place, &Shiped, &ShipedDate, &device.ShippedDest, &TakenDate, &device.TakenDoc, &device.TakenOrder)
+		if err != nil {
+			return devices, err
+		}
+		device.CondDate = CondDate.Format("02.01.2006")
+		device.ShipedDate = ShipedDate.Format("02.01.2006")
+		device.TakenDate = TakenDate.Format("02.01.2006")
+		device.Shiped = strconv.FormatBool(Shiped)
+		devices = append(devices, device)
+	}
+
+	return devices, nil
+}
+
+// Получение слайса читабельных устройств по Id ОПТИМИЗИРОВАТЬ
 func (base Base) TakeCleanDeviceById(ctx context.Context, inId ...int) ([]mytypes.DeviceClean, error) {
 	devices := []mytypes.DeviceClean{}
 	device := mytypes.DeviceClean{}
@@ -241,7 +272,7 @@ func (base Base) TakeCleanDeviceByRequest(ctx context.Context, request string) (
 	return devices, nil
 }
 
-// Получение стлайса читабельных устройств по условию серийным номерам
+// Получение стлайса читабельных устройств по условию серийным номерам ОПТИМИЗИРОВАТЬ
 func (base Base) TakeCleanDeviceBySn(ctx context.Context, inSn ...string) ([]mytypes.DeviceClean, error) {
 	devices := []mytypes.DeviceClean{}
 	device := mytypes.DeviceClean{}
@@ -284,7 +315,7 @@ func (base Base) TakeCleanDeviceBySn(ctx context.Context, inSn ...string) ([]myt
 	return devices, nil
 }
 
-// Получение стлайса читабельных устройств по заказу
+// Получение стлайса читабельных устройств по заказу ОПТИМИЗИРОВАТЬ
 func (base Base) TakeCleanDeviceByOrder(ctx context.Context, inOrders ...int) ([]mytypes.DeviceClean, error) {
 	devices := []mytypes.DeviceClean{}
 	device := mytypes.DeviceClean{}
@@ -486,13 +517,14 @@ func (base Base) TakeStorageCountByPlace(ctx context.Context) ([]mytypes.Storage
 	return storage, nil
 }
 
-func (base Base) TakeStorageByTModelClean(ctx context.Context) ([]mytypes.StorageByTModelClean, error) {
+func (base Base) TakeStorageByTModelClean(ctx context.Context, fullReqest string) ([]mytypes.StorageByTModelClean, error) {
 	storage := []mytypes.StorageByTModelClean{}
 	deviceCount := mytypes.StorageByTModelClean{}
 
-	qq := `SELECT tmodel, name, condition, count FROM public."cleanWearByTModel";`
-
-	rows, err := base.Db.Query(ctx, qq)
+	if fullReqest == "" {
+		fullReqest = `SELECT tmodel, name, condition, count FROM public."cleanWearByTModel";`
+	}
+	rows, err := base.Db.Query(ctx, fullReqest)
 	if err != nil {
 		return storage, err
 	}
@@ -550,6 +582,7 @@ func (base Base) TakeOrderById(ctx context.Context, inId ...int) ([]mytypes.Orde
 // Функции получения читабельных заказов//
 //////////////////////////////////////////
 
+// ОПТИМИЗИРОВАТЬ
 func (base Base) TakeCleanOrderById(ctx context.Context, inId ...int) ([]mytypes.OrderClean, error) {
 	var orders []mytypes.OrderClean
 	var order mytypes.OrderClean
@@ -681,7 +714,7 @@ func (base Base) TakeOrderList(ctx context.Context, orderId int) ([]mytypes.Orde
 // функции получения читабельного листа заказов//
 /////////////////////////////////////////////////
 
-// Получение читабельного листа заказа по его ID
+// Получение читабельного листа заказа по его ID ОПТИМИЗИРОВАТЬ
 func (base Base) TakeCleanOrderList(ctx context.Context, orderId int) ([]mytypes.OrderListClean, error) {
 	var orderList []mytypes.OrderListClean
 	var pos mytypes.OrderListClean
@@ -763,6 +796,44 @@ func (base Base) SnSetPlace(ctx context.Context, inPlace int, InSn ...string) (i
 	}
 
 	res, err := base.Db.Exec(ctx, qq, inPlace)
+
+	return int(res.RowsAffected()), err
+}
+
+func (base Base) SnTakeDemo(ctx context.Context, InSn ...string) (int, error) {
+	if len(InSn) == 0 {
+		return 0, fmt.Errorf("не введены серийные номера")
+	}
+
+	qq := `UPDATE public.sns SET shiped = 'false', place= 10 WHERE`
+	for i, sn := range InSn {
+		if i == 0 {
+			qq += (`( sn = '` + sn + `') `)
+		} else {
+			qq += (`OR ( sn = '` + sn + `') `)
+		}
+	}
+
+	res, err := base.Db.Exec(ctx, qq)
+
+	return int(res.RowsAffected()), err
+}
+
+func (base Base) SnToShip(ctx context.Context, dest string, InSn ...string) (int, error) {
+	if len(InSn) == 0 {
+		return 0, fmt.Errorf("не введены серийные номера")
+	}
+
+	qq := `UPDATE public.sns SET shiped = 'true', place= -1, "shippedDest" = '` + dest + `', "shipedDate" = CURRENT_DATE WHERE`
+	for i, sn := range InSn {
+		if i == 0 {
+			qq += (`( sn = '` + sn + `') `)
+		} else {
+			qq += (`OR ( sn = '` + sn + `') `)
+		}
+	}
+
+	res, err := base.Db.Exec(ctx, qq)
 
 	return int(res.RowsAffected()), err
 }
