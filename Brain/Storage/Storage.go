@@ -838,6 +838,13 @@ func (base Base) SnToShip(ctx context.Context, dest string, InSn ...string) (int
 	return int(res.RowsAffected()), err
 }
 
+func (base Base) ChangeNumPlace(ctx context.Context, old, new int) error {
+
+	_, err := base.Db.Exec(ctx, `UPDATE public.sns SET place = $1 WHERE place = $2`, new, old)
+
+	return err
+}
+
 ///////////////////
 // Другие функции//
 ///////////////////

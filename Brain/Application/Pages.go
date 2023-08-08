@@ -298,6 +298,10 @@ func (a App) ToShipPage(w http.ResponseWriter, r *http.Request, pr httprouter.Pa
 	MakeDobleImputPage(w, "", "Отгрузка", "Введите серийные номера", "Место отгрузки", "Отгрузить")
 }
 
+func (a App) ChangeNumPlacePage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	MakeDobleImputNumberPage(w, "/works/cangeplacenum", "Установить номер места", "Введите старый номер:", "Введите новый номер", "Изменить")
+}
+
 //////////////////////
 // Обработчики POST //
 //////////////////////
@@ -565,7 +569,7 @@ func (a App) TakeDemo(w http.ResponseWriter, r *http.Request, pr httprouter.Para
 		MakeAlertPage(w, 5, "Предупреждение", "Не передано", "Устройства приняты", "Внесено "+strconv.Itoa(len(Sns))+" серийных номеров	Принято "+strconv.Itoa(count)+"  серийных номеров", "Главная", "/works/prof")
 		return
 	} else if len(Sns)-count == 0 {
-		MakeAlertPage(w, 1, "Готово", "Передано", "Все устройства приняты", "Внесено "+strconv.Itoa(len(Sns))+" серийных номеров	Принято "+strconv.Itoa(count)+"  серийных номеров", "Главная", "/works/prof")
+		MakeAlertPage(w, 1, "Готово", "Принято", "Все устройства приняты", "Внесено "+strconv.Itoa(len(Sns))+" серийных номеров	Принято "+strconv.Itoa(count)+"  серийных номеров", "Главная", "/works/prof")
 		return
 	} else if len(Sns)-count > 0 {
 		MakeAlertPage(w, 2, "Готово", "Частично", "Часть устройств не принята", "Внесено "+strconv.Itoa(len(Sns))+" серийных номеров	Принято "+strconv.Itoa(count)+"  серийных номеров", "Главная", "/works/prof")
@@ -591,13 +595,34 @@ func (a App) ToShip(w http.ResponseWriter, r *http.Request, pr httprouter.Params
 		MakeAlertPage(w, 5, "Предупреждение", "Не передано", "Устройства отгружены", "Внесено "+strconv.Itoa(len(Sns))+" серийных номеров	Отгружено "+strconv.Itoa(count)+"  серийных номеров", "Главная", "/works/prof")
 		return
 	} else if len(Sns)-count == 0 {
-		MakeAlertPage(w, 1, "Готово", "Передано", "Все устройства отгружены", "Внесено "+strconv.Itoa(len(Sns))+" серийных номеров	Отгружено "+strconv.Itoa(count)+"  серийных номеров", "Главная", "/works/prof")
+		MakeAlertPage(w, 1, "Готово", "Отгружено", "Все устройства отгружены", "Внесено "+strconv.Itoa(len(Sns))+" серийных номеров	Отгружено "+strconv.Itoa(count)+"  серийных номеров", "Главная", "/works/prof")
 		return
 	} else if len(Sns)-count > 0 {
 		MakeAlertPage(w, 2, "Готово", "Частично", "Часть устройств не отгружена", "Внесено "+strconv.Itoa(len(Sns))+" серийных номеров	Отгружено "+strconv.Itoa(count)+"  серийных номеров", "Главная", "/works/prof")
 		return
 	}
+}
 
+func (a App) ChangeNumPlace(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	old, err := strconv.Atoi(r.FormValue("in1"))
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	new, err := strconv.Atoi(r.FormValue("in2"))
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	err = a.Db.ChangeNumPlace(a.ctx, old, new)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	MakeAlertPage(w, 1, "Готово", "Измененно", "Номер паллета успешно изменен", "Старый номер "+strconv.Itoa(old)+" ->	Новый "+strconv.Itoa(new), "Главная", "/works/prof")
 }
 
 //////////////////////////
@@ -781,6 +806,22 @@ func MakeDobleImputPage(w http.ResponseWriter, postPath, title, imputText1, impu
 	tmp := imputPage{title, imputText1, imputText2, btnText, postPath}
 
 	t := template.Must(template.ParseFiles("Face/html/dobleinsert.html"))
+	t.Execute(w, tmp)
+}
+
+func MakeDobleImputNumberPage(w http.ResponseWriter, postPath, title, imputText1, imputText2, btnText string) {
+
+	type imputPage struct {
+		Title      string
+		InputText1 string
+		InputText2 string
+		BtnText    string
+		PostPath   string
+	}
+
+	tmp := imputPage{title, imputText1, imputText2, btnText, postPath}
+
+	t := template.Must(template.ParseFiles("Face/html/dobleInserttonomber.html"))
 	t.Execute(w, tmp)
 }
 
