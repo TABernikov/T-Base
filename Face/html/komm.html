@@ -57,6 +57,17 @@
                                     <th>Изм. статус.</th>
                                     <td>{{.Device.CondDate}}</td>
                                 </tr>
+                                <tr>
+                                    <th>Коментарий:</th>
+                                    <td colspan="3" >
+                                        {{.Device.Comment}} &nbsp;&nbsp;&nbsp;
+                                        <form class="p-1" id="in-form" name="in-form" action="/works/addcomment" method="post">                                                                                                                                                                             
+                                            <input class="form-control" type="text" id="text" name="text"  placeholder="" ></input>
+                                            <input type="hidden" name="Id" value="{{.Device.Id}}" />
+                                            <button type="submit" class="btn btn-primary ">Дополнить</button>
+                                        </form>
+                                    </td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>

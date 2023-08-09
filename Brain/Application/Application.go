@@ -68,6 +68,7 @@ func (a App) Routs(r *httprouter.Router) {
 	r.POST("/works/takedemo", a.authtorized(a.TakeDemo))
 	r.POST("/works/toship", a.authtorized(a.ToShip))
 	r.POST("/works/cangeplacenum", a.authtorized(a.ChangeNumPlace))
+	r.POST("/works/addcomment", a.authtorized(a.AddCommentToSns))
 
 	//r.GET("/works/new", a.authtorized(a.NewSns))
 }

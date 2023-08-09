@@ -3,7 +3,10 @@ package Storage
 import (
 	"T-Base/Brain/mytypes"
 	"context"
+	"database/sql"
+	"encoding/csv"
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -174,9 +177,10 @@ func (base Base) TakeCleanDevice(ctx context.Context, fullReqest string) ([]myty
 	device := mytypes.DeviceClean{}
 	var CondDate, ShipedDate, TakenDate time.Time
 	var Shiped bool
+	var commentnull sql.NullString
 
 	if fullReqest == "" {
-		fullReqest = `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder" FROM "cleanSns" `
+		fullReqest = `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder", comment FROM "cleanSns" `
 	}
 
 	rows, err := base.Db.Query(ctx, fullReqest)
@@ -186,9 +190,14 @@ func (base Base) TakeCleanDevice(ctx context.Context, fullReqest string) ([]myty
 	}
 
 	for rows.Next() {
-		err := rows.Scan(&device.Id, &device.Sn, &device.Mac, &device.DModel, &device.Rev, &device.TModel, &device.Name, &device.Condition, &CondDate, &device.Order, &device.Place, &Shiped, &ShipedDate, &device.ShippedDest, &TakenDate, &device.TakenDoc, &device.TakenOrder)
+		err := rows.Scan(&device.Id, &device.Sn, &device.Mac, &device.DModel, &device.Rev, &device.TModel, &device.Name, &device.Condition, &CondDate, &device.Order, &device.Place, &Shiped, &ShipedDate, &device.ShippedDest, &TakenDate, &device.TakenDoc, &device.TakenOrder, &commentnull)
 		if err != nil {
 			return devices, err
+		}
+		if commentnull.Valid {
+			device.Comment = commentnull.String
+		} else {
+			device.Comment = ""
 		}
 		device.CondDate = CondDate.Format("02.01.2006")
 		device.ShipedDate = ShipedDate.Format("02.01.2006")
@@ -206,31 +215,26 @@ func (base Base) TakeCleanDeviceById(ctx context.Context, inId ...int) ([]mytype
 	device := mytypes.DeviceClean{}
 	var CondDate, ShipedDate, TakenDate time.Time
 	var Shiped bool
+	var commentnull sql.NullString
+	var err error
 
 	if len(inId) == 0 {
-		rows, err := base.Db.Query(ctx, `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder" FROM "cleanSns" order by "snsId"`)
+		devices, err = base.TakeCleanDevice(ctx, "")
 		if err != nil {
 			return devices, err
 		}
 
-		for rows.Next() {
-			err := rows.Scan(&device.Id, &device.Sn, &device.Mac, &device.DModel, &device.Rev, &device.TModel, &device.Name, &device.Condition, &CondDate, &device.Order, &device.Place, &Shiped, &ShipedDate, &device.ShippedDest, &TakenDate, &device.TakenDoc, &device.TakenOrder)
+	} else {
+		for _, id := range inId {
+			row := base.Db.QueryRow(ctx, `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder", comment FROM "cleanSns" Where "snsId" = $1 order by "snsId"`, id)
+			err := row.Scan(&device.Id, &device.Sn, &device.Mac, &device.DModel, &device.Rev, &device.TModel, &device.Name, &device.Condition, &CondDate, &device.Order, &device.Place, &Shiped, &ShipedDate, &device.ShippedDest, &TakenDate, &device.TakenDoc, &device.TakenOrder, &commentnull)
 			if err != nil {
 				return devices, err
 			}
-			device.CondDate = CondDate.Format("02.01.2006")
-			device.ShipedDate = ShipedDate.Format("02.01.2006")
-			device.TakenDate = TakenDate.Format("02.01.2006")
-			device.Shiped = strconv.FormatBool(Shiped)
-			devices = append(devices, device)
-		}
-
-	} else {
-		for _, id := range inId {
-			row := base.Db.QueryRow(ctx, `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder" FROM "cleanSns" Where "snsId" = $1 order by "snsId"`, id)
-			err := row.Scan(&device.Id, &device.Sn, &device.Mac, &device.DModel, &device.Rev, &device.TModel, &device.Name, &device.Condition, &CondDate, &device.Order, &device.Place, &Shiped, &ShipedDate, &device.ShippedDest, &TakenDate, &device.TakenDoc, &device.TakenOrder)
-			if err != nil {
-				return devices, err
+			if commentnull.Valid {
+				device.Comment = commentnull.String
+			} else {
+				device.Comment = ""
 			}
 			device.CondDate = CondDate.Format("02.01.2006")
 			device.ShipedDate = ShipedDate.Format("02.01.2006")
@@ -248,8 +252,9 @@ func (base Base) TakeCleanDeviceByRequest(ctx context.Context, request string) (
 	device := mytypes.DeviceClean{}
 	var CondDate, ShipedDate, TakenDate time.Time
 	var Shiped bool
+	var commentnull sql.NullString
 
-	qq := `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder" FROM "cleanSns" `
+	qq := `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder", comment FROM "cleanSns" `
 
 	rows, err := base.Db.Query(ctx, qq+request)
 	fmt.Println(qq + request)
@@ -258,9 +263,14 @@ func (base Base) TakeCleanDeviceByRequest(ctx context.Context, request string) (
 	}
 
 	for rows.Next() {
-		err := rows.Scan(&device.Id, &device.Sn, &device.Mac, &device.DModel, &device.Rev, &device.TModel, &device.Name, &device.Condition, &CondDate, &device.Order, &device.Place, &Shiped, &ShipedDate, &device.ShippedDest, &TakenDate, &device.TakenDoc, &device.TakenOrder)
+		err := rows.Scan(&device.Id, &device.Sn, &device.Mac, &device.DModel, &device.Rev, &device.TModel, &device.Name, &device.Condition, &CondDate, &device.Order, &device.Place, &Shiped, &ShipedDate, &device.ShippedDest, &TakenDate, &device.TakenDoc, &device.TakenOrder, &commentnull)
 		if err != nil {
 			return devices, err
+		}
+		if commentnull.Valid {
+			device.Comment = commentnull.String
+		} else {
+			device.Comment = ""
 		}
 		device.CondDate = CondDate.Format("02.01.2006")
 		device.ShipedDate = ShipedDate.Format("02.01.2006")
@@ -278,32 +288,25 @@ func (base Base) TakeCleanDeviceBySn(ctx context.Context, inSn ...string) ([]myt
 	device := mytypes.DeviceClean{}
 	var CondDate, ShipedDate, TakenDate time.Time
 	var Shiped bool
+	var commentnull sql.NullString
 
 	if len(inSn) == 0 {
-		rows, err := base.Db.Query(ctx, `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder" FROM "cleanSns"`)
+		devices, err := base.TakeCleanDevice(ctx, "")
 		if err != nil {
 			return devices, err
 		}
 
-		for rows.Next() {
-			err := rows.Scan(&device.Id, &device.Sn, &device.Mac, &device.DModel, &device.Rev, &device.TModel, &device.Name, &device.Condition, &CondDate, &device.Order, &device.Place, &Shiped, &ShipedDate, &device.ShippedDest, &TakenDate, &device.TakenDoc, &device.TakenOrder)
+	} else {
+		for _, sn := range inSn {
+			row := base.Db.QueryRow(ctx, `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder", comment FROM "cleanSns" Where sn = $1`, sn)
+			err := row.Scan(&device.Id, &device.Sn, &device.Mac, &device.DModel, &device.Rev, &device.TModel, &device.Name, &device.Condition, &CondDate, &device.Order, &device.Place, &Shiped, &ShipedDate, &device.ShippedDest, &TakenDate, &device.TakenDoc, &device.TakenOrder, &commentnull)
 			if err != nil {
 				return devices, err
 			}
-			device.CondDate = CondDate.Format("02.01.2006")
-			device.ShipedDate = ShipedDate.Format("02.01.2006")
-			device.TakenDate = TakenDate.Format("02.01.2006")
-			device.Shiped = strconv.FormatBool(Shiped)
-			devices = append(devices, device)
-
-		}
-
-	} else {
-		for _, sn := range inSn {
-			row := base.Db.QueryRow(ctx, `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder" FROM "cleanSns" Where sn = $1`, sn)
-			err := row.Scan(&device.Id, &device.Sn, &device.Mac, &device.DModel, &device.Rev, &device.TModel, &device.Name, &device.Condition, &CondDate, &device.Order, &device.Place, &Shiped, &ShipedDate, &device.ShippedDest, &TakenDate, &device.TakenDoc, &device.TakenOrder)
-			if err != nil {
-				continue
+			if commentnull.Valid {
+				device.Comment = commentnull.String
+			} else {
+				device.Comment = ""
 			}
 			device.CondDate = CondDate.Format("02.01.2006")
 			device.ShipedDate = ShipedDate.Format("02.01.2006")
@@ -321,37 +324,30 @@ func (base Base) TakeCleanDeviceByOrder(ctx context.Context, inOrders ...int) ([
 	device := mytypes.DeviceClean{}
 	var CondDate, ShipedDate, TakenDate time.Time
 	var Shiped bool
+	var commentnull sql.NullString
 
 	if len(inOrders) == 0 {
-		rows, err := base.Db.Query(ctx, `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder" FROM "cleanSns"`)
+		devices, err := base.TakeCleanDevice(ctx, "")
 		if err != nil {
 			return devices, err
 		}
 
-		for rows.Next() {
-			err := rows.Scan(&device.Id, &device.Sn, &device.Mac, &device.DModel, &device.Rev, &device.TModel, &device.Name, &device.Condition, &CondDate, &device.Order, &device.Place, &Shiped, &ShipedDate, &device.ShippedDest, &TakenDate, &device.TakenDoc, &device.TakenOrder)
-			if err != nil {
-				return devices, err
-			}
-			device.CondDate = CondDate.Format("02.01.2006")
-			device.ShipedDate = ShipedDate.Format("02.01.2006")
-			device.TakenDate = TakenDate.Format("02.01.2006")
-			device.Shiped = strconv.FormatBool(Shiped)
-			devices = append(devices, device)
-
-		}
-
 	} else {
 		for _, order := range inOrders {
-			rows, err := base.Db.Query(ctx, `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder" FROM "cleanSns" Where "order" = $1`, order)
+			rows, err := base.Db.Query(ctx, `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder", comment  FROM "cleanSns" Where "order" = $1`, order)
 			if err != nil {
 				continue
 			}
 
 			for rows.Next() {
-				err := rows.Scan(&device.Id, &device.Sn, &device.Mac, &device.DModel, &device.Rev, &device.TModel, &device.Name, &device.Condition, &CondDate, &device.Order, &device.Place, &Shiped, &ShipedDate, &device.ShippedDest, &TakenDate, &device.TakenDoc, &device.TakenOrder)
+				err := rows.Scan(&device.Id, &device.Sn, &device.Mac, &device.DModel, &device.Rev, &device.TModel, &device.Name, &device.Condition, &CondDate, &device.Order, &device.Place, &Shiped, &ShipedDate, &device.ShippedDest, &TakenDate, &device.TakenDoc, &device.TakenOrder, &commentnull)
 				if err != nil {
-					continue
+					return devices, err
+				}
+				if commentnull.Valid {
+					device.Comment = commentnull.String
+				} else {
+					device.Comment = ""
 				}
 				device.CondDate = CondDate.Format("02.01.2006")
 				device.ShipedDate = ShipedDate.Format("02.01.2006")
@@ -379,7 +375,7 @@ func (base Base) TakeCleanDeviceByAnything(ctx context.Context, request ...strin
 			return device, err
 		}
 
-		qq += `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder" FROM "cleanSns" WHERE sn = '` + a + `' OR mac = '` + a + `' OR "name" = '` + a + `' OR dmodel = '` + a + `' OR rev = '` + a + `' OR tmodel = '` + a + `' OR condition = '` + a + `' OR "shippedDest" = '` + a + `' OR "takenDoc" = '` + a + `' OR "takenOrder" = '` + a + "'"
+		qq += `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder", comment FROM "cleanSns" WHERE sn = '` + a + `' OR mac = '` + a + `' OR "name" = '` + a + `' OR dmodel = '` + a + `' OR rev = '` + a + `' OR tmodel = '` + a + `' OR condition = '` + a + `' OR "shippedDest" = '` + a + `' OR "takenDoc" = '` + a + `' OR "takenOrder" = '` + a + `' OR "comment" = '` + a + "'"
 
 		_, err := strconv.Atoi(a)
 		if err == nil {
@@ -397,6 +393,7 @@ func (base Base) TakeCleanDeviceByAnything(ctx context.Context, request ...strin
 	device := mytypes.DeviceClean{}
 	var CondDate, ShipedDate, TakenDate time.Time
 	var Shiped bool
+	var commentnull sql.NullString
 
 	rows, err := base.Db.Query(ctx, qq)
 	fmt.Println(request)
@@ -406,9 +403,14 @@ func (base Base) TakeCleanDeviceByAnything(ctx context.Context, request ...strin
 	}
 
 	for rows.Next() {
-		err := rows.Scan(&device.Id, &device.Sn, &device.Mac, &device.DModel, &device.Rev, &device.TModel, &device.Name, &device.Condition, &CondDate, &device.Order, &device.Place, &Shiped, &ShipedDate, &device.ShippedDest, &TakenDate, &device.TakenDoc, &device.TakenOrder)
+		err := rows.Scan(&device.Id, &device.Sn, &device.Mac, &device.DModel, &device.Rev, &device.TModel, &device.Name, &device.Condition, &CondDate, &device.Order, &device.Place, &Shiped, &ShipedDate, &device.ShippedDest, &TakenDate, &device.TakenDoc, &device.TakenOrder, &commentnull)
 		if err != nil {
 			return devices, err
+		}
+		if commentnull.Valid {
+			device.Comment = commentnull.String
+		} else {
+			device.Comment = ""
 		}
 		device.CondDate = CondDate.Format("02.01.2006")
 		device.ShipedDate = ShipedDate.Format("02.01.2006")
@@ -472,13 +474,15 @@ func (base Base) TakeCleanDeviceEvent(ctx context.Context, deviceId int) ([]myty
 ///////////////////////////////////////
 
 // Получение кол-ва устройств на складе по заказам
-func (base Base) TakeStorageCount(ctx context.Context) ([]mytypes.StorageCount, error) {
+func (base Base) TakeStorageCount(ctx context.Context, fullReqest string) ([]mytypes.StorageCount, error) {
 	storage := []mytypes.StorageCount{}
 	deviceCount := mytypes.StorageCount{}
 
-	qq := `SELECT "order", name, count FROM wear`
+	if fullReqest == "" {
+		fullReqest = `SELECT "order", name, count FROM wear`
+	}
 
-	rows, err := base.Db.Query(ctx, qq)
+	rows, err := base.Db.Query(ctx, fullReqest)
 	if err != nil {
 		return storage, err
 	}
@@ -495,13 +499,15 @@ func (base Base) TakeStorageCount(ctx context.Context) ([]mytypes.StorageCount, 
 }
 
 // Получение кол-ва устройств на складе по местам
-func (base Base) TakeStorageCountByPlace(ctx context.Context) ([]mytypes.StorageByPlaceCount, error) {
+func (base Base) TakeStorageCountByPlace(ctx context.Context, fullReqest string) ([]mytypes.StorageByPlaceCount, error) {
 	storage := []mytypes.StorageByPlaceCount{}
 	deviceCount := mytypes.StorageByPlaceCount{}
 
-	qq := `SELECT "place", name, count FROM "wearByPlace"`
+	if fullReqest == "" {
+		fullReqest = `SELECT "place", name, count FROM "wearByPlace"`
+	}
 
-	rows, err := base.Db.Query(ctx, qq)
+	rows, err := base.Db.Query(ctx, fullReqest)
 	if err != nil {
 		return storage, err
 	}
@@ -845,6 +851,32 @@ func (base Base) ChangeNumPlace(ctx context.Context, old, new int) error {
 	return err
 }
 
+func (base Base) AddCommentToSns(ctx context.Context, id int, text string, user mytypes.User) error {
+
+	qq := `UPDATE public.snscomment
+			SET comment= comment || $2
+			WHERE "snsId" = $1;`
+
+	res, err := base.Db.Exec(ctx, qq, id, text)
+
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	if res.RowsAffected() == 0 {
+		qq = `INSERT INTO public.snscomment(
+			"snsId", comment)
+			VALUES ( $1, $2);`
+		_, err = base.Db.Exec(ctx, qq, id, text)
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
+	}
+
+	return nil
+}
+
 ///////////////////
 // Другие функции//
 ///////////////////
@@ -865,11 +897,74 @@ func (base Base) InsertDiviceToSns(ctx context.Context, devices ...mytypes.Devic
 	for _, device := range devices {
 		qq := `INSERT INTO sns(
 			sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder")
-			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)`
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16);`
 		_, err := base.Db.Exec(ctx, qq, device.Sn, device.Mac, device.DModel, device.Rev, device.TModel, device.Name, device.Condition, device.CondDate, device.Order, device.Place, device.Shiped, device.ShipedDate, device.ShippedDest, device.TakenDate, device.TakenDoc, device.TakenOrder)
 		if err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+func (base Base) NewDModels() {
+
+	file, err := os.Open("Запрос1.csv")
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+
+	reader := csv.NewReader(file)
+	reader.Comma = ';'
+
+	for {
+		record, e := reader.Read()
+		if e != nil {
+			fmt.Println(e)
+			break
+		}
+
+		Id, _ := strconv.Atoi(record[0])
+		Sn := record[3]
+		Mac := record[4]
+		DModel, _ := strconv.Atoi(record[1])
+		Rev := record[16]
+		TModel, _ := strconv.Atoi(record[2])
+		Name := record[13]
+		Condition, _ := strconv.Atoi(record[5])
+		CondDate, err := time.Parse("02.01.2006", record[6])
+		if err != nil {
+			CondDate, _ = time.Parse("02.01.2006", "01.01.2000")
+		}
+		Order, _ := strconv.Atoi(record[7])
+		Place, _ := strconv.Atoi(record[12])
+		var Shiped bool
+		if record[8] == "true" {
+			Shiped = true
+		} else {
+			Shiped = false
+		}
+		ShipedDate, err := time.Parse("02.01.2006", record[9])
+		if err != nil {
+			CondDate, _ = time.Parse("02.01.2006", "01.01.2000")
+		}
+		ShippedDest := record[10]
+		TakenDate, err := time.Parse("02.01.2006", record[14])
+		if err != nil {
+			CondDate, _ = time.Parse("02.01.2006", "01.01.2000")
+		}
+		TakenDoc := record[15]
+		TakenOrder := record[17]
+
+		qq := `INSERT INTO public.sns(
+				"snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder")
+				VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17);`
+
+		_, err = base.Db.Exec(context.Background(), qq, Id, Sn, Mac, DModel, Rev, TModel, Name, Condition, CondDate, Order, Place, Shiped, ShipedDate, ShippedDest, TakenDate, TakenDoc, TakenOrder)
+
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
+
 }

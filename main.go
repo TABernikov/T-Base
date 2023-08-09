@@ -23,6 +23,7 @@ func main() {
 	router := httprouter.New()
 	a.Routs(router)
 
+	//a.Db.NewDModels()
 	srv := &http.Server{Addr: "127.0.0.1:8080", Handler: router}
 	srv.ListenAndServe()
 

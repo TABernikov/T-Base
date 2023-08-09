@@ -191,7 +191,7 @@ func (a App) SnSearchPage(w http.ResponseWriter, r *http.Request, pr httprouter.
 
 // Страница склада по заказам
 func (a App) StoragePage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
-	storage, err := a.Db.TakeStorageCount(a.ctx)
+	storage, err := a.Db.TakeStorageCount(a.ctx, "")
 	if err != nil {
 		return
 	}
@@ -200,7 +200,7 @@ func (a App) StoragePage(w http.ResponseWriter, r *http.Request, pr httprouter.P
 
 // Страница склада по местам
 func (a App) StorageByPlacePage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
-	storage, err := a.Db.TakeStorageCountByPlace(a.ctx)
+	storage, err := a.Db.TakeStorageCountByPlace(a.ctx, "")
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -299,7 +299,7 @@ func (a App) ToShipPage(w http.ResponseWriter, r *http.Request, pr httprouter.Pa
 }
 
 func (a App) ChangeNumPlacePage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
-	MakeDobleImputNumberPage(w, "/works/cangeplacenum", "Установить номер места", "Введите старый номер:", "Введите новый номер", "Изменить")
+	MakeDobleImputTypePage(w, "/works/cangeplacenum", "Установить номер места", "Введите старый номер:", "number", "Введите новый номер", "number", "Изменить")
 }
 
 //////////////////////
@@ -351,7 +351,7 @@ func (a App) TMCSearch(w http.ResponseWriter, r *http.Request, pr httprouter.Par
 	if err != nil {
 		fmt.Println(err)
 	}
-	MakeTMCPage(w, devices, "Результаты поиска "+snString)
+	MakeTMCPage(w, devices, "Результаты поиска "+snString+" "+strconv.Itoa(len(devices)))
 }
 
 // универсальный поиск в заказах
@@ -540,7 +540,7 @@ func (a App) AdvanceTMCSearch(w http.ResponseWriter, r *http.Request, pr httprou
 		rawSelect += ``
 	}
 
-	cleanSelect := `SELECT tmp."snsId", tmp.sn, tmp.mac, "dModels"."dModelName" AS dmodel, tmp.rev, "tModels"."tModelsName" AS tmodel, tmp.name, "condNames"."condName" AS condition, tmp."condDate", tmp."order", tmp.place, tmp.shiped, tmp."shipedDate", tmp."shippedDest", tmp."takenDate", tmp."takenDoc", tmp."takenOrder" FROM (` + rawSelect + `)tmp LEFT JOIN "dModels" ON "dModels"."dModelsId" = tmp.dmodel LEFT JOIN "tModels" ON "tModels"."tModelsId" = tmp.tmodel LEFT JOIN "condNames" ON "condNames"."condNamesId" = tmp.condition`
+	cleanSelect := `SELECT tmp."snsId", tmp.sn, tmp.mac, "dModels"."dModelName" AS dmodel, tmp.rev, "tModels"."tModelsName" AS tmodel, tmp.name, "condNames"."condName" AS condition, tmp."condDate", tmp."order", tmp.place, tmp.shiped, tmp."shipedDate", tmp."shippedDest", tmp."takenDate", tmp."takenDoc", tmp."takenOrder", snscomment.comment FROM (` + rawSelect + `)tmp LEFT JOIN "dModels" ON "dModels"."dModelsId" = tmp.dmodel LEFT JOIN "tModels" ON "tModels"."tModelsId" = tmp.tmodel LEFT JOIN "condNames" ON "condNames"."condNamesId" = tmp.condition LEFT JOIN snscomment ON snscomment."snsId" = tmp."snsId"`
 
 	devices, err := a.Db.TakeCleanDevice(a.ctx, cleanSelect)
 	if err != nil {
@@ -548,7 +548,7 @@ func (a App) AdvanceTMCSearch(w http.ResponseWriter, r *http.Request, pr httprou
 		return
 	}
 
-	MakeTMCPage(w, devices, "Результаты поиска ТМЦ")
+	MakeTMCPage(w, devices, "Результаты поиска ТМЦ "+strconv.Itoa(len(devices)))
 }
 
 func (a App) TakeDemo(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
@@ -623,6 +623,30 @@ func (a App) ChangeNumPlace(w http.ResponseWriter, r *http.Request, pr httproute
 	}
 
 	MakeAlertPage(w, 1, "Готово", "Измененно", "Номер паллета успешно изменен", "Старый номер "+strconv.Itoa(old)+" ->	Новый "+strconv.Itoa(new), "Главная", "/works/prof")
+}
+
+func (a App) AddCommentToSns(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	id, err := strconv.Atoi(r.FormValue("Id"))
+	if err != nil {
+		a.OrderMiniPage(w, r, pr, user)
+		return
+	}
+
+	text := r.FormValue("text")
+	text = strings.TrimSpace(text)
+	if text == "" {
+		a.DeviceMiniPage(w, r, pr, user)
+		return
+	}
+
+	err = a.Db.AddCommentToSns(a.ctx, id, text, user)
+	if err != nil {
+		fmt.Println(err)
+		a.DeviceMiniPage(w, r, pr, user)
+		return
+	}
+
+	a.DeviceMiniPage(w, r, pr, user)
 }
 
 //////////////////////////
@@ -809,19 +833,21 @@ func MakeDobleImputPage(w http.ResponseWriter, postPath, title, imputText1, impu
 	t.Execute(w, tmp)
 }
 
-func MakeDobleImputNumberPage(w http.ResponseWriter, postPath, title, imputText1, imputText2, btnText string) {
+func MakeDobleImputTypePage(w http.ResponseWriter, postPath, title, imputText1, type1, imputText2, type2, btnText string) {
 
 	type imputPage struct {
 		Title      string
 		InputText1 string
+		Type1      string
 		InputText2 string
+		Type2      string
 		BtnText    string
 		PostPath   string
 	}
 
-	tmp := imputPage{title, imputText1, imputText2, btnText, postPath}
+	tmp := imputPage{title, imputText1, type1, imputText2, type2, btnText, postPath}
 
-	t := template.Must(template.ParseFiles("Face/html/dobleInserttonomber.html"))
+	t := template.Must(template.ParseFiles("Face/html/dobleInserttType.html"))
 	t.Execute(w, tmp)
 }
 

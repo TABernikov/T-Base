@@ -71,7 +71,7 @@
     <div class="container-fluid" style="overflow-y:hidden; width: 2800px;  height: 55vh; overflow-x:hidden;">
         <div class="" >
                 <table class="table table-hover table-striped"style = "table-layout: fixed;" >
-                  <col span="17" style="width: 150px;">
+                  <col span="18" style="width: 150px;">
                     <thead>
                         <tr>
                             <th scope="col">Id</th>
@@ -92,6 +92,7 @@
                             <th scope="col">Дата приемки</th>
                             <th scope="col">Документ приемки</th>
                             <th scope="col">Заказ приемки</th>
+                            <th scope="col">Коментарий</th>
                             
                         </tr>
                     </thead>
@@ -101,12 +102,12 @@
         <div>
             <div class="" style="height: 45vh;  overflow-x:hidden; overflow-y:scroll; ">
                 <table class="table table-hover table-striped table-bordered"style = "table-layout: fixed" >
-                  <col span="17" style="width: 150px;">
+                  <col span="18" style="width: 150px;">
                     <tbody>
                     {{range .Tab}}
                     
                     <tr class="{{if(eq .Shiped "true" )}} {{print "table-secondary"}} {{else if(eq .Condition "Собрано" )}} {{print "table-success"}} {{else if(eq .Condition "В работе" )}} {{print "table-primary"}}     {{else if(eq .Condition "Не собрано")}} {{print "table-warning"}} {{end}}">
-                        <th scope="row" onclick="document.o.location= '/works/device/mini?Id={{.Id}}'" style="display: flexbox; "> &nbsp;{{.Id}} <a class="btn btn-sm {{if(eq .Shiped "true" )}} {{print "btn-secondary"}} {{else if(eq .Condition "Собрано" )}} {{print "btn-success"}} {{else if(eq .Condition "В работе" )}} {{print "btn-primary"}}     {{else if(eq .Condition "Не собрано")}} {{print "btn-warning"}} {{end}}" role="button" href="/works/device/mini?Id={{.Id}}" style="width: 100%; " >Открыть</a> </th>
+                        <th scope="row" onclick="document.o.location= '/works/device/mini?Id={{.Id}}'" style="display: flexbox;"> &nbsp;{{.Id}} <a class="btn btn-sm {{if(eq .Shiped "true" )}} {{print "btn-secondary"}} {{else if(eq .Condition "Собрано" )}} {{print "btn-success"}} {{else if(eq .Condition "В работе" )}} {{print "btn-primary"}}     {{else if(eq .Condition "Не собрано")}} {{print "btn-warning"}} {{end}}" role="button" href="/works/device/mini?Id={{.Id}}" style="width: 100%; " >Открыть</a> </th>
                         
                         <td onclick="document.o.location= '/works/device/mini?Id={{.Id}}'" >{{.Sn}}</td>
                         <td onclick="document.o.location= '/works/device/mini?Id={{.Id}}'" >{{.Mac}}</td>
@@ -124,6 +125,7 @@
                         <td onclick="document.o.location= '/works/device/mini?Id={{.Id}}'" >{{.TakenDate}}</td>
                         <td onclick="document.o.location= '/works/device/mini?Id={{.Id}}'" >{{.TakenDoc}}</td>
                         <td onclick="document.o.location= '/works/device/mini?Id={{.Id}}'" >{{.TakenOrder}}</td>
+                        <td class="text-nowrap" onclick="document.o.location= '/works/device/mini?Id={{.Id}}'" >{{.Comment}}</td>
                         
                     </tr>
                     

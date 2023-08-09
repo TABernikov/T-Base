@@ -42,6 +42,7 @@ type DeviceClean struct {
 	TakenDate   string
 	TakenDoc    string
 	TakenOrder  string
+	Comment     string
 }
 
 // Структура пользователя
