@@ -56,9 +56,10 @@ type User struct {
 }
 
 type StorageCount struct {
-	Order int
-	Name  string
-	Amout int
+	Order     int
+	OrderName string
+	Name      string
+	Amout     int
 }
 
 type StorageByPlaceCount struct {
@@ -72,6 +73,7 @@ type StorageByTModel struct {
 	Name      string
 	Amout     int
 	Condition int
+	Shiped    bool
 }
 
 type StorageByTModelClean struct {
@@ -79,6 +81,7 @@ type StorageByTModelClean struct {
 	Name      string
 	Amout     int
 	Condition string
+	Shipped   bool
 }
 
 type DeviceEvent struct {

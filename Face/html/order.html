@@ -156,16 +156,18 @@
                                             <th scope="col">Наименование</th>
                                             <th scope="col">Кол-во</th>
                                             <th scope="col">Состояние</th>
+                                            <th scope="col">Отгружен</th>
                                             
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {{range .Reservs}}
-                                        <tr class=" {{if(eq .Condition "Собрано" )}} {{print "table-success"}} {{else if(eq .Condition "В работе" )}} {{print "table-primary"}}     {{else if(eq .Condition "Не собрано")}} {{print "table-warning"}} {{end}}">
+                                        <tr class=" {{if(eq .Shipped true )}} {{print "table-secondary"}} {{else if(eq .Condition "Собрано" )}} {{print "table-success"}} {{else if(eq .Condition "В работе" )}} {{print "table-primary"}}     {{else if(eq .Condition "Не собрано")}} {{print "table-warning"}} {{end}}">
                                             <td>{{.Model}}</td>
                                             <td>{{.Name}}</td>
                                             <td>{{.Amout}}</td>
-                                            <td>{{.Condition}}</td> 
+                                            <td>{{.Condition}}</td>
+                                            <td>{{.Shipped}}</td>
                                         </tr>
                                         {{end}}
                                     </tbody>

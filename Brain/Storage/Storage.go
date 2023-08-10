@@ -209,7 +209,7 @@ func (base Base) TakeCleanDevice(ctx context.Context, fullReqest string) ([]myty
 	return devices, nil
 }
 
-// Получение слайса читабельных устройств по Id ОПТИМИЗИРОВАТЬ
+// Получение слайса читабельных устройств по Id
 func (base Base) TakeCleanDeviceById(ctx context.Context, inId ...int) ([]mytypes.DeviceClean, error) {
 	devices := []mytypes.DeviceClean{}
 	device := mytypes.DeviceClean{}
@@ -226,7 +226,11 @@ func (base Base) TakeCleanDeviceById(ctx context.Context, inId ...int) ([]mytype
 
 	} else {
 		for _, id := range inId {
-			row := base.Db.QueryRow(ctx, `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder", comment FROM "cleanSns" Where "snsId" = $1 order by "snsId"`, id)
+
+			rawSelect := `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder" FROM public.sns WHERE "snsId" = $1`
+			cleanSelect := `SELECT tmp."snsId", tmp.sn, tmp.mac, "dModels"."dModelName" AS dmodel, tmp.rev, "tModels"."tModelsName" AS tmodel, tmp.name, "condNames"."condName" AS condition, tmp."condDate", tmp."order", tmp.place, tmp.shiped, tmp."shipedDate", tmp."shippedDest", tmp."takenDate", tmp."takenDoc", tmp."takenOrder", snscomment.comment FROM (` + rawSelect + `)tmp LEFT JOIN "dModels" ON "dModels"."dModelsId" = tmp.dmodel LEFT JOIN "tModels" ON "tModels"."tModelsId" = tmp.tmodel LEFT JOIN "condNames" ON "condNames"."condNamesId" = tmp.condition LEFT JOIN snscomment ON snscomment."snsId" = tmp."snsId"`
+
+			row := base.Db.QueryRow(ctx, cleanSelect, id)
 			err := row.Scan(&device.Id, &device.Sn, &device.Mac, &device.DModel, &device.Rev, &device.TModel, &device.Name, &device.Condition, &CondDate, &device.Order, &device.Place, &Shiped, &ShipedDate, &device.ShippedDest, &TakenDate, &device.TakenDoc, &device.TakenOrder, &commentnull)
 			if err != nil {
 				return devices, err
@@ -282,7 +286,7 @@ func (base Base) TakeCleanDeviceByRequest(ctx context.Context, request string) (
 	return devices, nil
 }
 
-// Получение стлайса читабельных устройств по условию серийным номерам ОПТИМИЗИРОВАТЬ
+// Получение стлайса читабельных устройств по условию серийным номерам
 func (base Base) TakeCleanDeviceBySn(ctx context.Context, inSn ...string) ([]mytypes.DeviceClean, error) {
 	devices := []mytypes.DeviceClean{}
 	device := mytypes.DeviceClean{}
@@ -298,7 +302,11 @@ func (base Base) TakeCleanDeviceBySn(ctx context.Context, inSn ...string) ([]myt
 
 	} else {
 		for _, sn := range inSn {
-			row := base.Db.QueryRow(ctx, `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder", comment FROM "cleanSns" Where sn = $1`, sn)
+
+			rawSelect := `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder" FROM public.sns WHERE sn = $1`
+			cleanSelect := `SELECT tmp."snsId", tmp.sn, tmp.mac, "dModels"."dModelName" AS dmodel, tmp.rev, "tModels"."tModelsName" AS tmodel, tmp.name, "condNames"."condName" AS condition, tmp."condDate", tmp."order", tmp.place, tmp.shiped, tmp."shipedDate", tmp."shippedDest", tmp."takenDate", tmp."takenDoc", tmp."takenOrder", snscomment.comment FROM (` + rawSelect + `)tmp LEFT JOIN "dModels" ON "dModels"."dModelsId" = tmp.dmodel LEFT JOIN "tModels" ON "tModels"."tModelsId" = tmp.tmodel LEFT JOIN "condNames" ON "condNames"."condNamesId" = tmp.condition LEFT JOIN snscomment ON snscomment."snsId" = tmp."snsId"`
+
+			row := base.Db.QueryRow(ctx, cleanSelect, sn)
 			err := row.Scan(&device.Id, &device.Sn, &device.Mac, &device.DModel, &device.Rev, &device.TModel, &device.Name, &device.Condition, &CondDate, &device.Order, &device.Place, &Shiped, &ShipedDate, &device.ShippedDest, &TakenDate, &device.TakenDoc, &device.TakenOrder, &commentnull)
 			if err != nil {
 				return devices, err
@@ -318,7 +326,7 @@ func (base Base) TakeCleanDeviceBySn(ctx context.Context, inSn ...string) ([]myt
 	return devices, nil
 }
 
-// Получение стлайса читабельных устройств по заказу ОПТИМИЗИРОВАТЬ
+// Получение стлайса читабельных устройств по заказу
 func (base Base) TakeCleanDeviceByOrder(ctx context.Context, inOrders ...int) ([]mytypes.DeviceClean, error) {
 	devices := []mytypes.DeviceClean{}
 	device := mytypes.DeviceClean{}
@@ -334,7 +342,11 @@ func (base Base) TakeCleanDeviceByOrder(ctx context.Context, inOrders ...int) ([
 
 	} else {
 		for _, order := range inOrders {
-			rows, err := base.Db.Query(ctx, `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder", comment  FROM "cleanSns" Where "order" = $1`, order)
+
+			rawSelect := `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder" FROM public.sns WHERE "order" = $1`
+			cleanSelect := `SELECT tmp."snsId", tmp.sn, tmp.mac, "dModels"."dModelName" AS dmodel, tmp.rev, "tModels"."tModelsName" AS tmodel, tmp.name, "condNames"."condName" AS condition, tmp."condDate", tmp."order", tmp.place, tmp.shiped, tmp."shipedDate", tmp."shippedDest", tmp."takenDate", tmp."takenDoc", tmp."takenOrder", snscomment.comment FROM (` + rawSelect + `)tmp LEFT JOIN "dModels" ON "dModels"."dModelsId" = tmp.dmodel LEFT JOIN "tModels" ON "tModels"."tModelsId" = tmp.tmodel LEFT JOIN "condNames" ON "condNames"."condNamesId" = tmp.condition LEFT JOIN snscomment ON snscomment."snsId" = tmp."snsId"`
+
+			rows, err := base.Db.Query(ctx, cleanSelect, order)
 			if err != nil {
 				continue
 			}
@@ -375,7 +387,7 @@ func (base Base) TakeCleanDeviceByAnything(ctx context.Context, request ...strin
 			return device, err
 		}
 
-		qq += `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder", comment FROM "cleanSns" WHERE sn = '` + a + `' OR mac = '` + a + `' OR "name" = '` + a + `' OR dmodel = '` + a + `' OR rev = '` + a + `' OR tmodel = '` + a + `' OR condition = '` + a + `' OR "shippedDest" = '` + a + `' OR "takenDoc" = '` + a + `' OR "takenOrder" = '` + a + `' OR "comment" = '` + a + "'"
+		qq += `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder", comment FROM "cleanSns" WHERE sn LIKE '%` + a + `%' OR mac LIKE '%` + a + `%' OR "name" LIKE '%` + a + `%' OR dmodel LIKE '%` + a + `%' OR rev LIKE '%` + a + `%' OR tmodel LIKE '%` + a + `%' OR condition LIKE '%` + a + `%' OR "shippedDest" LIKE '%` + a + `%' OR "takenDoc" LIKE '%` + a + `%' OR "takenOrder" LIKE '%` + a + `%' OR "comment" LIKE '%` + a + "%'"
 
 		_, err := strconv.Atoi(a)
 		if err == nil {
@@ -452,7 +464,19 @@ func (base Base) TakeCleanDeviceEvent(ctx context.Context, deviceId int) ([]myty
 	var event mytypes.DeviceEventClean
 	var eventTime time.Time
 
-	rows, err := base.Db.Query(ctx, `SELECT "logId", "eventType", "eventText", "eventTime", "user" FROM public."cleanDeviceLog" WHERE "deviceId" = $1 ORDER BY "logId"`, deviceId)
+	qq := ` SELECT
+    tmp."deviceId",
+    "eventTypesNames"."eventName" AS "eventType",
+    tmp."eventText",
+    tmp."eventTime",
+    users.name AS "user"
+   FROM (SELECT "logId", "deviceId", "eventType", "eventText", "eventTime", "user"
+	FROM public."deviceLog" WHERE "deviceId" = $1) tmp
+     LEFT JOIN "eventTypesNames" ON "eventTypesNames"."NamesId" = tmp."eventType"
+     LEFT JOIN users ON users.userid = tmp."user"
+	 ORDER BY "logId"`
+
+	rows, err := base.Db.Query(ctx, qq, deviceId)
 	if err != nil {
 		return events, err
 	}
@@ -462,7 +486,7 @@ func (base Base) TakeCleanDeviceEvent(ctx context.Context, deviceId int) ([]myty
 		if err != nil {
 			return events, err
 		}
-		event.EventTime = eventTime.Format("02.01.2006")
+		event.EventTime = eventTime.Format("02.01.2006 15:04:05")
 		events = append(events, event)
 	}
 
@@ -479,7 +503,7 @@ func (base Base) TakeStorageCount(ctx context.Context, fullReqest string) ([]myt
 	deviceCount := mytypes.StorageCount{}
 
 	if fullReqest == "" {
-		fullReqest = `SELECT "order", name, count FROM wear`
+		fullReqest = `SELECT "order", name, count, "orderName" FROM wear`
 	}
 
 	rows, err := base.Db.Query(ctx, fullReqest)
@@ -488,7 +512,7 @@ func (base Base) TakeStorageCount(ctx context.Context, fullReqest string) ([]myt
 	}
 
 	for rows.Next() {
-		err := rows.Scan(&deviceCount.Order, &deviceCount.Name, &deviceCount.Amout)
+		err := rows.Scan(&deviceCount.Order, &deviceCount.Name, &deviceCount.Amout, &deviceCount.OrderName)
 		if err != nil {
 			return storage, err
 		}
@@ -528,7 +552,7 @@ func (base Base) TakeStorageByTModelClean(ctx context.Context, fullReqest string
 	deviceCount := mytypes.StorageByTModelClean{}
 
 	if fullReqest == "" {
-		fullReqest = `SELECT tmodel, name, condition, count FROM public."cleanWearByTModel";`
+		fullReqest = `SELECT tmodel, name, condition, count, shiped FROM public."cleanWearByTModel";`
 	}
 	rows, err := base.Db.Query(ctx, fullReqest)
 	if err != nil {
@@ -536,7 +560,7 @@ func (base Base) TakeStorageByTModelClean(ctx context.Context, fullReqest string
 	}
 
 	for rows.Next() {
-		err := rows.Scan(&deviceCount.Model, &deviceCount.Name, &deviceCount.Condition, &deviceCount.Amout)
+		err := rows.Scan(&deviceCount.Model, &deviceCount.Name, &deviceCount.Condition, &deviceCount.Amout, &deviceCount.Shipped)
 		if err != nil {
 			return storage, err
 		}
@@ -588,7 +612,6 @@ func (base Base) TakeOrderById(ctx context.Context, inId ...int) ([]mytypes.Orde
 // Функции получения читабельных заказов//
 //////////////////////////////////////////
 
-// ОПТИМИЗИРОВАТЬ
 func (base Base) TakeCleanOrderById(ctx context.Context, inId ...int) ([]mytypes.OrderClean, error) {
 	var orders []mytypes.OrderClean
 	var order mytypes.OrderClean
@@ -617,7 +640,24 @@ func (base Base) TakeCleanOrderById(ctx context.Context, inId ...int) ([]mytypes
 
 		for _, id := range inId {
 
-			row := base.Db.QueryRow(ctx, `SELECT "orderId", meneger, "orderDate", "reqDate", "promDate", "shDate", "isAct", coment, customer, partner, disributor, name, "1СName" FROM public."cleanOrder" WHERE "orderId" = $1`, id)
+			qq := ` SELECT tmp."orderId",
+    users.name AS meneger,
+    tmp."orderDate",
+    tmp."reqDate",
+    tmp."promDate",
+    tmp."shDate",
+    tmp."isAct",
+    tmp.coment,
+    tmp.customer,
+    tmp.partner,
+    tmp.disributor,
+    tmp.name,
+    tmp."1СName"
+   FROM (SELECT "orderId", meneger, "orderDate", "reqDate", "promDate", "shDate", "isAct", coment, customer, partner, disributor, name, "1СName"
+	FROM public.orders WHERE "orderId" = $1) tmp
+     LEFT JOIN users ON users.userid = tmp.meneger;`
+
+			row := base.Db.QueryRow(ctx, qq, id)
 			err := row.Scan(&order.OrderId, &order.Meneger, &orderDate, &reqDate, &promDate, &shDate, &isAct, &order.Comment, &order.Customer, &order.Partner, &order.Distributor, &order.Name, &order.Id1C)
 			if err != nil {
 				return orders, err
@@ -720,13 +760,25 @@ func (base Base) TakeOrderList(ctx context.Context, orderId int) ([]mytypes.Orde
 // функции получения читабельного листа заказов//
 /////////////////////////////////////////////////
 
-// Получение читабельного листа заказа по его ID ОПТИМИЗИРОВАТЬ
+// Получение читабельного листа заказа по его ID
 func (base Base) TakeCleanOrderList(ctx context.Context, orderId int) ([]mytypes.OrderListClean, error) {
 	var orderList []mytypes.OrderListClean
 	var pos mytypes.OrderListClean
 	var servActDate, lastRed time.Time
 
-	rows, err := base.Db.Query(ctx, `SELECT "orderId", model, amout, "servType", "srevActDate", "lastRed" FROM public."cleanOrderList" WHERE "orderId" = $1`, orderId)
+	qq := ` SELECT 
+    tmp."orderId",
+    "tModels"."tModelsName" AS model,
+    tmp.amout,
+    tmp."servType",
+    tmp."srevActDate",
+    tmp."lastRed"
+   FROM (SELECT  "orderId", model, amout, "servType", "srevActDate", "lastRed"
+	FROM public."orderList" WHERE "orderId" = $1) tmp
+     LEFT JOIN "tModels" ON "tModels"."tModelsId" = tmp.model;
+`
+
+	rows, err := base.Db.Query(ctx, qq, orderId)
 	if err != nil {
 		return orderList, err
 	}
@@ -932,10 +984,17 @@ func (base Base) NewDModels() {
 		TModel, _ := strconv.Atoi(record[2])
 		Name := record[13]
 		Condition, _ := strconv.Atoi(record[5])
-		CondDate, err := time.Parse("02.01.2006", record[6])
-		if err != nil {
+
+		var CondDate time.Time
+		if record[6] == "" || record[6] == " " {
 			CondDate, _ = time.Parse("02.01.2006", "01.01.2000")
+		} else {
+			CondDate, err = time.Parse("02.01.2006", record[6])
+			if err != nil {
+				fmt.Println(err)
+			}
 		}
+
 		Order, _ := strconv.Atoi(record[7])
 		Place, _ := strconv.Atoi(record[12])
 		var Shiped bool
@@ -944,15 +1003,29 @@ func (base Base) NewDModels() {
 		} else {
 			Shiped = false
 		}
-		ShipedDate, err := time.Parse("02.01.2006", record[9])
-		if err != nil {
-			CondDate, _ = time.Parse("02.01.2006", "01.01.2000")
+
+		var ShipedDate time.Time
+		if record[9] == "" || record[9] == " " {
+			ShipedDate, _ = time.Parse("02.01.2006", "01.01.2000")
+		} else {
+			ShipedDate, err = time.Parse("02.01.2006", record[9])
+			if err != nil {
+				fmt.Println(err)
+			}
 		}
+
 		ShippedDest := record[10]
-		TakenDate, err := time.Parse("02.01.2006", record[14])
-		if err != nil {
-			CondDate, _ = time.Parse("02.01.2006", "01.01.2000")
+
+		var TakenDate time.Time
+		if record[14] == "" || record[14] == " " {
+			TakenDate, _ = time.Parse("02.01.2006", "01.01.2000")
+		} else {
+			TakenDate, err = time.Parse("02.01.2006", record[14])
+			if err != nil {
+				fmt.Println(err)
+			}
 		}
+
 		TakenDoc := record[15]
 		TakenOrder := record[17]
 
@@ -962,6 +1035,161 @@ func (base Base) NewDModels() {
 
 		_, err = base.Db.Exec(context.Background(), qq, Id, Sn, Mac, DModel, Rev, TModel, Name, Condition, CondDate, Order, Place, Shiped, ShipedDate, ShippedDest, TakenDate, TakenDoc, TakenOrder)
 
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
+
+}
+
+func (base Base) NewOrders() {
+
+	file, err := os.Open("Orders.csv")
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+
+	reader := csv.NewReader(file)
+	reader.Comma = ';'
+
+	for {
+		record, e := reader.Read()
+		if e != nil {
+			fmt.Println(e)
+			break
+		}
+
+		Id, _ := strconv.Atoi(record[0])
+		Meneger, _ := strconv.Atoi(record[1])
+		OrderDate, err := time.Parse("02.01.2006", record[2])
+		if err != nil {
+			OrderDate, _ = time.Parse("02.01.2006", "01.01.2000")
+		}
+		Customer := record[3]
+		Partner := record[4]
+		Distributor := record[5]
+		ReqDate, err := time.Parse("02.01.2006", record[6])
+		if err != nil {
+			ReqDate, _ = time.Parse("02.01.2006", "01.01.2000")
+		}
+		PromDate, err := time.Parse("02.01.2006", record[7])
+		if err != nil {
+			PromDate, _ = time.Parse("02.01.2006", "01.01.2000")
+		}
+		ShDate, err := time.Parse("02.01.2006", record[8])
+		if err != nil {
+			ShDate, _ = time.Parse("02.01.2006", "01.01.2000")
+		}
+		Comment := record[9]
+		var IsAct bool
+		if record[8] == "true" {
+			IsAct = true
+		} else {
+			IsAct = false
+		}
+
+		qq := `INSERT INTO public.orders(
+			"orderId", meneger, "orderDate", "reqDate", "promDate", "shDate", "isAct", coment, customer, partner, disributor, name, "1СName")
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13);`
+
+		_, err = base.Db.Exec(context.Background(), qq, Id, Meneger, OrderDate, ReqDate, PromDate, ShDate, IsAct, Comment, Customer, Partner, Distributor, "", Id)
+
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
+
+}
+
+func (base Base) NewOrderList() {
+
+	file, err := os.Open("Запрос2.csv")
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+
+	reader := csv.NewReader(file)
+	reader.Comma = ';'
+
+	for {
+		record, e := reader.Read()
+		if e != nil {
+			fmt.Println(e)
+			break
+		}
+
+		Id, _ := strconv.Atoi(record[0])
+		OrderId, _ := strconv.Atoi(record[1])
+		Model, _ := strconv.Atoi(record[2])
+		Amout, _ := strconv.Atoi(record[3])
+		ServType, _ := strconv.Atoi(record[4])
+		ServActDate, err := time.Parse("02.01.2006", record[5])
+		if err != nil {
+			ServActDate, _ = time.Parse("02.01.2006", "01.01.2000")
+		}
+		LastRed, err := time.Parse("02.01.2006 15:04:05", record[7])
+		if err != nil {
+			LastRed, _ = time.Parse("02.01.2006", "01.01.2000")
+		}
+
+		qq := `INSERT INTO public."orderList"(
+			"orderListId", "orderId", model, amout, "servType", "srevActDate", "lastRed")
+			VALUES ($1, $2, $3, $4, $5, $6, $7);`
+
+		_, err = base.Db.Exec(context.Background(), qq, Id, OrderId, Model, Amout, ServType, ServActDate, LastRed)
+
+		if err != nil {
+			fmt.Println(err)
+			fmt.Println(strconv.Itoa(OrderId) + "   " + strconv.Itoa(Model))
+		}
+	}
+
+}
+
+func (base Base) NewLog() {
+
+	file, err := os.Open("KomLogs.csv")
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+
+	reader := csv.NewReader(file)
+	reader.Comma = ';'
+
+	for {
+		record, e := reader.Read()
+		if e != nil {
+			fmt.Println(e)
+			break
+		}
+
+		Id, _ := strconv.Atoi(record[0])
+		Sn := record[1]
+		EventType, _ := strconv.Atoi(record[2])
+		EventText := record[3]
+		EventDate, err := time.Parse("02.01.2006 15:04:05", record[4])
+		if err != nil {
+			EventDate, _ = time.Parse("02.01.2006", "01.01.2000")
+		}
+		user, _ := strconv.Atoi(record[5])
+
+		q := `SELECT "snsId" From sns WHERE sn = $1`
+		var deviceId int
+		err = base.Db.QueryRow(context.Background(), q, Sn).Scan(&deviceId)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		qq := `INSERT INTO public."deviceLog"(
+			"logId", "deviceId", "eventType", "eventText", "eventTime", "user")
+			VALUES ($1, $2, $3, $4, $5, $6);`
+
+		if deviceId != 0 {
+			_, err = base.Db.Exec(context.Background(), qq, Id, deviceId, EventType, EventText, EventDate, user)
+		}
 		if err != nil {
 			fmt.Println(err)
 		}

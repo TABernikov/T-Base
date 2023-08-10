@@ -263,9 +263,10 @@ func (a App) OrderMiniPage(w http.ResponseWriter, r *http.Request, pr httprouter
 		return
 	}
 
-	reqsest := ` SELECT public."tModels"."tModelsName" AS tmodel, tmp.name, public."condNames"."condName", tmp.count From
-	(SELECT sns.tmodel, sns.name, sns.condition, count(sns."snsId") AS "count" FROM sns WHERE sns.shiped = false AND sns.order = ` + strconv.Itoa(order.OrderId) + ` GROUP BY sns.tmodel, sns.condition, sns.name ORDER BY sns.tmodel, sns.condition) tmp
-	LEFT JOIN public."condNames" ON public."condNames"."condNamesId" = tmp.condition LEFT JOIN public."tModels" ON public."tModels"."tModelsId" = tmp.tmodel`
+	reqsest := ` SELECT public."tModels"."tModelsName" AS tmodel, tmp.name, public."condNames"."condName", tmp.count, tmp.shiped From
+	(SELECT sns.tmodel, sns.name, sns.condition, count(sns."snsId") AS "count", sns.shiped FROM sns WHERE sns.order = ` + r.FormValue("Id") + ` GROUP BY sns.tmodel, sns.condition, sns.shiped, sns.name ORDER BY sns.tmodel, sns.condition) tmp
+	LEFT JOIN public."condNames" ON public."condNames"."condNamesId" = tmp.condition LEFT JOIN public."tModels" ON public."tModels"."tModelsId" = tmp.tmodel
+`
 
 	reservs, err := a.Db.TakeStorageByTModelClean(a.ctx, reqsest)
 	if err != nil {
@@ -517,11 +518,15 @@ func (a App) AdvanceTMCSearch(w http.ResponseWriter, r *http.Request, pr httprou
 	}
 
 	if r.FormValue("ShipedDateFrom") != "" {
-		rawSelect += ``
+		rawSelect += ` AND "shipedDate" BETWEEN '` + r.FormValue("ShipedDateFrom")
+	} else {
+		rawSelect += ` AND "shipedDate" BETWEEN '2000-01-01`
 	}
 
 	if r.FormValue("ShipedDateTo") != "" {
-		rawSelect += ``
+		rawSelect += `' AND '` + r.FormValue("ShipedDateTo") + `'`
+	} else {
+		rawSelect += `' AND '2100-01-01'`
 	}
 
 	if r.FormValue("TakenDoc") != "" {
@@ -533,11 +538,15 @@ func (a App) AdvanceTMCSearch(w http.ResponseWriter, r *http.Request, pr httprou
 	}
 
 	if r.FormValue("TakenDateFrom") != "" {
-		rawSelect += ``
+		rawSelect += ` AND "takenDate" BETWEEN '` + r.FormValue("TakenDateFrom")
+	} else {
+		rawSelect += ` AND "takenDate" BETWEEN '2000-01-01`
 	}
 
 	if r.FormValue("TakenDateTo") != "" {
-		rawSelect += ``
+		rawSelect += `' AND '` + r.FormValue("TakenDateTo") + `'`
+	} else {
+		rawSelect += `' AND '2100-01-01'`
 	}
 
 	cleanSelect := `SELECT tmp."snsId", tmp.sn, tmp.mac, "dModels"."dModelName" AS dmodel, tmp.rev, "tModels"."tModelsName" AS tmodel, tmp.name, "condNames"."condName" AS condition, tmp."condDate", tmp."order", tmp.place, tmp.shiped, tmp."shipedDate", tmp."shippedDest", tmp."takenDate", tmp."takenDoc", tmp."takenOrder", snscomment.comment FROM (` + rawSelect + `)tmp LEFT JOIN "dModels" ON "dModels"."dModelsId" = tmp.dmodel LEFT JOIN "tModels" ON "tModels"."tModelsId" = tmp.tmodel LEFT JOIN "condNames" ON "condNames"."condNamesId" = tmp.condition LEFT JOIN snscomment ON snscomment."snsId" = tmp."snsId"`
