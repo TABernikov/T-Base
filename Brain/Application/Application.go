@@ -58,6 +58,8 @@ func (a App) Routs(r *httprouter.Router) {
 	r.GET("/works/takedemo", a.authtorized(a.TakeDemoPage))
 	r.GET("/works/toship", a.authtorized(a.ToShipPage))
 	r.GET("/works/cangeplacenum", a.authtorized(a.ChangeNumPlacePage))
+	r.GET("/works/takedevicebymodel", a.authtorized(a.TakeDeviceByModelPage))
+	r.GET("/works/createorder", a.authtorized(a.CreateOrderPage))
 	r.POST("/works/snsearch", a.authtorized(a.SnSearch))
 	r.POST("/works/tmcsearch", a.authtorized(a.TMCSearch))
 	r.POST("/works/ordersearch", a.authtorized(a.OrderSearch))
@@ -69,6 +71,8 @@ func (a App) Routs(r *httprouter.Router) {
 	r.POST("/works/toship", a.authtorized(a.ToShip))
 	r.POST("/works/cangeplacenum", a.authtorized(a.ChangeNumPlace))
 	r.POST("/works/addcomment", a.authtorized(a.AddCommentToSns))
+	r.POST("/works/takedevicebymodel", a.authtorized(a.TakeDeviceByModel))
+	r.GET("/works/createorder", a.authtorized(a.CreateOrder))
 
 	//r.GET("/works/new", a.authtorized(a.NewSns))
 }

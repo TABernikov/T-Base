@@ -303,6 +303,14 @@ func (a App) ChangeNumPlacePage(w http.ResponseWriter, r *http.Request, pr httpr
 	MakeDobleImputTypePage(w, "/works/cangeplacenum", "Установить номер места", "Введите старый номер:", "number", "Введите новый номер", "number", "Изменить")
 }
 
+func (a App) TakeDeviceByModelPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	a.MakeTakeDeviceByModelPage(w)
+}
+
+func (a App) CreateOrderPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	MakeCreateOrderPage(w)
+}
+
 //////////////////////
 // Обработчики POST //
 //////////////////////
@@ -658,6 +666,59 @@ func (a App) AddCommentToSns(w http.ResponseWriter, r *http.Request, pr httprout
 	a.DeviceMiniPage(w, r, pr, user)
 }
 
+func (a App) TakeDeviceByModel(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+
+	DModelIn := r.FormValue("DModel")
+	split := strings.Split(DModelIn, ";")
+
+	DModel, err := strconv.Atoi(split[0])
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Не указана модель", "Укажите модель поставщика", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	Name := split[1]
+	TModel, err := strconv.Atoi(r.FormValue("TModel"))
+	if err != nil {
+		TModel = 0
+	}
+	Rev := r.FormValue("Rev")
+	Place, err := strconv.Atoi(r.FormValue("Place"))
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Не указано место", "Укажите место", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	Doc := r.FormValue("Doc")
+	Order := r.FormValue("Order")
+
+	snString := r.FormValue("Sn")
+	Sns := strings.Fields(snString)
+	if len(Sns) == 0 {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Не ввседены серийные номера", "", "Главная", "/works/prof")
+		return
+	}
+
+	i, SnErr, err := a.Db.InsetDeviceByModel(a.ctx, DModel, Name, TModel, Rev, Place, Doc, Order, Sns...)
+	if err != nil {
+		errString := ""
+		for _, a := range SnErr {
+			errString += a + "\n"
+		}
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка внесения усройств", "Было внесено "+strconv.Itoa(i)+" из "+strconv.Itoa(len(Sns)), errString, "Главная", "/works/prof")
+		return
+	}
+	MakeAlertPage(w, 1, "Готово", "Готово", "Все устройства внесены", "Отличная работа", "Главная", "/works/prof")
+}
+
+func (a App) CreateOrder(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	var Id1C int
+	Name := r.FormValue("Name")
+	var ReqDate time.Time
+	var Customer string
+	var Partner string
+	var Distributor string
+
+}
+
 //////////////////////////
 // Конструкторы страниц //
 //////////////////////////
@@ -884,4 +945,59 @@ func MakeAlertPage(w http.ResponseWriter, status int, lable, heading, text, subT
 	testTemplate := template.Must(template.ParseFiles("Face/html/alert.html"))
 
 	testTemplate.Execute(w, tmp)
+}
+
+func (a App) MakeTakeDeviceByModelPage(w http.ResponseWriter) {
+	type idChoise struct {
+		Id   int
+		Name string
+	}
+	type TakeForm struct {
+		TModels []idChoise
+		DModels []idChoise
+	}
+
+	var choise idChoise
+
+	var tmodelList []idChoise
+	rows, err := a.Db.Db.Query(a.ctx, `SELECT "tModelsId", "tModelsName" FROM public."tModels";`)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	for rows.Next() {
+		err := rows.Scan(&choise.Id, &choise.Name)
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		tmodelList = append(tmodelList, choise)
+	}
+
+	var dmodelList []idChoise
+	rows, err = a.Db.Db.Query(a.ctx, `SELECT "dModelsId", "dModelName" FROM public."dModels";`)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	for rows.Next() {
+		err := rows.Scan(&choise.Id, &choise.Name)
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		dmodelList = append(dmodelList, choise)
+	}
+
+	tmp := TakeForm{tmodelList, dmodelList}
+	t := template.Must(template.ParseFiles("Face/html/TakeDeviceByModel.html"))
+	t.Execute(w, tmp)
+}
+
+func MakeCreateOrderPage(w http.ResponseWriter) {
+	var page bool
+	t := template.Must(template.ParseFiles("Face/html/CreateOrder.html"))
+	t.Execute(w, page)
 }

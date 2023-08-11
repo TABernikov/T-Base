@@ -933,6 +933,40 @@ func (base Base) AddCommentToSns(ctx context.Context, id int, text string, user 
 // Другие функции//
 ///////////////////
 
+func (base Base) InsetDeviceByModel(ctx context.Context, DModel int, Name string, TModel int, Rev string, Place int, Doc string, Order string, InSn ...string) (int, []string, error) {
+	if len(InSn) == 0 {
+		return 0, nil, fmt.Errorf("не введены серийные номера")
+	}
+
+	qq := `INSERT INTO public.sns(
+		sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder")
+		VALUES ($1, '', $2, $3, $4, $8, 2, '2000-01-01', 2, $5, false, '2000-01-01', '', CURRENT_DATE, $6, $7);`
+
+	var insertCount int
+	var SnErr []string
+	var lastErr error
+	for _, sn := range InSn {
+		res, err := base.Db.Exec(ctx, qq, sn, DModel, Rev, TModel, Place, Doc, Order, Name)
+		if err != nil {
+			SnErr = append(SnErr, sn+": "+err.Error())
+			lastErr = err
+			continue
+		}
+		insertCount += int(res.RowsAffected())
+	}
+	return insertCount, SnErr, lastErr
+}
+
+func (base Base) InsertOrder(ctx context.Context, Id1C int, Name string, ReqDate time.Time, Customer string, Partner string, Distributor string, user mytypes.User) error {
+	qq := `INSERT INTO public.orders(
+		meneger, "orderDate", "reqDate", "promDate", "shDate", "isAct", coment, customer, partner, disributor, name, "1СName")
+	   VALUES ($1, CURRENT_DATE, $2, '2000-01-01', '2000-01-01', true, '', $3, $4, $5, $6, $7);`
+	_, err := base.Db.Exec(ctx, qq, user.UserId, ReqDate, Customer, Partner, Distributor, Name, Id1C)
+	return err
+}
+
+//////
+
 // запись токена генерации
 func (base Base) NewRegenToken(user string, token string, ctx context.Context) {
 	res, err := base.Db.Exec(ctx, "UPDATE users set token = $1 where login = $2", token, user)
@@ -1039,7 +1073,6 @@ func (base Base) NewDModels() {
 			fmt.Println(err)
 		}
 	}
-
 }
 
 func (base Base) NewOrders() {
@@ -1099,7 +1132,6 @@ func (base Base) NewOrders() {
 			fmt.Println(err)
 		}
 	}
-
 }
 
 func (base Base) NewOrderList() {
@@ -1145,7 +1177,6 @@ func (base Base) NewOrderList() {
 			fmt.Println(strconv.Itoa(OrderId) + "   " + strconv.Itoa(Model))
 		}
 	}
-
 }
 
 func (base Base) NewLog() {
@@ -1194,5 +1225,4 @@ func (base Base) NewLog() {
 			fmt.Println(err)
 		}
 	}
-
 }
