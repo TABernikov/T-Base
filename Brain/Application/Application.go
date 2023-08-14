@@ -72,7 +72,7 @@ func (a App) Routs(r *httprouter.Router) {
 	r.POST("/works/cangeplacenum", a.authtorized(a.ChangeNumPlace))
 	r.POST("/works/addcomment", a.authtorized(a.AddCommentToSns))
 	r.POST("/works/takedevicebymodel", a.authtorized(a.TakeDeviceByModel))
-	r.GET("/works/createorder", a.authtorized(a.CreateOrder))
+	r.POST("/works/createorder", a.authtorized(a.CreateOrder))
 
 	//r.GET("/works/new", a.authtorized(a.NewSns))
 }

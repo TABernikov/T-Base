@@ -676,6 +676,35 @@ func (base Base) TakeCleanOrderById(ctx context.Context, inId ...int) ([]mytypes
 	return orders, nil
 }
 
+func (base Base) TakeCleanOrderByReqest(ctx context.Context, reqest string) ([]mytypes.OrderClean, error) {
+
+	var orders []mytypes.OrderClean
+	var order mytypes.OrderClean
+	var orderDate, reqDate, promDate, shDate time.Time
+	var isAct bool
+
+	qq := `SELECT "orderId", meneger, "orderDate", "reqDate", "promDate", "shDate", "isAct", coment, customer, partner, disributor, name, "1СName" FROM public."cleanOrder" ` + reqest
+	rows, err := base.Db.Query(ctx, qq)
+	if err != nil {
+		return orders, err
+	}
+
+	for rows.Next() {
+		err := rows.Scan(&order.OrderId, &order.Meneger, &orderDate, &reqDate, &promDate, &shDate, &isAct, &order.Comment, &order.Customer, &order.Partner, &order.Distributor, &order.Name, &order.Id1C)
+		if err != nil {
+			return orders, err
+		}
+		order.OrderDate = orderDate.Format("02.01.2006")
+		order.ReqDate = reqDate.Format("02.01.2006")
+		order.PromDate = promDate.Format("02.01.2006")
+		order.ShDate = shDate.Format("02.01.2006")
+		order.IsAct = strconv.FormatBool(isAct)
+		orders = append(orders, order)
+	}
+
+	return orders, nil
+}
+
 func (base Base) TakeCleanOrderByAnything(ctx context.Context, reqest ...string) ([]mytypes.OrderClean, error) {
 	var qq string
 
@@ -929,6 +958,24 @@ func (base Base) AddCommentToSns(ctx context.Context, id int, text string, user 
 	return nil
 }
 
+////
+
+func (base Base) DellOrder(ctx context.Context, id int) error {
+
+	qq := `UPDATE sns
+		SET "order" = (case when sns.condition = 1 then 1 else 2 END)
+		WHERE "order" = 47;
+		DELETE FROM public."orderList"
+		WHERE "orderId" = 47;
+		DELETE from public.orders
+		WHERE "orderId" = 47;`
+	_, err := base.Db.Exec(ctx, qq)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 ///////////////////
 // Другие функции//
 ///////////////////
@@ -957,12 +1004,17 @@ func (base Base) InsetDeviceByModel(ctx context.Context, DModel int, Name string
 	return insertCount, SnErr, lastErr
 }
 
-func (base Base) InsertOrder(ctx context.Context, Id1C int, Name string, ReqDate time.Time, Customer string, Partner string, Distributor string, user mytypes.User) error {
+func (base Base) InsertOrder(ctx context.Context, Id1C int, Name string, ReqDate time.Time, Customer string, Partner string, Distributor string, user mytypes.User) (int, error) {
 	qq := `INSERT INTO public.orders(
 		meneger, "orderDate", "reqDate", "promDate", "shDate", "isAct", coment, customer, partner, disributor, name, "1СName")
 	   VALUES ($1, CURRENT_DATE, $2, '2000-01-01', '2000-01-01', true, '', $3, $4, $5, $6, $7);`
 	_, err := base.Db.Exec(ctx, qq, user.UserId, ReqDate, Customer, Partner, Distributor, Name, Id1C)
-	return err
+	var Id int
+	noterr := base.Db.QueryRow(ctx, `SELECT "orderId" from orders Where meneger = $1  ORDER BY "orderId" DESC`, user.UserId).Scan(&Id)
+	if noterr != nil {
+		return Id, noterr
+	}
+	return Id, err
 }
 
 //////

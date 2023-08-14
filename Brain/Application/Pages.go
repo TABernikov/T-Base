@@ -222,7 +222,7 @@ func (a App) StorageByTModelPage(w http.ResponseWriter, r *http.Request, pr http
 
 // Таблица заказов
 func (a App) OrderPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
-	orders, err := a.Db.TakeCleanOrderById(a.ctx)
+	orders, err := a.Db.TakeCleanOrderByReqest(a.ctx, `WHERE "isAct" = true`)
 	if err != nil {
 		fmt.Print(err)
 	}
@@ -236,7 +236,7 @@ func (a App) OrderMiniPage(w http.ResponseWriter, r *http.Request, pr httprouter
 	var order mytypes.OrderClean
 
 	if r.FormValue("Id") == "nil" { // Нужно сделать как в TMCMiniPage
-		orders, err := a.Db.TakeCleanOrderById(a.ctx, 0)
+		orders, err := a.Db.TakeCleanOrderByReqest(a.ctx, `WHERE "isAct" = true LIMIT 1`)
 		if err != nil {
 			fmt.Fprintln(w, err)
 			return
@@ -264,7 +264,7 @@ func (a App) OrderMiniPage(w http.ResponseWriter, r *http.Request, pr httprouter
 	}
 
 	reqsest := ` SELECT public."tModels"."tModelsName" AS tmodel, tmp.name, public."condNames"."condName", tmp.count, tmp.shiped From
-	(SELECT sns.tmodel, sns.name, sns.condition, count(sns."snsId") AS "count", sns.shiped FROM sns WHERE sns.order = ` + r.FormValue("Id") + ` GROUP BY sns.tmodel, sns.condition, sns.shiped, sns.name ORDER BY sns.tmodel, sns.condition) tmp
+	(SELECT sns.tmodel, sns.name, sns.condition, count(sns."snsId") AS "count", sns.shiped FROM sns WHERE sns.order = ` + strconv.Itoa(order.OrderId) + ` GROUP BY sns.tmodel, sns.condition, sns.shiped, sns.name ORDER BY sns.tmodel, sns.condition) tmp
 	LEFT JOIN public."condNames" ON public."condNames"."condNamesId" = tmp.condition LEFT JOIN public."tModels" ON public."tModels"."tModelsId" = tmp.tmodel
 `
 
@@ -710,13 +710,34 @@ func (a App) TakeDeviceByModel(w http.ResponseWriter, r *http.Request, pr httpro
 }
 
 func (a App) CreateOrder(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
-	var Id1C int
+	Id1C, err := strconv.Atoi(r.FormValue("1C"))
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Номер 1С не число", "Номер 1С не число", err.Error(), "Главная", "/works/prof")
+		return
+	}
 	Name := r.FormValue("Name")
-	var ReqDate time.Time
-	var Customer string
-	var Partner string
-	var Distributor string
 
+	fmt.Println(r.FormValue("Req"))
+	ReqDate, err := time.Parse("2006-01-02", r.FormValue("Req"))
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Требуемая дата не дата", "", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	Customer := r.FormValue("Customer")
+	Partner := r.FormValue("Partner")
+	Distributor := r.FormValue("Distributor")
+
+	Id, err := a.Db.InsertOrder(a.ctx, Id1C, Name, ReqDate, Customer, Partner, Distributor, user)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка создания заказа", "Заказ не создан", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	MakeAlertPage(w, 1, "Готово", "Готово", "Заказ "+strconv.Itoa(Id1C)+" "+Name+"создан", "Не забудьте внести состав заказа", "К заказу", "/works/order/mini?Id="+strconv.Itoa(Id))
+}
+
+func (a App) DelOrder(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	id
 }
 
 //////////////////////////
