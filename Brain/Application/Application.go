@@ -60,6 +60,7 @@ func (a App) Routs(r *httprouter.Router) {
 	r.GET("/works/cangeplacenum", a.authtorized(a.ChangeNumPlacePage))
 	r.GET("/works/takedevicebymodel", a.authtorized(a.TakeDeviceByModelPage))
 	r.GET("/works/createorder", a.authtorized(a.CreateOrderPage))
+
 	r.POST("/works/snsearch", a.authtorized(a.SnSearch))
 	r.POST("/works/tmcsearch", a.authtorized(a.TMCSearch))
 	r.POST("/works/ordersearch", a.authtorized(a.OrderSearch))
@@ -73,11 +74,13 @@ func (a App) Routs(r *httprouter.Router) {
 	r.POST("/works/addcomment", a.authtorized(a.AddCommentToSns))
 	r.POST("/works/takedevicebymodel", a.authtorized(a.TakeDeviceByModel))
 	r.POST("/works/createorder", a.authtorized(a.CreateOrder))
-
+	r.POST("/works/dellorder", a.authtorized(a.DelOrder))
+	r.POST("/works/change1cnumorder", a.authtorized(a.Change1CNumOrder))
+	r.POST("/works/createorderlist", a.authtorized(a.CreateOrderListPage))
 	//r.GET("/works/new", a.authtorized(a.NewSns))
 }
 
-// Проверка авторизации
+// Проверка авторизациия
 func (a App) authtorized(nestedFunction HandleUser) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		authToken, err := Auth.ReadCookie("Lolijoyu", r)

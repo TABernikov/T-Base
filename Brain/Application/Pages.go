@@ -737,7 +737,65 @@ func (a App) CreateOrder(w http.ResponseWriter, r *http.Request, pr httprouter.P
 }
 
 func (a App) DelOrder(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
-	id
+	if user.Name != r.FormValue("Manager") {
+		MakeAlertPage(w, 5, "Ошибка", "Нельзя удалить чужой заказ", "Плохо так делать", "Не надо так", "Главная", "/works/prof")
+		return
+	}
+	id, err := strconv.Atoi(r.FormValue("Id"))
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Не существующий Id заказа", "Ваш заказ пропал!!!", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	err = a.Db.DellOrder(a.ctx, id)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка удаления заказа", "Удаление прошло не корректно", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	MakeAlertPage(w, 1, "Готово", "Готово", "Заказ успешно удален", "Отличная работа", "Главная", "/works/prof")
+}
+
+func (a App) Change1CNumOrder(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Name != r.FormValue("Manager") {
+		MakeAlertPage(w, 5, "Ошибка", "Нельзя редактировать чужой заказ", "Плохо так делать", "Не надо так", "Главная", "/works/prof")
+		return
+	}
+	id, err := strconv.Atoi(r.FormValue("Id"))
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Не существующий Id заказа", "Ваш заказ пропал!!!", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	new1CId, err := strconv.Atoi(r.FormValue("1CNum"))
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Не число", "Новый номер 1С должен быть числом", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	err = a.Db.Change1CNumOrder(a.ctx, id, new1CId)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка изменения номера", "Чтото пошло не так", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	MakeAlertPage(w, 1, "Готово", "Готово", "Номер успешно изменен", "Отличная работа", "Главная", "/works/prof")
+}
+
+func (a App) CreateOrderListPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Name != r.FormValue("Manager") {
+		MakeAlertPage(w, 5, "Ошибка", "Нельзя редактировать чужой заказ", "Плохо так делать", "Не надо так", "Главная", "/works/prof")
+		return
+	}
+	id, err := strconv.Atoi(r.FormValue("Id"))
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Не существующий Id заказа", "Ваш заказ пропал!!!", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	OrderList, err := a.Db.TakeCleanOrderList(a.ctx, id)
+	if err != nil {
+		OrderList = []mytypes.OrderListClean{}
+	}
+
+	a.MakeCreateOrderListPage(w, OrderList, user)
 }
 
 //////////////////////////
@@ -908,6 +966,22 @@ func MakeImputPage(w http.ResponseWriter, postPath, title, imputText, btnText st
 	t.Execute(w, tmp)
 }
 
+func MakeImputTypePage(w http.ResponseWriter, postPath, title, typein, imputText, btnText string) {
+
+	type imputPage struct {
+		Title     string
+		InputText string
+		BtnText   string
+		PostPath  string
+		Type      string
+	}
+
+	tmp := imputPage{title, typein, imputText, btnText, postPath}
+
+	t := template.Must(template.ParseFiles("Face/html/insert.html"))
+	t.Execute(w, tmp)
+}
+
 func MakeDobleImputPage(w http.ResponseWriter, postPath, title, imputText1, imputText2, btnText string) {
 
 	type imputPage struct {
@@ -1021,4 +1095,38 @@ func MakeCreateOrderPage(w http.ResponseWriter) {
 	var page bool
 	t := template.Must(template.ParseFiles("Face/html/CreateOrder.html"))
 	t.Execute(w, page)
+}
+
+func (a App) MakeCreateOrderListPage(w http.ResponseWriter, OrderList []mytypes.OrderListClean, user mytypes.User) {
+	type idChoise struct {
+		Id   int
+		Name string
+	}
+	type TakeForm struct {
+		List    []mytypes.OrderListClean
+		User    mytypes.User
+		TModels []idChoise
+	}
+
+	var choise idChoise
+	var tmodelList []idChoise
+	rows, err := a.Db.Db.Query(a.ctx, `SELECT "tModelsId", "tModelsName" FROM public."tModels";`)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	for rows.Next() {
+		err := rows.Scan(&choise.Id, &choise.Name)
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		tmodelList = append(tmodelList, choise)
+	}
+
+	tmp := TakeForm{OrderList, user, tmodelList}
+	t := template.Must(template.ParseFiles("Face/html/CreateOrderList.html"))
+	t.Execute(w, tmp)
+
 }

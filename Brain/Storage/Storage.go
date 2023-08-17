@@ -964,15 +964,38 @@ func (base Base) DellOrder(ctx context.Context, id int) error {
 
 	qq := `UPDATE sns
 		SET "order" = (case when sns.condition = 1 then 1 else 2 END)
-		WHERE "order" = 47;
-		DELETE FROM public."orderList"
-		WHERE "orderId" = 47;
-		DELETE from public.orders
-		WHERE "orderId" = 47;`
-	_, err := base.Db.Exec(ctx, qq)
+		WHERE "order" = $1;
+		`
+	_, err := base.Db.Exec(ctx, qq, id)
 	if err != nil {
 		return err
 	}
+	qq = `DELETE FROM public."orderList"
+	WHERE "orderId" = $1;`
+	_, err = base.Db.Exec(ctx, qq, id)
+	if err != nil {
+		return err
+	}
+	qq = `DELETE from public.orders
+	WHERE "orderId" = $1;`
+	_, err = base.Db.Exec(ctx, qq, id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (base Base) Change1CNumOrder(ctx context.Context, id int, new1CId int) error {
+	qq := `UPDATE public.orders
+	SET "1СName"=$1
+	WHERE "orderId"=$2;
+	`
+	_, err := base.Db.Exec(ctx, qq, new1CId, id)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

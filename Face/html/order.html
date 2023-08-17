@@ -26,11 +26,24 @@
                         <button class="nav-link active" id="nav-home-tab" data-bs-toggle="tab" data-bs-target="#nav-home" type="button" role="tab" aria-controls="nav-home" aria-selected="true">Главная</button>
                         <button class="nav-link" id="nav-profile-tab" data-bs-toggle="tab" data-bs-target="#nav-profile" type="button" role="tab" aria-controls="nav-profile" aria-selected="false" tabindex="-1">Детали</button>
                         <button class="nav-link" id="nav-contact-tab" data-bs-toggle="tab" data-bs-target="#nav-contact" type="button" role="tab" aria-controls="nav-contact" aria-selected="false" tabindex="-1">Даты</button>
-                        <button class="nav-link" id="nav-contact-tab" type="button" role="tab" aria-controls="nav-contact" aria-selected="false" tabindex="-1">
-                            <a target = "_parent" type="button" class="btn btn-sm btn-info"  href="" >Изменить 1С номер</a>
-                            <a target = "_parent" type="button" class="btn btn-sm btn-info"  href="" >Изменимть состав</a>
-                            <a target = "_parent" type="button" class="btn btn-sm btn-danger"  href="" >Удалить</a>
-                        </button>
+                        <form  class="p-1" id="changenum" name="changenum" action="/works/change1cnumorder" target="_parent" method="post">   
+                            <div class=" input-group input-group-sm" >
+                                <button class="btn btn-info" type="submit"  ><i class="icon-pin"> </i></button>
+                                <input type="hidden" name="Id" value="{{.Order.OrderId}}" />
+                                <input type="hidden" name="Manager" value="{{.Order.Meneger}}" />
+                                <input class="form-control " type="number" name="1CNum" placeholder="Изменить №1С" style="width: 150px" />
+                            </div>
+                        </form>
+                        <form  class="p-1" id="changelist" name="changelist" action="/works/createorderlist" target="_parent" method="post">      
+                            <input type="hidden" name="Id" value="{{.Order.OrderId}}" />
+                            <input type="hidden" name="Manager" value="{{.Order.Meneger}}" />
+                            <button type="submit" class="btn btn-sm btn-info" >Изменимть состав</button>
+                        </form>
+                        <form  class="p-1" id="delform" name="delform" action="/works/dellorder" target="_parent" method="post">      
+                            <input type="hidden" name="Id" value="{{.Order.OrderId}}" />
+                            <input type="hidden" name="Manager" value="{{.Order.Meneger}}" />
+                            <button type="submit" class="btn btn-sm btn-danger" >Удалить</button>
+                        </form>
                     </div>
                     </nav>
                     
