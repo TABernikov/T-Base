@@ -133,6 +133,7 @@ type OrderClean struct {
 }
 
 type OrderList struct {
+	Id          int
 	Order       int
 	Model       int
 	Amout       int
@@ -142,6 +143,7 @@ type OrderList struct {
 }
 
 type OrderListClean struct {
+	Id          int
 	Order       int
 	Model       string
 	Amout       int

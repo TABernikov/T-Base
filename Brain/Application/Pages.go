@@ -780,22 +780,24 @@ func (a App) Change1CNumOrder(w http.ResponseWriter, r *http.Request, pr httprou
 }
 
 func (a App) CreateOrderListPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
-	if user.Name != r.FormValue("Manager") {
-		MakeAlertPage(w, 5, "Ошибка", "Нельзя редактировать чужой заказ", "Плохо так делать", "Не надо так", "Главная", "/works/prof")
-		return
-	}
-	id, err := strconv.Atoi(r.FormValue("Id"))
-	if err != nil {
-		MakeAlertPage(w, 5, "Ошибка", "Не существующий Id заказа", "Ваш заказ пропал!!!", err.Error(), "Главная", "/works/prof")
-		return
-	}
+	if r.FormValue("ListId") == "" {
+		if user.Name != r.FormValue("Manager") {
+			MakeAlertPage(w, 5, "Ошибка", "Нельзя редактировать чужой заказ", "Плохо так делать", "Не надо так", "Главная", "/works/prof")
+			return
+		}
+		id, err := strconv.Atoi(r.FormValue("Id"))
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Не существующий Id заказа", "Ваш заказ пропал!!!", err.Error(), "Главная", "/works/prof")
+			return
+		}
 
-	OrderList, err := a.Db.TakeCleanOrderList(a.ctx, id)
-	if err != nil {
-		OrderList = []mytypes.OrderListClean{}
-	}
+		OrderList, err := a.Db.TakeCleanOrderList(a.ctx, id)
+		if err != nil {
+			OrderList = []mytypes.OrderListClean{}
+		}
 
-	a.MakeCreateOrderListPage(w, OrderList, user)
+		a.MakeCreateOrderListPage(w, OrderList, user, -1)
+	}
 }
 
 //////////////////////////
@@ -1097,7 +1099,7 @@ func MakeCreateOrderPage(w http.ResponseWriter) {
 	t.Execute(w, page)
 }
 
-func (a App) MakeCreateOrderListPage(w http.ResponseWriter, OrderList []mytypes.OrderListClean, user mytypes.User) {
+func (a App) MakeCreateOrderListPage(w http.ResponseWriter, OrderList []mytypes.OrderListClean, user mytypes.User, ListId int) {
 	type idChoise struct {
 		Id   int
 		Name string
@@ -1106,6 +1108,7 @@ func (a App) MakeCreateOrderListPage(w http.ResponseWriter, OrderList []mytypes.
 		List    []mytypes.OrderListClean
 		User    mytypes.User
 		TModels []idChoise
+		ListId  int
 	}
 
 	var choise idChoise

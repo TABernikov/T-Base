@@ -768,13 +768,13 @@ func (base Base) TakeOrderList(ctx context.Context, orderId int) ([]mytypes.Orde
 	var orderList []mytypes.OrderList
 	var pos mytypes.OrderList
 
-	rows, err := base.Db.Query(ctx, `SELECT "orderId", model, amout, "servType", "srevActDate", "lastRed" FROM public."orderList" WHERE "orderId" = $1`, orderId)
+	rows, err := base.Db.Query(ctx, `SELECT "orderListId", "orderId", model, amout, "servType", "srevActDate", "lastRed" FROM public."orderList" WHERE "orderId" = $1`, orderId)
 	if err != nil {
 		return orderList, err
 	}
 
 	for rows.Next() {
-		err := rows.Scan(&pos.Order, &pos.Model, &pos.Amout, &pos.ServType, &pos.ServActDate, &pos.LastRed)
+		err := rows.Scan(&pos.Id, &pos.Order, &pos.Model, &pos.Amout, &pos.ServType, &pos.ServActDate, &pos.LastRed)
 		if err != nil {
 			return orderList, err
 		}
@@ -796,13 +796,14 @@ func (base Base) TakeCleanOrderList(ctx context.Context, orderId int) ([]mytypes
 	var servActDate, lastRed time.Time
 
 	qq := ` SELECT 
+	tmp."orderListId",
     tmp."orderId",
     "tModels"."tModelsName" AS model,
     tmp.amout,
     tmp."servType",
     tmp."srevActDate",
     tmp."lastRed"
-   FROM (SELECT  "orderId", model, amout, "servType", "srevActDate", "lastRed"
+   FROM (SELECT "orderListId", "orderId", model, amout, "servType", "srevActDate", "lastRed"
 	FROM public."orderList" WHERE "orderId" = $1) tmp
      LEFT JOIN "tModels" ON "tModels"."tModelsId" = tmp.model;
 `
@@ -813,7 +814,7 @@ func (base Base) TakeCleanOrderList(ctx context.Context, orderId int) ([]mytypes
 	}
 
 	for rows.Next() {
-		err := rows.Scan(&pos.Order, &pos.Model, &pos.Amout, &pos.ServType, &servActDate, &lastRed)
+		err := rows.Scan(&pos.Id, &pos.Order, &pos.Model, &pos.Amout, &pos.ServType, &servActDate, &lastRed)
 		if err != nil {
 			return orderList, err
 		}
@@ -960,6 +961,43 @@ func (base Base) AddCommentToSns(ctx context.Context, id int, text string, user 
 
 ////
 
+func (base Base) InsetDeviceByModel(ctx context.Context, DModel int, Name string, TModel int, Rev string, Place int, Doc string, Order string, InSn ...string) (int, []string, error) {
+	if len(InSn) == 0 {
+		return 0, nil, fmt.Errorf("не введены серийные номера")
+	}
+
+	qq := `INSERT INTO public.sns(
+		sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder")
+		VALUES ($1, '', $2, $3, $4, $8, 2, '2000-01-01', 2, $5, false, '2000-01-01', '', CURRENT_DATE, $6, $7);`
+
+	var insertCount int
+	var SnErr []string
+	var lastErr error
+	for _, sn := range InSn {
+		res, err := base.Db.Exec(ctx, qq, sn, DModel, Rev, TModel, Place, Doc, Order, Name)
+		if err != nil {
+			SnErr = append(SnErr, sn+": "+err.Error())
+			lastErr = err
+			continue
+		}
+		insertCount += int(res.RowsAffected())
+	}
+	return insertCount, SnErr, lastErr
+}
+
+func (base Base) InsertOrder(ctx context.Context, Id1C int, Name string, ReqDate time.Time, Customer string, Partner string, Distributor string, user mytypes.User) (int, error) {
+	qq := `INSERT INTO public.orders(
+		meneger, "orderDate", "reqDate", "promDate", "shDate", "isAct", coment, customer, partner, disributor, name, "1СName")
+	   VALUES ($1, CURRENT_DATE, $2, '2000-01-01', '2000-01-01', true, '', $3, $4, $5, $6, $7);`
+	_, err := base.Db.Exec(ctx, qq, user.UserId, ReqDate, Customer, Partner, Distributor, Name, Id1C)
+	var Id int
+	noterr := base.Db.QueryRow(ctx, `SELECT "orderId" from orders Where meneger = $1  ORDER BY "orderId" DESC`, user.UserId).Scan(&Id)
+	if noterr != nil {
+		return Id, noterr
+	}
+	return Id, err
+}
+
 func (base Base) DellOrder(ctx context.Context, id int) error {
 
 	qq := `UPDATE sns
@@ -1002,45 +1040,6 @@ func (base Base) Change1CNumOrder(ctx context.Context, id int, new1CId int) erro
 ///////////////////
 // Другие функции//
 ///////////////////
-
-func (base Base) InsetDeviceByModel(ctx context.Context, DModel int, Name string, TModel int, Rev string, Place int, Doc string, Order string, InSn ...string) (int, []string, error) {
-	if len(InSn) == 0 {
-		return 0, nil, fmt.Errorf("не введены серийные номера")
-	}
-
-	qq := `INSERT INTO public.sns(
-		sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder")
-		VALUES ($1, '', $2, $3, $4, $8, 2, '2000-01-01', 2, $5, false, '2000-01-01', '', CURRENT_DATE, $6, $7);`
-
-	var insertCount int
-	var SnErr []string
-	var lastErr error
-	for _, sn := range InSn {
-		res, err := base.Db.Exec(ctx, qq, sn, DModel, Rev, TModel, Place, Doc, Order, Name)
-		if err != nil {
-			SnErr = append(SnErr, sn+": "+err.Error())
-			lastErr = err
-			continue
-		}
-		insertCount += int(res.RowsAffected())
-	}
-	return insertCount, SnErr, lastErr
-}
-
-func (base Base) InsertOrder(ctx context.Context, Id1C int, Name string, ReqDate time.Time, Customer string, Partner string, Distributor string, user mytypes.User) (int, error) {
-	qq := `INSERT INTO public.orders(
-		meneger, "orderDate", "reqDate", "promDate", "shDate", "isAct", coment, customer, partner, disributor, name, "1СName")
-	   VALUES ($1, CURRENT_DATE, $2, '2000-01-01', '2000-01-01', true, '', $3, $4, $5, $6, $7);`
-	_, err := base.Db.Exec(ctx, qq, user.UserId, ReqDate, Customer, Partner, Distributor, Name, Id1C)
-	var Id int
-	noterr := base.Db.QueryRow(ctx, `SELECT "orderId" from orders Where meneger = $1  ORDER BY "orderId" DESC`, user.UserId).Scan(&Id)
-	if noterr != nil {
-		return Id, noterr
-	}
-	return Id, err
-}
-
-//////
 
 // запись токена генерации
 func (base Base) NewRegenToken(user string, token string, ctx context.Context) {

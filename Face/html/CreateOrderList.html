@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <title>Поиск в ТМЦ</title>
+    <title>Состав заказа</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" href="Face\img\t-kom-ico.svg">
@@ -56,6 +56,7 @@
         <table class="table table-striped">
             <thead>
                 <tr>
+                    <th scope="col">#</th>
                     <th scope="col">Модель</th>
                     <th scope="col">Кол-во</th>
                     <th scope="col">Тип сервиса</th>
@@ -65,6 +66,14 @@
             <tbody>
                 {{range .List}}
                 <tr>
+                    <td>
+                      <form  class="p-1" id="changelist" name="changelist" action="/works/createorderlist" target="_parent" method="post">      
+                        <input type="hidden" name="Id" value="{{.Order}}" />
+                        <input type="hidden" name="Manager" value="{{$.User.Name}}" />
+                        <input type="hidden" name="ListId" value="{{.Id}}" />
+                        <button type="submit" class="btn btn-sm btn-info " ><i class="icon-cog"></i></button>
+                    </form>
+                    </td>
                     <td>{{.Model}}</td>
                     <td>{{.Amout}}</td>
                     <td>{{.ServType}}</td>
@@ -80,8 +89,11 @@
       <form id="in-form" name="in-form" action="" method="post">
         <div class="row">
           <div class="col" style="min-width: 200px;">
+            
             <label for="TModel" class="form-label">Модель</label>
             <div class=" input-group mb-1">
+              <span class="input-group-text"><i class="icon-plus"></i></span>
+              <input type="hidden" name="Id" value="+" />
               <select class="form-select" name="TModel">
                 <option selected value="">Не выбрано</option>
                 {{range .TModels}}
