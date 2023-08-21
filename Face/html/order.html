@@ -35,8 +35,8 @@
                             </div>
                         </form>
                         <form  class="p-1" id="changelist" name="changelist" action="/works/createorderlist" target="_parent" method="post">      
+                            <input type="hidden" name="Action" value="Open" />
                             <input type="hidden" name="Id" value="{{.Order.OrderId}}" />
-                            <input type="hidden" name="Manager" value="{{.Order.Meneger}}" />
                             <button type="submit" class="btn btn-sm btn-info" >Изменимть состав</button>
                         </form>
                         <form  class="p-1" id="delform" name="delform" action="/works/dellorder" target="_parent" method="post">      

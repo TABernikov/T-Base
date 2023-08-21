@@ -52,38 +52,44 @@
         </div>
       </nav>
 
-      <div class="container-fluid" >
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th scope="col">#</th>
-                    <th scope="col">Модель</th>
-                    <th scope="col">Кол-во</th>
-                    <th scope="col">Тип сервиса</th>
-                    <th scope="col">Дата активации сервиса</th>
-                </tr>
-            </thead>
-            <tbody>
-                {{range .List}}
-                <tr>
-                    <td>
-                      <form  class="p-1" id="changelist" name="changelist" action="/works/createorderlist" target="_parent" method="post">      
-                        <input type="hidden" name="Id" value="{{.Order}}" />
-                        <input type="hidden" name="Manager" value="{{$.User.Name}}" />
-                        <input type="hidden" name="ListId" value="{{.Id}}" />
-                        <button type="submit" class="btn btn-sm btn-info " ><i class="icon-cog"></i></button>
-                    </form>
-                    </td>
-                    <td>{{.Model}}</td>
-                    <td>{{.Amout}}</td>
-                    <td>{{.ServType}}</td>
-                    <td>{{.ServActDate}}</td> 
-                </tr>
-                {{end}}
-            </tbody>
-        </table>
+    <div class="container-fluid" >
+      <table class="table table-striped">
+          <thead>
+              <tr>
+                  <th scope="col">#</th>
+                  <th scope="col">Модель</th>
+                  <th scope="col">Кол-во</th>
+                  <th scope="col">Тип сервиса</th>
+                  <th scope="col">Дата активации сервиса</th>
+              </tr>
+          </thead>
+          <tbody>
+              {{range .List}}
+              <tr>
+                  <td>
+                    <form  class="p-1" id="changelist" name="changelist" action="/works/createorderlist" target="_parent" method="post">      
+                      <input type="hidden" name="Action" value="Redact" />
+                      <input type="hidden" name="Id" value="{{.Order}}" />
+                      <input type="hidden" name="ListId" value="{{.Id}}" />
+                      <button type="submit" class="btn btn-sm btn-info " ><i class="icon-cog">{{.Id}}</i></button>
+                  </form>
+                  </td>
+                  <td>{{.Model}}</td>
+                  <td>{{.Amout}}</td>
+                  <td>{{.ServType}}</td>
+                  <td>{{.ServActDate}}</td> 
+              </tr>
+              {{end}}
+          </tbody>
+      </table>
+      <form  class="p-1" id="New" name="New" action="/works/createorderlist" target="_parent" method="post">      
+        <input type="hidden" name="Action" value="Open" />
+        <input type="hidden" name="Id" value="{{.OrderId}}" />
+        <button type="submit" class="btn btn-sm btn-info " ><i class="icon-plus"></i></button>
+      </form>
     </div>
 
+  
 
     <div class="container-xl p-3">
       <form id="in-form" name="in-form" action="" method="post">
@@ -92,15 +98,26 @@
             
             <label for="TModel" class="form-label">Модель</label>
             <div class=" input-group mb-1">
-              <span class="input-group-text"><i class="icon-plus"></i></span>
-              <input type="hidden" name="Id" value="+" />
+              {{if(eq .ListId -1 )}} <span class="input-group-text"><i class="icon-plus"></i></span> <input type="hidden" name="ListId" value="-1" />
+              {{else}} <span class="input-group-text">{{.ListId}}</span> <input type="hidden" name="ListId" value="{{.ListId}}" /> {{end}}
+              
               <select class="form-select" name="TModel">
-                <option selected value="">Не выбрано</option>
-                {{range .TModels}}
-                <option value="{{.Id}}">{{.Name}}</option>
+                {{if(eq .ListId -1 )}}
+
+                  <option selected value="">Не выбрано</option>
+                  {{range .TModels}}
+                  <option value="{{.Id}}">{{.Name}}</option>
+                  {{end}}
+
+                {{else}}
+
+                  {{range .TModels}}
+                  <option {{if(eq $.RedElement.Model .Name )}}{{ print "selected" }} {{end}} value="{{.Id}}">{{.Name}}</option>
+                  {{end}}
+
                 {{end}}  
               </select>
-              <input type="number" class="form-control" placeholder=",шт" name="Amout" id="Amout">
+              <input type="number" class="form-control" placeholder=",шт" name="Amout" id="Amout" value="{{.RedElement.Amout}}">
             </div>
            
             
@@ -111,22 +128,43 @@
             
             <div class=" input-group mb-1">
               <select class="form-select" name="Serv">
-                <option selected value="1">Стандарт</option>
-                <option value="2">Стандарт</option>
-                <option value="2">Стандарт</option>
-                <option value="3">Стандарт</option>
-                <option value="4">Стандарт</option>
-                <option value="1">Стандарт</option>
-                <option value="2">Стандарт</option>
-                <option value="3">Стандарт</option>
-                <option value="4">Стандарт</option>
+                {{if(eq .ListId -1 )}}
+                  <option selected value="1">Стандарт</option>
+                  <option value="2">РГ-1</option>
+                  <option value="3">РГ-2</option>
+                  <option value="4">РГ-3</option>
+                  <option value="5">РГ-4</option>
+                  <option value="6">СП-1</option>
+                  <option value="7">СП-2</option>
+                  <option value="8">СП-3</option>
+                  <option value="9">СП-4</option>
+                {{else}}
+                  <option {{if(eq $.RedElement.ServType 1 )}}{{ print "selected" }} {{end}} value="1">Стандарт</option>
+                  <option {{if(eq $.RedElement.ServType 2 )}}{{ print "selected" }} {{end}} value="2">РГ-1</option>
+                  <option {{if(eq $.RedElement.ServType 3 )}}{{ print "selected" }} {{end}} value="3">РГ-2</option>
+                  <option {{if(eq $.RedElement.ServType 4 )}}{{ print "selected" }} {{end}} value="4">РГ-3</option>
+                  <option {{if(eq $.RedElement.ServType 5 )}}{{ print "selected" }} {{end}} value="5">РГ-4</option>
+                  <option {{if(eq $.RedElement.ServType 6 )}}{{ print "selected" }} {{end}} value="6">СП-1</option>
+                  <option {{if(eq $.RedElement.ServType 7 )}}{{ print "selected" }} {{end}} value="7">СП-2</option>
+                  <option {{if(eq $.RedElement.ServType 8 )}}{{ print "selected" }} {{end}} value="8">СП-3</option>
+                  <option {{if(eq $.RedElement.ServType 9 )}}{{ print "selected" }} {{end}} value="9">СП-4</option>
+                {{end}}
               </select>
-              <input type="date" class="form-control" placeholder="Дата" name="ServActDate" id="ServActDate">
-            </div>
+              {{if(eq .ListId -1 )}}
+                <input type="date" class="form-control" placeholder="Дата" name="ServActDate" id="ServActDate" value="">
+              {{else}}
+              <input type="date" class="form-control" placeholder="Дата" name="ServActDate" id="ServActDate" value=".RedElement.ServActDate">
+              {{end}}
+              </div>
           </div>
         </div>
-          
+        <input type="hidden" name="Action" value="Create" />
+        <input type="hidden" name="Id" value="{{.OrderId}}" />
+        {{if(eq .ListId -1 )}}
           <button class="btn btn-primary" type="submit" style="width: 100%;">Создать</button>
+        {{else}}
+          <button class="btn btn-primary" type="submit" style="width: 100%;">Изменить</button>
+        {{end}}
       </form>
     </div>
 

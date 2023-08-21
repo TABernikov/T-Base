@@ -780,23 +780,42 @@ func (a App) Change1CNumOrder(w http.ResponseWriter, r *http.Request, pr httprou
 }
 
 func (a App) CreateOrderListPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
-	if r.FormValue("ListId") == "" {
-		if user.Name != r.FormValue("Manager") {
-			MakeAlertPage(w, 5, "Ошибка", "Нельзя редактировать чужой заказ", "Плохо так делать", "Не надо так", "Главная", "/works/prof")
+
+	id, err := strconv.Atoi(r.FormValue("Id"))
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Не существующий Id заказа", "Не существующее число", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	order, err := a.Db.TakeOrderById(a.ctx, id)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Не существующий Id заказа", "Ваш заказ пропал!!!", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	OrderList, err := a.Db.TakeCleanOrderList(a.ctx, id)
+	if err != nil {
+		OrderList = []mytypes.OrderListClean{}
+	}
+
+	if user.UserId != order[0].Meneger {
+		MakeAlertPage(w, 5, "Ошибка", "Нельзя редактировать чужой заказ", "Плохо так делать", "Не надо так", "Главная", "/works/prof")
+		return
+	}
+
+	if r.FormValue("Action") == "Open" {
+		a.MakeCreateOrderListPage(w, OrderList, -1, id)
+
+	} else if r.FormValue("Action") == "Redact" {
+		listId, err := strconv.Atoi(r.FormValue("ListId"))
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Не существующий элемент заказа", "Не существующее число", err.Error(), "Главная", "/works/prof")
 			return
 		}
-		id, err := strconv.Atoi(r.FormValue("Id"))
-		if err != nil {
-			MakeAlertPage(w, 5, "Ошибка", "Не существующий Id заказа", "Ваш заказ пропал!!!", err.Error(), "Главная", "/works/prof")
-			return
-		}
+		a.MakeCreateOrderListPage(w, OrderList, listId, id)
 
-		OrderList, err := a.Db.TakeCleanOrderList(a.ctx, id)
-		if err != nil {
-			OrderList = []mytypes.OrderListClean{}
-		}
-
-		a.MakeCreateOrderListPage(w, OrderList, user, -1)
+	} else if r.FormValue("Action") == "Create" {
+		MakeAlertPage(w, 5, "Ошибка", "Не готовая часть", "Создание", "", "Главная", "/works/prof")
 	}
 }
 
@@ -1099,16 +1118,17 @@ func MakeCreateOrderPage(w http.ResponseWriter) {
 	t.Execute(w, page)
 }
 
-func (a App) MakeCreateOrderListPage(w http.ResponseWriter, OrderList []mytypes.OrderListClean, user mytypes.User, ListId int) {
+func (a App) MakeCreateOrderListPage(w http.ResponseWriter, OrderList []mytypes.OrderListClean, ListId int, orderId int) {
 	type idChoise struct {
 		Id   int
 		Name string
 	}
 	type TakeForm struct {
-		List    []mytypes.OrderListClean
-		User    mytypes.User
-		TModels []idChoise
-		ListId  int
+		List       []mytypes.OrderListClean
+		TModels    []idChoise
+		ListId     int
+		OrderId    int
+		RedElement mytypes.OrderListClean
 	}
 
 	var choise idChoise
@@ -1128,7 +1148,17 @@ func (a App) MakeCreateOrderListPage(w http.ResponseWriter, OrderList []mytypes.
 		tmodelList = append(tmodelList, choise)
 	}
 
-	tmp := TakeForm{OrderList, user, tmodelList}
+	var redElement mytypes.OrderListClean
+	if ListId != -1 {
+		for _, a := range OrderList {
+			if a.Id == ListId {
+				redElement = a
+				redElement.ServActDate = //преобразовать в гггг-мм-дд
+			}
+		}
+	}
+	tmp := TakeForm{OrderList, tmodelList, ListId, orderId, redElement}
+
 	t := template.Must(template.ParseFiles("Face/html/CreateOrderList.html"))
 	t.Execute(w, tmp)
 
