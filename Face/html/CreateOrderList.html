@@ -68,7 +68,7 @@
               <tr>
                   <td>
                     <form  class="p-1" id="changelist" name="changelist" action="/works/createorderlist" target="_parent" method="post">      
-                      <input type="hidden" name="Action" value="Redact" />
+                      <input type="hidden" name="Action" value="OpenRedact" />
                       <input type="hidden" name="Id" value="{{.Order}}" />
                       <input type="hidden" name="ListId" value="{{.Id}}" />
                       <button type="submit" class="btn btn-sm btn-info " ><i class="icon-cog">{{.Id}}</i></button>
@@ -153,16 +153,19 @@
               {{if(eq .ListId -1 )}}
                 <input type="date" class="form-control" placeholder="Дата" name="ServActDate" id="ServActDate" value="">
               {{else}}
-              <input type="date" class="form-control" placeholder="Дата" name="ServActDate" id="ServActDate" value=".RedElement.ServActDate">
+             
+              <input type="date" class="form-control" placeholder="Дата" name="ServActDate" id="ServActDate" value="{{.RedElement.ServActDate}}">
               {{end}}
               </div>
           </div>
         </div>
-        <input type="hidden" name="Action" value="Create" />
+        
         <input type="hidden" name="Id" value="{{.OrderId}}" />
         {{if(eq .ListId -1 )}}
+          <input type="hidden" name="Action" value="Create" />
           <button class="btn btn-primary" type="submit" style="width: 100%;">Создать</button>
         {{else}}
+          <input type="hidden" name="Action" value="Redact" />
           <button class="btn btn-primary" type="submit" style="width: 100%;">Изменить</button>
         {{end}}
       </form>

@@ -1037,6 +1037,10 @@ func (base Base) Change1CNumOrder(ctx context.Context, id int, new1CId int) erro
 	return nil
 }
 
+func (base Base) InsertOrderList(ctx context.Context, OrderList mytypes.OrderList) error {
+
+}
+
 ///////////////////
 // Другие функции//
 ///////////////////

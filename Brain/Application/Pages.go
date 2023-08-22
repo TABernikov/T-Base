@@ -806,7 +806,7 @@ func (a App) CreateOrderListPage(w http.ResponseWriter, r *http.Request, pr http
 	if r.FormValue("Action") == "Open" {
 		a.MakeCreateOrderListPage(w, OrderList, -1, id)
 
-	} else if r.FormValue("Action") == "Redact" {
+	} else if r.FormValue("Action") == "OpenRedact" {
 		listId, err := strconv.Atoi(r.FormValue("ListId"))
 		if err != nil {
 			MakeAlertPage(w, 5, "Ошибка", "Не существующий элемент заказа", "Не существующее число", err.Error(), "Главная", "/works/prof")
@@ -816,6 +816,10 @@ func (a App) CreateOrderListPage(w http.ResponseWriter, r *http.Request, pr http
 
 	} else if r.FormValue("Action") == "Create" {
 		MakeAlertPage(w, 5, "Ошибка", "Не готовая часть", "Создание", "", "Главная", "/works/prof")
+		a.MakeCreateOrderListPage(w, OrderList, -1, id)
+	} else if r.FormValue("Action") == "Redact" {
+		MakeAlertPage(w, 5, "Ошибка", "Не готовая часть", "Редактирование", "", "Главная", "/works/prof")
+		a.MakeCreateOrderListPage(w, OrderList, -1, id)
 	}
 }
 
@@ -1153,7 +1157,8 @@ func (a App) MakeCreateOrderListPage(w http.ResponseWriter, OrderList []mytypes.
 		for _, a := range OrderList {
 			if a.Id == ListId {
 				redElement = a
-				redElement.ServActDate = //преобразовать в гггг-мм-дд
+				s := strings.Split(redElement.ServActDate, ".")
+				redElement.ServActDate = s[2] + "-" + s[1] + "-" + s[0]
 			}
 		}
 	}
