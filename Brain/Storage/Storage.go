@@ -985,13 +985,13 @@ func (base Base) InsetDeviceByModel(ctx context.Context, DModel int, Name string
 	return insertCount, SnErr, lastErr
 }
 
-func (base Base) InsertOrder(ctx context.Context, Id1C int, Name string, ReqDate time.Time, Customer string, Partner string, Distributor string, user mytypes.User) (int, error) {
+func (base Base) InsertOrder(ctx context.Context, Order mytypes.OrderRaw) (int, error) {
 	qq := `INSERT INTO public.orders(
 		meneger, "orderDate", "reqDate", "promDate", "shDate", "isAct", coment, customer, partner, disributor, name, "1СName")
 	   VALUES ($1, CURRENT_DATE, $2, '2000-01-01', '2000-01-01', true, '', $3, $4, $5, $6, $7);`
-	_, err := base.Db.Exec(ctx, qq, user.UserId, ReqDate, Customer, Partner, Distributor, Name, Id1C)
+	_, err := base.Db.Exec(ctx, qq, Order.Meneger, Order.ReqDate, Order.Customer, Order.Partner, Order.Distributor, Order.Name, Order.Id1C)
 	var Id int
-	noterr := base.Db.QueryRow(ctx, `SELECT "orderId" from orders Where meneger = $1  ORDER BY "orderId" DESC`, user.UserId).Scan(&Id)
+	noterr := base.Db.QueryRow(ctx, `SELECT "orderId" from orders Where meneger = $1  ORDER BY "orderId" DESC`, Order.Meneger).Scan(&Id)
 	if noterr != nil {
 		return Id, noterr
 	}
@@ -1038,7 +1038,21 @@ func (base Base) Change1CNumOrder(ctx context.Context, id int, new1CId int) erro
 }
 
 func (base Base) InsertOrderList(ctx context.Context, OrderList mytypes.OrderList) error {
+	qq := `INSERT INTO public."orderList"(
+	"orderId", model, amout, "servType", "srevActDate", "lastRed")
+	VALUES ($1, $2, $3, $4, $5, $6);`
 
+	_, err := base.Db.Exec(ctx, qq, OrderList.Order, OrderList.Model, OrderList.Amout, OrderList.ServType, OrderList.ServActDate, OrderList.LastRed)
+	return err
+}
+
+func (base Base) ChangeOrderList(ctx context.Context, OrderList mytypes.OrderList) error {
+	qq := `UPDATE public."orderList"
+	SET  "orderId"=$2, model=$3, amout=$4, "servType"=$5, "srevActDate"=$6, "lastRed"=$7
+	WHERE "orderListId"=$1;`
+
+	_, err := base.Db.Exec(ctx, qq, OrderList.Id, OrderList.Order, OrderList.Model, OrderList.Amout, OrderList.ServType, OrderList.ServActDate, OrderList.LastRed)
+	return err
 }
 
 ///////////////////

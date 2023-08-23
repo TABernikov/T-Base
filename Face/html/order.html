@@ -30,7 +30,6 @@
                             <div class=" input-group input-group-sm" >
                                 <button class="btn btn-info" type="submit"  ><i class="icon-pin"> </i></button>
                                 <input type="hidden" name="Id" value="{{.Order.OrderId}}" />
-                                <input type="hidden" name="Manager" value="{{.Order.Meneger}}" />
                                 <input class="form-control " type="number" name="1CNum" placeholder="Изменить №1С" style="width: 150px" />
                             </div>
                         </form>
@@ -41,7 +40,6 @@
                         </form>
                         <form  class="p-1" id="delform" name="delform" action="/works/dellorder" target="_parent" method="post">      
                             <input type="hidden" name="Id" value="{{.Order.OrderId}}" />
-                            <input type="hidden" name="Manager" value="{{.Order.Meneger}}" />
                             <button type="submit" class="btn btn-sm btn-danger" >Удалить</button>
                         </form>
                     </div>

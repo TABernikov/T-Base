@@ -332,7 +332,7 @@ func (a App) Login(w http.ResponseWriter, r *http.Request, pr httprouter.Params)
 
 		if pass == user.Pass {
 			Auth.MakeTokens(w, r, user, a.JwtKey, *a.Db) // Записываем токены
-			http.Redirect(w, r, "history.back();", http.StatusSeeOther)
+			http.Redirect(w, r, "/", http.StatusSeeOther)
 		} else {
 			a.LoginPage(w, "Неверный пароль")
 		}
