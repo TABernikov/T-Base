@@ -332,7 +332,7 @@ func (a App) Login(w http.ResponseWriter, r *http.Request, pr httprouter.Params)
 
 		if pass == user.Pass {
 			Auth.MakeTokens(w, r, user, a.JwtKey, *a.Db) // Записываем токены
-			http.Redirect(w, r, "/", http.StatusSeeOther)
+			http.Redirect(w, r, "history.back();", http.StatusSeeOther)
 		} else {
 			a.LoginPage(w, "Неверный пароль")
 		}
@@ -727,7 +727,16 @@ func (a App) CreateOrder(w http.ResponseWriter, r *http.Request, pr httprouter.P
 	Partner := r.FormValue("Partner")
 	Distributor := r.FormValue("Distributor")
 
-	Id, err := a.Db.InsertOrder(a.ctx, Id1C, Name, ReqDate, Customer, Partner, Distributor, user)
+	var order mytypes.OrderRaw
+	order.Id1C = Id1C
+	order.Name = Name
+	order.ReqDate = ReqDate
+	order.Customer = Customer
+	order.Partner = Partner
+	order.Distributor = Distributor
+	order.Meneger = user.UserId
+
+	Id, err := a.Db.InsertOrder(a.ctx, order)
 	if err != nil {
 		MakeAlertPage(w, 5, "Ошибка", "Ошибка создания заказа", "Заказ не создан", err.Error(), "Главная", "/works/prof")
 		return
@@ -737,13 +746,21 @@ func (a App) CreateOrder(w http.ResponseWriter, r *http.Request, pr httprouter.P
 }
 
 func (a App) DelOrder(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
-	if user.Name != r.FormValue("Manager") {
-		MakeAlertPage(w, 5, "Ошибка", "Нельзя удалить чужой заказ", "Плохо так делать", "Не надо так", "Главная", "/works/prof")
-		return
-	}
+
 	id, err := strconv.Atoi(r.FormValue("Id"))
 	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Не существующий Id заказа", "Не существующее число", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	order, err := a.Db.TakeOrderById(a.ctx, id)
+	if err != nil {
 		MakeAlertPage(w, 5, "Ошибка", "Не существующий Id заказа", "Ваш заказ пропал!!!", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	if user.UserId != order[0].Meneger {
+		MakeAlertPage(w, 5, "Ошибка", "Нельзя удалить чужой заказ", "Плохо так делать", "Не надо так", "Главная", "/works/prof")
 		return
 	}
 
@@ -756,15 +773,23 @@ func (a App) DelOrder(w http.ResponseWriter, r *http.Request, pr httprouter.Para
 }
 
 func (a App) Change1CNumOrder(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
-	if user.Name != r.FormValue("Manager") {
-		MakeAlertPage(w, 5, "Ошибка", "Нельзя редактировать чужой заказ", "Плохо так делать", "Не надо так", "Главная", "/works/prof")
+	id, err := strconv.Atoi(r.FormValue("Id"))
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Не существующий Id заказа", "Не существующее число", err.Error(), "Главная", "/works/prof")
 		return
 	}
-	id, err := strconv.Atoi(r.FormValue("Id"))
+
+	order, err := a.Db.TakeOrderById(a.ctx, id)
 	if err != nil {
 		MakeAlertPage(w, 5, "Ошибка", "Не существующий Id заказа", "Ваш заказ пропал!!!", err.Error(), "Главная", "/works/prof")
 		return
 	}
+
+	if user.UserId != order[0].Meneger {
+		MakeAlertPage(w, 5, "Ошибка", "Нельзя изменить чужой заказ", "Плохо так делать", "Не надо так", "Главная", "/works/prof")
+		return
+	}
+
 	new1CId, err := strconv.Atoi(r.FormValue("1CNum"))
 	if err != nil {
 		MakeAlertPage(w, 5, "Ошибка", "Не число", "Новый номер 1С должен быть числом", err.Error(), "Главная", "/works/prof")
@@ -793,18 +818,13 @@ func (a App) CreateOrderListPage(w http.ResponseWriter, r *http.Request, pr http
 		return
 	}
 
-	OrderList, err := a.Db.TakeCleanOrderList(a.ctx, id)
-	if err != nil {
-		OrderList = []mytypes.OrderListClean{}
-	}
-
 	if user.UserId != order[0].Meneger {
 		MakeAlertPage(w, 5, "Ошибка", "Нельзя редактировать чужой заказ", "Плохо так делать", "Не надо так", "Главная", "/works/prof")
 		return
 	}
 
 	if r.FormValue("Action") == "Open" {
-		a.MakeCreateOrderListPage(w, OrderList, -1, id)
+		a.MakeCreateOrderListPage(w, -1, id)
 
 	} else if r.FormValue("Action") == "OpenRedact" {
 		listId, err := strconv.Atoi(r.FormValue("ListId"))
@@ -812,14 +832,64 @@ func (a App) CreateOrderListPage(w http.ResponseWriter, r *http.Request, pr http
 			MakeAlertPage(w, 5, "Ошибка", "Не существующий элемент заказа", "Не существующее число", err.Error(), "Главная", "/works/prof")
 			return
 		}
-		a.MakeCreateOrderListPage(w, OrderList, listId, id)
+		a.MakeCreateOrderListPage(w, listId, id)
 
 	} else if r.FormValue("Action") == "Create" {
-		MakeAlertPage(w, 5, "Ошибка", "Не готовая часть", "Создание", "", "Главная", "/works/prof")
-		a.MakeCreateOrderListPage(w, OrderList, -1, id)
+		var newPos mytypes.OrderList
+		newPos.Model, err = strconv.Atoi(r.FormValue("TModel"))
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка создания", "Неверная модель", err.Error(), "Главная", "/works/prof")
+		}
+		newPos.Amout, err = strconv.Atoi(r.FormValue("Amout"))
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка создания", "Неверное кол-во", err.Error(), "Главная", "/works/prof")
+		}
+		newPos.ServType, err = strconv.Atoi(r.FormValue("Serv"))
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка создания", "Неверный тип сервиса", err.Error(), "Главная", "/works/prof")
+		}
+		newPos.ServActDate, err = time.Parse("2006-01-02", r.FormValue("ServActDate"))
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка создания", "Неверная дата начала сервиса", err.Error(), "Главная", "/works/prof")
+		}
+		newPos.Order = id
+
+		err = a.Db.InsertOrderList(a.ctx, newPos)
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка создания", "Что-то пошло не так", err.Error(), "Главная", "/works/prof")
+		}
+
+		a.MakeCreateOrderListPage(w, -1, id)
 	} else if r.FormValue("Action") == "Redact" {
-		MakeAlertPage(w, 5, "Ошибка", "Не готовая часть", "Редактирование", "", "Главная", "/works/prof")
-		a.MakeCreateOrderListPage(w, OrderList, -1, id)
+		var redPos mytypes.OrderList
+		redPos.Model, err = strconv.Atoi(r.FormValue("TModel"))
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка изменения", "Неверная модель", err.Error(), "Главная", "/works/prof")
+		}
+		redPos.Amout, err = strconv.Atoi(r.FormValue("Amout"))
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка изменения", "Неверное кол-во", err.Error(), "Главная", "/works/prof")
+		}
+		redPos.ServType, err = strconv.Atoi(r.FormValue("Serv"))
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка изменения", "Неверный тип сервиса", err.Error(), "Главная", "/works/prof")
+		}
+		redPos.ServActDate, err = time.Parse("2006-01-02", r.FormValue("ServActDate"))
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка изменения", "Неверная дата начала сервиса", err.Error(), "Главная", "/works/prof")
+		}
+		redPos.Order = id
+		redPos.Id, err = strconv.Atoi(r.FormValue("ListId"))
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка изменения", "Неверный ID элемента", err.Error(), "Главная", "/works/prof")
+		}
+
+		err = a.Db.ChangeOrderList(a.ctx, redPos)
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка изменения", "Что-то пошло не так", err.Error(), "Главная", "/works/prof")
+		}
+
+		a.MakeCreateOrderListPage(w, -1, id)
 	}
 }
 
@@ -1122,7 +1192,7 @@ func MakeCreateOrderPage(w http.ResponseWriter) {
 	t.Execute(w, page)
 }
 
-func (a App) MakeCreateOrderListPage(w http.ResponseWriter, OrderList []mytypes.OrderListClean, ListId int, orderId int) {
+func (a App) MakeCreateOrderListPage(w http.ResponseWriter, ListId int, orderId int) {
 	type idChoise struct {
 		Id   int
 		Name string
@@ -1133,6 +1203,11 @@ func (a App) MakeCreateOrderListPage(w http.ResponseWriter, OrderList []mytypes.
 		ListId     int
 		OrderId    int
 		RedElement mytypes.OrderListClean
+	}
+
+	OrderList, err := a.Db.TakeCleanOrderList(a.ctx, orderId)
+	if err != nil {
+		OrderList = []mytypes.OrderListClean{}
 	}
 
 	var choise idChoise
@@ -1166,5 +1241,6 @@ func (a App) MakeCreateOrderListPage(w http.ResponseWriter, OrderList []mytypes.
 
 	t := template.Must(template.ParseFiles("Face/html/CreateOrderList.html"))
 	t.Execute(w, tmp)
-
 }
+
+func (a App) MAke
