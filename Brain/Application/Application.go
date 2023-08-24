@@ -37,6 +37,7 @@ func (a App) Routs(r *httprouter.Router) {
 	r.GET("/works/home", a.homePage)
 
 	r.POST("/works/login", a.Login)
+	r.GET("/works/Logout", Auth.Logout)
 	r.POST("/works/Logout", Auth.Logout)
 
 	// пути требующие авторизацию
@@ -60,6 +61,7 @@ func (a App) Routs(r *httprouter.Router) {
 	r.GET("/works/cangeplacenum", a.authtorized(a.ChangeNumPlacePage))
 	r.GET("/works/takedevicebymodel", a.authtorized(a.TakeDeviceByModelPage))
 	r.GET("/works/createorder", a.authtorized(a.CreateOrderPage))
+	r.GET("/works/changemac", a.authtorized(a.ChangeMACPage))
 
 	r.POST("/works/snsearch", a.authtorized(a.SnSearch))
 	r.POST("/works/tmcsearch", a.authtorized(a.TMCSearch))

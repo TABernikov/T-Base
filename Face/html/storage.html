@@ -49,8 +49,9 @@
 
         
 
-        <form class="d-flex" role="search">
-          <input class="form-control" type="search" placeholder="Заказ/Наименование..." aria-label="Поиск">
+        <form class="d-flex" role="search" method="get">
+          <input type="hidden" name="Search" value="1">
+          <input class="form-control" type="search" placeholder="Заказ/Наименование..." name="in" aria-label="Поиск">
           <button class="btn btn-outline-success" type="submit">Поиск</button>
         </form>
 

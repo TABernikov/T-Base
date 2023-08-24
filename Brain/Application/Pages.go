@@ -42,8 +42,7 @@ func (a App) LoginPage(w http.ResponseWriter, in string) {
 
 // Страница профиля
 func (a App) UserPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
-	t := template.Must(template.ParseFiles("Face/html/prof.html"))
-	t.Execute(w, user)
+	a.MakeUserPage(w, user)
 }
 
 // Таблица ТМЦ
@@ -51,7 +50,7 @@ func (a App) TMCPage(w http.ResponseWriter, r *http.Request, pr httprouter.Param
 	var devices []mytypes.DeviceClean
 	var err error
 	if r.FormValue("Search") == "" {
-		devices, err = a.Db.TakeCleanDeviceById(a.ctx)
+		devices, err = a.Db.TakeCleanDeviceByRequest(a.ctx, "LIMIT 1000")
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -124,7 +123,7 @@ func (a App) TMCPage(w http.ResponseWriter, r *http.Request, pr httprouter.Param
 		}
 	}
 
-	MakeTMCPage(w, devices, "ТМЦ устройств: "+strconv.Itoa(len(devices)))
+	MakeTMCPage(w, devices, "ТМЦ показанно устройств: "+strconv.Itoa(len(devices)))
 }
 
 func (a App) TMCSearchPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
@@ -191,33 +190,87 @@ func (a App) SnSearchPage(w http.ResponseWriter, r *http.Request, pr httprouter.
 
 // Страница склада по заказам
 func (a App) StoragePage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
-	storage, err := a.Db.TakeStorageCount(a.ctx, "")
-	if err != nil {
-		return
+	if r.FormValue("Search") != "" {
+		in := r.FormValue("in")
+		in = strings.TrimSpace(in)
+		qq := `SELECT "order", name, count, "orderName" FROM wear Where "orderName" LIKE '%` + in + `%' OR name LIKE '%` + in + `%' `
+		_, err := strconv.Atoi(in)
+		if err == nil {
+			qq += ` OR "order" = ` + in
+		}
+
+		storage, err := a.Db.TakeStorageCount(a.ctx, qq)
+
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+
+		MakeStoragePage(w, storage, "Склад поиск: "+in)
+
+	} else {
+		storage, err := a.Db.TakeStorageCount(a.ctx, "")
+		if err != nil {
+			if err != nil {
+				MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+				return
+			}
+		}
+		MakeStoragePage(w, storage, "Склад заказы")
 	}
-	MakeStoragePage(w, storage, "Склад заказы")
 }
 
 // Страница склада по местам
 func (a App) StorageByPlacePage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
-	storage, err := a.Db.TakeStorageCountByPlace(a.ctx, "")
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	if r.FormValue("Search") != "" {
+		in := r.FormValue("in")
+		in = strings.TrimSpace(in)
+		qq := `SELECT place, name, count FROM public."wearByPlace" Where name LIKE '%` + in + `%' `
+		_, err := strconv.Atoi(in)
+		if err == nil {
+			qq += ` OR place = ` + in
+		}
 
-	MakeStorageByPlacePage(w, storage, "Склад места")
+		storage, err := a.Db.TakeStorageCountByPlace(a.ctx, qq)
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		MakeStorageByPlacePage(w, storage, "Склад места поиск: "+in)
+	} else {
+
+		storage, err := a.Db.TakeStorageCountByPlace(a.ctx, "")
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+
+		MakeStorageByPlacePage(w, storage, "Склад места")
+	}
 }
 
 // Страница склада по моделям
 func (a App) StorageByTModelPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
-	storage, err := a.Db.TakeStorageByTModelClean(a.ctx, "")
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	if r.FormValue("Search") != "" {
+		in := r.FormValue("in")
+		in = strings.TrimSpace(in)
+		qq := `SELECT tmodel, name, condition, count, shiped FROM public."cleanWearByTModel" Where tmodel LIKE '%` + in + `%' OR name LIKE '%` + in + `%' `
 
-	MakeStorageByTModelPage(w, storage, "Склад модели")
+		storage, err := a.Db.TakeStorageByTModelClean(a.ctx, qq)
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		MakeStorageByTModelPage(w, storage, "Склад модели поиск: "+in)
+	} else {
+		storage, err := a.Db.TakeStorageByTModelClean(a.ctx, "")
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		MakeStorageByTModelPage(w, storage, "Склад модели")
+	}
 }
 
 // Таблица заказов
@@ -265,8 +318,7 @@ func (a App) OrderMiniPage(w http.ResponseWriter, r *http.Request, pr httprouter
 
 	reqsest := ` SELECT public."tModels"."tModelsName" AS tmodel, tmp.name, public."condNames"."condName", tmp.count, tmp.shiped From
 	(SELECT sns.tmodel, sns.name, sns.condition, count(sns."snsId") AS "count", sns.shiped FROM sns WHERE sns.order = ` + strconv.Itoa(order.OrderId) + ` GROUP BY sns.tmodel, sns.condition, sns.shiped, sns.name ORDER BY sns.tmodel, sns.condition) tmp
-	LEFT JOIN public."condNames" ON public."condNames"."condNamesId" = tmp.condition LEFT JOIN public."tModels" ON public."tModels"."tModelsId" = tmp.tmodel
-`
+	LEFT JOIN public."condNames" ON public."condNames"."condNamesId" = tmp.condition LEFT JOIN public."tModels" ON public."tModels"."tModelsId" = tmp.tmodel`
 
 	reservs, err := a.Db.TakeStorageByTModelClean(a.ctx, reqsest)
 	if err != nil {
@@ -284,31 +336,41 @@ func (a App) ToWorkPage(w http.ResponseWriter, r *http.Request, pr httprouter.Pa
 
 // Страница назначения резерва
 func (a App) SetOrderPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
-	MakeDobleImputPage(w, "/works/setorder", "Назначить заказ/резерв", "Введите серийные номера:", "Номер заказа", "Назначить заказ")
+	MakeDobleImputPage(w, "/works/setorder", "Назначить заказ/резерв", "Введите серийные номера:", "Номер заказа", "number", "Назначить заказ")
 }
 
+// Страница установки места
 func (a App) SetPlacePage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
-	MakeDobleImputPage(w, "/works/setplace", "Установить место", "Введите серийные номера:", "Номер места", "Установить место")
+	MakeDobleImputPage(w, "/works/setplace", "Установить место", "Введите серийные номера:", "Номер места", "number", "Установить место")
 }
 
+// Страница приемки демо
 func (a App) TakeDemoPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	MakeImputPage(w, "", "Приемка демо", "Введите серийные номера", "Принять")
 }
 
+// Страница отгрузки
 func (a App) ToShipPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
-	MakeDobleImputPage(w, "", "Отгрузка", "Введите серийные номера", "Место отгрузки", "Отгрузить")
+	MakeDobleImputPage(w, "", "Отгрузка", "Введите серийные номера", "Место отгрузки", "text", "Отгрузить")
 }
 
+// Страница изменения номера паллета
 func (a App) ChangeNumPlacePage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	MakeDobleImputTypePage(w, "/works/cangeplacenum", "Установить номер места", "Введите старый номер:", "number", "Введите новый номер", "number", "Изменить")
 }
 
+// Страница приемки помодельно
 func (a App) TakeDeviceByModelPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	a.MakeTakeDeviceByModelPage(w)
 }
 
+// Страница создания заказа
 func (a App) CreateOrderPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	MakeCreateOrderPage(w)
+}
+
+func (a App) ChangeMACPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	MakeImputPage(w, "", "Изменить маки", "Введите последовательно серийный номер и мак для каждого устройства", "Изменить")
 }
 
 //////////////////////
@@ -349,7 +411,7 @@ func (a App) SnSearch(w http.ResponseWriter, r *http.Request, pr httprouter.Para
 		fmt.Println(err)
 	}
 
-	MakeTMCPage(w, devices, "Результаты поиска")
+	MakeTMCPage(w, devices, "Результаты поиска, показанно устройств: "+strconv.Itoa(len(devices)))
 }
 
 // универсальный поиск в тмц
@@ -360,7 +422,7 @@ func (a App) TMCSearch(w http.ResponseWriter, r *http.Request, pr httprouter.Par
 	if err != nil {
 		fmt.Println(err)
 	}
-	MakeTMCPage(w, devices, "Результаты поиска "+snString+" "+strconv.Itoa(len(devices)))
+	MakeTMCPage(w, devices, "Результаты поиска "+snString+" показанно устройств: "+strconv.Itoa(len(devices)))
 }
 
 // универсальный поиск в заказах
@@ -435,6 +497,7 @@ func (a App) SetOrder(w http.ResponseWriter, r *http.Request, pr httprouter.Para
 	}
 }
 
+// установка места
 func (a App) SetPlace(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	snString := r.FormValue("in1")
 	Sns := strings.Fields(snString)
@@ -467,6 +530,7 @@ func (a App) SetPlace(w http.ResponseWriter, r *http.Request, pr httprouter.Para
 	}
 }
 
+// сложный поиск в ттмц
 func (a App) AdvanceTMCSearch(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	rawSelect := `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder" FROM public.sns WHERE true`
 
@@ -568,6 +632,7 @@ func (a App) AdvanceTMCSearch(w http.ResponseWriter, r *http.Request, pr httprou
 	MakeTMCPage(w, devices, "Результаты поиска ТМЦ "+strconv.Itoa(len(devices)))
 }
 
+// приемка демо
 func (a App) TakeDemo(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	snString := r.FormValue("in")
 	Sns := strings.Fields(snString)
@@ -594,6 +659,7 @@ func (a App) TakeDemo(w http.ResponseWriter, r *http.Request, pr httprouter.Para
 	}
 }
 
+// отгрузка
 func (a App) ToShip(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	snString := r.FormValue("in1")
 	Sns := strings.Fields(snString)
@@ -620,6 +686,7 @@ func (a App) ToShip(w http.ResponseWriter, r *http.Request, pr httprouter.Params
 	}
 }
 
+// изменение номера паллета
 func (a App) ChangeNumPlace(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	old, err := strconv.Atoi(r.FormValue("in1"))
 	if err != nil {
@@ -642,6 +709,7 @@ func (a App) ChangeNumPlace(w http.ResponseWriter, r *http.Request, pr httproute
 	MakeAlertPage(w, 1, "Готово", "Измененно", "Номер паллета успешно изменен", "Старый номер "+strconv.Itoa(old)+" ->	Новый "+strconv.Itoa(new), "Главная", "/works/prof")
 }
 
+// добавить комментарий по серийным номерам
 func (a App) AddCommentToSns(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	id, err := strconv.Atoi(r.FormValue("Id"))
 	if err != nil {
@@ -666,6 +734,7 @@ func (a App) AddCommentToSns(w http.ResponseWriter, r *http.Request, pr httprout
 	a.DeviceMiniPage(w, r, pr, user)
 }
 
+// приемка по модельно
 func (a App) TakeDeviceByModel(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 
 	DModelIn := r.FormValue("DModel")
@@ -709,6 +778,7 @@ func (a App) TakeDeviceByModel(w http.ResponseWriter, r *http.Request, pr httpro
 	MakeAlertPage(w, 1, "Готово", "Готово", "Все устройства внесены", "Отличная работа", "Главная", "/works/prof")
 }
 
+// создание заказа
 func (a App) CreateOrder(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	Id1C, err := strconv.Atoi(r.FormValue("1C"))
 	if err != nil {
@@ -745,6 +815,7 @@ func (a App) CreateOrder(w http.ResponseWriter, r *http.Request, pr httprouter.P
 	MakeAlertPage(w, 1, "Готово", "Готово", "Заказ "+strconv.Itoa(Id1C)+" "+Name+"создан", "Не забудьте внести состав заказа", "К заказу", "/works/order/mini?Id="+strconv.Itoa(Id))
 }
 
+// удаление заказа
 func (a App) DelOrder(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 
 	id, err := strconv.Atoi(r.FormValue("Id"))
@@ -772,6 +843,7 @@ func (a App) DelOrder(w http.ResponseWriter, r *http.Request, pr httprouter.Para
 	MakeAlertPage(w, 1, "Готово", "Готово", "Заказ успешно удален", "Отличная работа", "Главная", "/works/prof")
 }
 
+// изменить № 1С у заказа
 func (a App) Change1CNumOrder(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	id, err := strconv.Atoi(r.FormValue("Id"))
 	if err != nil {
@@ -804,6 +876,7 @@ func (a App) Change1CNumOrder(w http.ResponseWriter, r *http.Request, pr httprou
 	MakeAlertPage(w, 1, "Готово", "Готово", "Номер успешно изменен", "Отличная работа", "Главная", "/works/prof")
 }
 
+// изменение состава заказа (Страница)
 func (a App) CreateOrderListPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 
 	id, err := strconv.Atoi(r.FormValue("Id"))
@@ -891,6 +964,10 @@ func (a App) CreateOrderListPage(w http.ResponseWriter, r *http.Request, pr http
 
 		a.MakeCreateOrderListPage(w, -1, id)
 	}
+}
+
+func (a App) ChangeMac(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+
 }
 
 //////////////////////////
@@ -1077,17 +1154,18 @@ func MakeImputTypePage(w http.ResponseWriter, postPath, title, typein, imputText
 	t.Execute(w, tmp)
 }
 
-func MakeDobleImputPage(w http.ResponseWriter, postPath, title, imputText1, imputText2, btnText string) {
+func MakeDobleImputPage(w http.ResponseWriter, postPath, title, imputText1, imputText2, type2, btnText string) {
 
 	type imputPage struct {
 		Title      string
 		InputText1 string
 		InputText2 string
+		Type2      string
 		BtnText    string
 		PostPath   string
 	}
 
-	tmp := imputPage{title, imputText1, imputText2, btnText, postPath}
+	tmp := imputPage{title, imputText1, imputText2, type2, btnText, postPath}
 
 	t := template.Must(template.ParseFiles("Face/html/dobleinsert.html"))
 	t.Execute(w, tmp)
@@ -1243,4 +1321,141 @@ func (a App) MakeCreateOrderListPage(w http.ResponseWriter, ListId int, orderId 
 	t.Execute(w, tmp)
 }
 
-func (a App) MAke
+func (a App) MakeUserPage(w http.ResponseWriter, user mytypes.User) {
+	type Buton struct {
+		Text string
+		Url  string
+	}
+	type Block struct {
+		Title string
+		Btns  []Buton
+	}
+	type Page struct {
+		Bl   []Block
+		User mytypes.User
+	}
+
+	var Blocks []Block
+	var block Block
+	var btn Buton
+
+	switch user.Acces {
+	case 1:
+		block = Block{}
+		block.Title = "Склад"
+		btn = Buton{"ТМЦ", "/works/tmc"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{"Поиск в ТМЦ", "/works/tmcadvancesearch"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{"Скад", "/works/storage/orders"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{"Поиск по Sn", "/works/snsearch"}
+		block.Btns = append(block.Btns, btn)
+		Blocks = append(Blocks, block)
+
+		block = Block{}
+		block.Title = "Маки"
+		btn = Buton{"Изменить MAC адрес", "/works/changemac"}
+		block.Btns = append(block.Btns, btn)
+		Blocks = append(Blocks, block)
+
+		block = Block{}
+		block.Title = "Выпуск"
+		btn = Buton{"Выпуск с производства", "/"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{"Вернуть на склад", "/"}
+		block.Btns = append(block.Btns, btn)
+		Blocks = append(Blocks, block)
+
+		block = Block{}
+		block.Title = "Заказы"
+		btn = Buton{"Заказы", "/works/orders"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{"Задать срок", "/"}
+		block.Btns = append(block.Btns, btn)
+		Blocks = append(Blocks, block)
+
+		block = Block{}
+		block.Title = "В работе"
+		btn = Buton{"SN в работе", "/"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{"Модели в работе", "/"}
+		block.Btns = append(block.Btns, btn)
+		Blocks = append(Blocks, block)
+
+	case 2:
+		block = Block{}
+		block.Title = "Склад"
+		btn = Buton{"ТМЦ", "/works/tmc"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{"Поиск в ТМЦ", "/works/tmcadvancesearch"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{"Скад", "/works/storage/orders"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{"Поиск по Sn", "/works/snsearch"}
+		block.Btns = append(block.Btns, btn)
+		Blocks = append(Blocks, block)
+
+		block = Block{}
+		block.Title = "Приемка"
+		btn = Buton{"Приемка по моделям", "/works/takedevicebymodel"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{"Приемка демо", "/works/takedemo"}
+		block.Btns = append(block.Btns, btn)
+		Blocks = append(Blocks, block)
+
+		block = Block{}
+		block.Title = "Складская логистика"
+		btn = Buton{"Передать в производство", "/works/towork"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{"Установить место", "/works/setplace"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{"Изменить № паллета", "/works/cangeplacenum"}
+		block.Btns = append(block.Btns, btn)
+		Blocks = append(Blocks, block)
+
+		block = Block{}
+		block.Title = "Заказы"
+		btn = Buton{"Заказы", "/works/orders"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{"Назначить заказ/резерв", "/works/setorder"}
+		block.Btns = append(block.Btns, btn)
+		Blocks = append(Blocks, block)
+
+		block = Block{}
+		block.Title = "Отгрузки"
+		btn = Buton{"Отгрузка", "/works/toship"}
+		block.Btns = append(block.Btns, btn)
+		Blocks = append(Blocks, block)
+
+	case 3:
+		block = Block{}
+		block.Title = "Заказы"
+		btn = Buton{"Создать заказ", "/works/createorder"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{"Мои заказы", "/works/orders"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{"Все заказы", "/works/orders"}
+		block.Btns = append(block.Btns, btn)
+		Blocks = append(Blocks, block)
+
+		block = Block{}
+		block.Title = "Склад"
+		btn = Buton{"ТМЦ", "/works/tmc"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{"Поиск в ТМЦ", "/works/tmcadvancesearch"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{"Скад", "/works/storage/orders"}
+		block.Btns = append(block.Btns, btn)
+		Blocks = append(Blocks, block)
+	default:
+		block.Title = "Вас тут не ждали"
+		btn = Buton{"Идите нахуй", "/works/Logout"}
+		block.Btns = append(block.Btns, btn)
+		Blocks = append(Blocks, block)
+	}
+
+	tmp := Page{Blocks, user}
+	t := template.Must(template.ParseFiles("Face/html/prof.html"))
+	t.Execute(w, tmp)
+}
