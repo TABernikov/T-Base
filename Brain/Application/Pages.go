@@ -369,8 +369,13 @@ func (a App) CreateOrderPage(w http.ResponseWriter, r *http.Request, pr httprout
 	MakeCreateOrderPage(w)
 }
 
+// Страница изменения мак адреса устройства
 func (a App) ChangeMACPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	MakeImputPage(w, "", "Изменить маки", "Введите последовательно серийный номер и мак для каждого устройства", "Изменить")
+}
+
+func (a App) ReleaseProductionPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	MakeImputPage(w, "", "Выпуск с производства", "Введите серийные номера", "Выпуск")
 }
 
 //////////////////////
@@ -957,6 +962,8 @@ func (a App) CreateOrderListPage(w http.ResponseWriter, r *http.Request, pr http
 			MakeAlertPage(w, 5, "Ошибка", "Ошибка изменения", "Неверный ID элемента", err.Error(), "Главная", "/works/prof")
 		}
 
+		redPos.LastRed = time.Now()
+
 		err = a.Db.ChangeOrderList(a.ctx, redPos)
 		if err != nil {
 			MakeAlertPage(w, 5, "Ошибка", "Ошибка изменения", "Что-то пошло не так", err.Error(), "Главная", "/works/prof")
@@ -966,8 +973,44 @@ func (a App) CreateOrderListPage(w http.ResponseWriter, r *http.Request, pr http
 	}
 }
 
-func (a App) ChangeMac(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+// Изменение мак адреса устройства
+func (a App) ChangeMAC(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	in := strings.Fields(r.FormValue("in"))
+	if len(in)%2 == 1 {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Серийников больше чем маков", "(или наоборот)", "Главная", "/works/prof")
+	}
 
+	var count int
+	for i := 0; i < len(in); i = i + 2 {
+		_, err := a.Db.ChangeMAC(a.ctx, in[i], in[i+1])
+		if err != nil {
+			MakeAlertPage(w, 2, "Ошибка", "Частично", "Изменнено только часть MAC", "Изменены "+strconv.Itoa(count)+" устройств, до "+in[i], "Главная", "/works/prof")
+		}
+		count++
+	}
+	MakeAlertPage(w, 1, "Успешно", "Успешно", "Изменено "+strconv.Itoa(count)+" устройств", "", "Главная", "/works/prof")
+}
+
+func (a App) ReleaseProduction(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	in := strings.Fields(r.FormValue("in"))
+
+	if len(in) == 0 {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Не ввседены серийные номера", "", "Главная", "/works/prof")
+		return
+	}
+
+	counter := a.Db.ReleaseProduction(a.ctx, in...)
+	if counter == 0 {
+		MakeAlertPage(w, 5, "Предупреждение", "Не передано", "Устройства не перобразованы", "Внесено "+strconv.Itoa(len(in))+" серийных номеров	Преобразовано "+strconv.Itoa(counter)+"  серийных номеров", "Главная", "/works/prof")
+		return
+	} else if len(in)-counter == 0 {
+		MakeAlertPage(w, 1, "Готово", "Отгружено", "Все устройства преобразованы", "Внесено "+strconv.Itoa(len(in))+" серийных номеров	Преобразовано "+strconv.Itoa(counter)+"  серийных номеров", "Главная", "/works/prof")
+		return
+	} else if len(in)-counter > 0 {
+		MakeAlertPage(w, 2, "Готово", "Частично", "Часть устройств не преобразована", "Внесено "+strconv.Itoa(len(in))+" серийных номеров	Преобразовано "+strconv.Itoa(counter)+"  серийных номеров", "Главная", "/works/prof")
+		return
+	}
+	MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", "", "Главная", "/works/prof")
 }
 
 //////////////////////////
@@ -1361,7 +1404,7 @@ func (a App) MakeUserPage(w http.ResponseWriter, user mytypes.User) {
 
 		block = Block{}
 		block.Title = "Выпуск"
-		btn = Buton{"Выпуск с производства", "/"}
+		btn = Buton{"Выпуск с производства", "/works/releaseproduction"}
 		block.Btns = append(block.Btns, btn)
 		btn = Buton{"Вернуть на склад", "/"}
 		block.Btns = append(block.Btns, btn)

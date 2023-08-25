@@ -62,6 +62,7 @@ func (a App) Routs(r *httprouter.Router) {
 	r.GET("/works/takedevicebymodel", a.authtorized(a.TakeDeviceByModelPage))
 	r.GET("/works/createorder", a.authtorized(a.CreateOrderPage))
 	r.GET("/works/changemac", a.authtorized(a.ChangeMACPage))
+	r.GET("/works/releaseproduction", a.authtorized(a.ReleaseProductionPage))
 
 	r.POST("/works/snsearch", a.authtorized(a.SnSearch))
 	r.POST("/works/tmcsearch", a.authtorized(a.TMCSearch))
@@ -79,6 +80,8 @@ func (a App) Routs(r *httprouter.Router) {
 	r.POST("/works/dellorder", a.authtorized(a.DelOrder))
 	r.POST("/works/change1cnumorder", a.authtorized(a.Change1CNumOrder))
 	r.POST("/works/createorderlist", a.authtorized(a.CreateOrderListPage))
+	r.POST("/works/changemac", a.authtorized(a.ChangeMAC))
+	r.POST("/works/releaseproduction", a.authtorized(a.ReleaseProduction))
 	//r.GET("/works/new", a.authtorized(a.NewSns))
 }
 

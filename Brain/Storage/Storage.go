@@ -309,7 +309,7 @@ func (base Base) TakeCleanDeviceBySn(ctx context.Context, inSn ...string) ([]myt
 			row := base.Db.QueryRow(ctx, cleanSelect, sn)
 			err := row.Scan(&device.Id, &device.Sn, &device.Mac, &device.DModel, &device.Rev, &device.TModel, &device.Name, &device.Condition, &CondDate, &device.Order, &device.Place, &Shiped, &ShipedDate, &device.ShippedDest, &TakenDate, &device.TakenDoc, &device.TakenOrder, &commentnull)
 			if err != nil {
-				return devices, err
+				continue
 			}
 			if commentnull.Valid {
 				device.Comment = commentnull.String
@@ -959,8 +959,6 @@ func (base Base) AddCommentToSns(ctx context.Context, id int, text string, user 
 	return nil
 }
 
-////
-
 func (base Base) InsetDeviceByModel(ctx context.Context, DModel int, Name string, TModel int, Rev string, Place int, Doc string, Order string, InSn ...string) (int, []string, error) {
 	if len(InSn) == 0 {
 		return 0, nil, fmt.Errorf("не введены серийные номера")
@@ -984,6 +982,55 @@ func (base Base) InsetDeviceByModel(ctx context.Context, DModel int, Name string
 	}
 	return insertCount, SnErr, lastErr
 }
+
+func (base Base) ChangeMAC(ctx context.Context, sn, mac string) (int, error) {
+	qq := `UPDATE public.sns SET mac=$2 WHERE sn=$1`
+
+	res, err := base.Db.Exec(ctx, qq, sn, mac)
+
+	return int(res.RowsAffected()), err
+}
+
+func (base Base) ReleaseProduction(ctx context.Context, sn ...string) int {
+	var counter int
+	var err error
+	for _, a := range sn {
+		qq := `SELECT "tModelsName"
+		FROM public.sns INNER JOIN public."tModels" on "tModels"."tModelsId" = sns.tmodel
+		WHERE sns.sn = $1`
+		var name string
+		err = base.Db.QueryRow(ctx, qq, a).Scan(&name)
+		if err != nil {
+
+			continue
+		}
+
+		qq = `UPDATE public.sns
+		SET  name = $2, condition = 1, "condDate" = CURRENT_DATE
+		WHERE sn = $1;`
+		_, err = base.Db.Exec(ctx, qq, a, name)
+		if err != nil {
+
+			continue
+		}
+		qq = `UPDATE public.sns
+		SET  "order" = 1
+		WHERE sn=$1 AND "order" = 2;`
+
+		_, err = base.Db.Exec(ctx, qq, a)
+		if err != nil {
+
+			continue
+		}
+		counter++
+	}
+
+	return counter
+}
+
+///////////////////////////////
+// Функции изменения заказов //
+///////////////////////////////
 
 func (base Base) InsertOrder(ctx context.Context, Order mytypes.OrderRaw) (int, error) {
 	qq := `INSERT INTO public.orders(
@@ -1055,9 +1102,9 @@ func (base Base) ChangeOrderList(ctx context.Context, OrderList mytypes.OrderLis
 	return err
 }
 
-///////////////////
-// Другие функции//
-///////////////////
+////////////////////
+// Другие функции //
+////////////////////
 
 // запись токена генерации
 func (base Base) NewRegenToken(user string, token string, ctx context.Context) {
