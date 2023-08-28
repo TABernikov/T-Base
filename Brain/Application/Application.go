@@ -63,6 +63,8 @@ func (a App) Routs(r *httprouter.Router) {
 	r.GET("/works/createorder", a.authtorized(a.CreateOrderPage))
 	r.GET("/works/changemac", a.authtorized(a.ChangeMACPage))
 	r.GET("/works/releaseproduction", a.authtorized(a.ReleaseProductionPage))
+	r.GET("/works/returntostorage", a.authtorized(a.ReturnToStoragePage))
+	r.GET("/works/setpromdate", a.authtorized(a.SetPromDatePage))
 
 	r.POST("/works/snsearch", a.authtorized(a.SnSearch))
 	r.POST("/works/tmcsearch", a.authtorized(a.TMCSearch))
@@ -82,6 +84,8 @@ func (a App) Routs(r *httprouter.Router) {
 	r.POST("/works/createorderlist", a.authtorized(a.CreateOrderListPage))
 	r.POST("/works/changemac", a.authtorized(a.ChangeMAC))
 	r.POST("/works/releaseproduction", a.authtorized(a.ReleaseProduction))
+	r.POST("/works/returntostorage", a.authtorized(a.ReturnToStorage))
+	r.POST("/works/setpromdate", a.authtorized(a.SetPromDate))
 	//r.GET("/works/new", a.authtorized(a.NewSns))
 }
 
@@ -150,4 +154,22 @@ func (a App) NewSns(w http.ResponseWriter, r *http.Request, pr httprouter.Params
 	}
 
 	a.Db.InsertDiviceToSns(a.ctx, devices...)
+}
+
+func GetSnfromDevices(devices ...mytypes.DeviceRaw) string {
+	var SnString string
+
+	for _, a := range devices {
+		SnString += a.Sn + "\n"
+	}
+	return SnString
+}
+
+func GetSnfromCleanDevices(devices ...mytypes.DeviceClean) string {
+	var SnString string
+
+	for _, a := range devices {
+		SnString += a.Sn + "\n"
+	}
+	return SnString
 }

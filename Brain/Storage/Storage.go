@@ -994,6 +994,7 @@ func (base Base) ChangeMAC(ctx context.Context, sn, mac string) (int, error) {
 func (base Base) ReleaseProduction(ctx context.Context, sn ...string) int {
 	var counter int
 	var err error
+
 	for _, a := range sn {
 		qq := `SELECT "tModelsName"
 		FROM public.sns INNER JOIN public."tModels" on "tModels"."tModelsId" = sns.tmodel
@@ -1025,6 +1026,28 @@ func (base Base) ReleaseProduction(ctx context.Context, sn ...string) int {
 		counter++
 	}
 
+	return counter
+}
+
+func (base Base) ReturnToStorage(ctx context.Context, sn ...string) int {
+	var counter int
+	for _, a := range sn {
+		qq := `UPDATE public.sns
+		SET condition = 2
+		WHERE sn = $1 AND "order" <> 3;`
+		res, err := base.Db.Exec(ctx, qq, a)
+		if err != nil || res.RowsAffected() == 0 {
+			qq = `UPDATE public.sns
+			SET condition = 1
+			WHERE sn = $1 AND "order" = 3;`
+			res, err := base.Db.Exec(ctx, qq, a)
+
+			if err != nil || res.RowsAffected() == 0 {
+				continue
+			}
+		}
+		counter++
+	}
 	return counter
 }
 
@@ -1099,6 +1122,18 @@ func (base Base) ChangeOrderList(ctx context.Context, OrderList mytypes.OrderLis
 	WHERE "orderListId"=$1;`
 
 	_, err := base.Db.Exec(ctx, qq, OrderList.Id, OrderList.Order, OrderList.Model, OrderList.Amout, OrderList.ServType, OrderList.ServActDate, OrderList.LastRed)
+	return err
+}
+
+func (base Base) SetPromDate(ctx context.Context, order int, date time.Time) error {
+	qq := `UPDATE public.orders
+	SET "promDate"=$2
+	WHERE "orderId"=$1`
+
+	res, err := base.Db.Exec(ctx, qq, order, date)
+	if res.RowsAffected() == 0 {
+		return fmt.Errorf("no row edits")
+	}
 	return err
 }
 

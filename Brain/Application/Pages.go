@@ -326,7 +326,7 @@ func (a App) OrderMiniPage(w http.ResponseWriter, r *http.Request, pr httprouter
 		reservs = nil
 	}
 
-	MakeOrderMiniPage(w, order, orderList, reservs)
+	MakeOrderMiniPage(w, order, orderList, reservs, user)
 }
 
 // Страница передачи в производство
@@ -376,6 +376,14 @@ func (a App) ChangeMACPage(w http.ResponseWriter, r *http.Request, pr httprouter
 
 func (a App) ReleaseProductionPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	MakeImputPage(w, "", "Выпуск с производства", "Введите серийные номера", "Выпуск")
+}
+
+func (a App) ReturnToStoragePage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	MakeImputPage(w, "", "Вернуть на склад", "Введите серийные номера через пробез или с новой стрроки", "Вернуть")
+}
+
+func (a App) SetPromDatePage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	MakeDobleImputTypePage(w, "", "Задать дату", "Введите ID заказа "+r.FormValue("Order"), "number", "Введите дату готовности", "date", "Задать дату")
 }
 
 //////////////////////
@@ -535,7 +543,7 @@ func (a App) SetPlace(w http.ResponseWriter, r *http.Request, pr httprouter.Para
 	}
 }
 
-// сложный поиск в ттмц
+// сложный поиск в тмц
 func (a App) AdvanceTMCSearch(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	rawSelect := `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder" FROM public.sns WHERE true`
 
@@ -1004,13 +1012,55 @@ func (a App) ReleaseProduction(w http.ResponseWriter, r *http.Request, pr httpro
 		MakeAlertPage(w, 5, "Предупреждение", "Не передано", "Устройства не перобразованы", "Внесено "+strconv.Itoa(len(in))+" серийных номеров	Преобразовано "+strconv.Itoa(counter)+"  серийных номеров", "Главная", "/works/prof")
 		return
 	} else if len(in)-counter == 0 {
-		MakeAlertPage(w, 1, "Готово", "Отгружено", "Все устройства преобразованы", "Внесено "+strconv.Itoa(len(in))+" серийных номеров	Преобразовано "+strconv.Itoa(counter)+"  серийных номеров", "Главная", "/works/prof")
+		MakeAlertPage(w, 1, "Готово", "Преобразованно", "Все устройства преобразованы", "Внесено "+strconv.Itoa(len(in))+" серийных номеров	Преобразовано "+strconv.Itoa(counter)+"  серийных номеров", "Главная", "/works/prof")
 		return
 	} else if len(in)-counter > 0 {
 		MakeAlertPage(w, 2, "Готово", "Частично", "Часть устройств не преобразована", "Внесено "+strconv.Itoa(len(in))+" серийных номеров	Преобразовано "+strconv.Itoa(counter)+"  серийных номеров", "Главная", "/works/prof")
 		return
 	}
 	MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", "", "Главная", "/works/prof")
+}
+
+func (a App) ReturnToStorage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	in := strings.Fields(r.FormValue("in"))
+
+	if len(in) == 0 {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Не ввседены серийные номера", "", "Главная", "/works/prof")
+		return
+	}
+
+	counter := a.Db.ReturnToStorage(a.ctx, in...)
+	if counter == 0 {
+		MakeAlertPage(w, 5, "Предупреждение", "Не передано", "Устройства не переданы", "Внесено "+strconv.Itoa(len(in))+" серийных номеров	Преобразовано "+strconv.Itoa(counter)+"  серийных номеров", "Главная", "/works/prof")
+		return
+	} else if len(in)-counter == 0 {
+		MakeAlertPage(w, 1, "Готово", "Передано", "Все устройства переданы", "Внесено "+strconv.Itoa(len(in))+" серийных номеров	Преобразовано "+strconv.Itoa(counter)+"  серийных номеров", "Главная", "/works/prof")
+		return
+	} else if len(in)-counter > 0 {
+		MakeAlertPage(w, 2, "Готово", "Частично", "Часть устройств не передона", "Внесено "+strconv.Itoa(len(in))+" серийных номеров	Преобразовано "+strconv.Itoa(counter)+"  серийных номеров", "Главная", "/works/prof")
+		return
+	}
+	MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", "", "Главная", "/works/prof")
+}
+
+func (a App) SetPromDate(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	order, err := strconv.Atoi(r.FormValue("in1"))
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	date, err := time.Parse("2006-01-02", r.FormValue("in2"))
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	err = a.Db.SetPromDate(a.ctx, order, date)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка присвоения даты", "Вероятно неверно задан ID заказа", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	MakeAlertPage(w, 1, "Готово", "Установленно", "Заказу с ID "+strconv.Itoa(order)+" назначена новая дата производства", "", "Главная", "/works/prof")
 }
 
 //////////////////////////
@@ -1020,10 +1070,11 @@ func (a App) ReleaseProduction(w http.ResponseWriter, r *http.Request, pr httpro
 func MakeTMCPage(w http.ResponseWriter, devices []mytypes.DeviceClean, lable string) {
 
 	type tmcPage struct {
-		Lable string
-		Tab   []mytypes.DeviceClean
+		Lable    string
+		Tab      []mytypes.DeviceClean
+		SnString string
 	}
-	table := tmcPage{lable, devices}
+	table := tmcPage{lable, devices, GetSnfromCleanDevices(devices...)}
 
 	t := template.Must(template.ParseFiles("Face/html/TMC.html"))
 	t.Execute(w, table)
@@ -1120,14 +1171,15 @@ func MakeOrdersPage(w http.ResponseWriter, orders []mytypes.OrderClean, lable st
 	t.Execute(w, table)
 }
 
-func MakeOrderMiniPage(w http.ResponseWriter, order mytypes.OrderClean, orderList []mytypes.OrderListClean, reservs []mytypes.StorageByTModelClean) {
+func MakeOrderMiniPage(w http.ResponseWriter, order mytypes.OrderClean, orderList []mytypes.OrderListClean, reservs []mytypes.StorageByTModelClean, User mytypes.User) {
 	type orderPage struct {
 		Order   mytypes.OrderClean
 		List    []mytypes.OrderListClean
 		Reservs []mytypes.StorageByTModelClean
+		User    mytypes.User
 	}
 
-	page := orderPage{order, orderList, reservs}
+	page := orderPage{order, orderList, reservs, User}
 
 	t := template.Must(template.ParseFiles("Face/html/order.html"))
 	t.Execute(w, page)
@@ -1406,7 +1458,7 @@ func (a App) MakeUserPage(w http.ResponseWriter, user mytypes.User) {
 		block.Title = "Выпуск"
 		btn = Buton{"Выпуск с производства", "/works/releaseproduction"}
 		block.Btns = append(block.Btns, btn)
-		btn = Buton{"Вернуть на склад", "/"}
+		btn = Buton{"Вернуть на склад", "/works/returntostorage"}
 		block.Btns = append(block.Btns, btn)
 		Blocks = append(Blocks, block)
 
@@ -1414,13 +1466,13 @@ func (a App) MakeUserPage(w http.ResponseWriter, user mytypes.User) {
 		block.Title = "Заказы"
 		btn = Buton{"Заказы", "/works/orders"}
 		block.Btns = append(block.Btns, btn)
-		btn = Buton{"Задать срок", "/"}
+		btn = Buton{"Задать срок", "/works/setpromdate"}
 		block.Btns = append(block.Btns, btn)
 		Blocks = append(Blocks, block)
 
 		block = Block{}
 		block.Title = "В работе"
-		btn = Buton{"SN в работе", "/"}
+		btn = Buton{"SN в работе", "/works/tmc?Search=1&Condition=В работе"}
 		block.Btns = append(block.Btns, btn)
 		btn = Buton{"Модели в работе", "/"}
 		block.Btns = append(block.Btns, btn)
