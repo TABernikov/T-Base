@@ -65,6 +65,7 @@ func (a App) Routs(r *httprouter.Router) {
 	r.GET("/works/releaseproduction", a.authtorized(a.ReleaseProductionPage))
 	r.GET("/works/returntostorage", a.authtorized(a.ReturnToStoragePage))
 	r.GET("/works/setpromdate", a.authtorized(a.SetPromDatePage))
+	r.GET("/works/cangepass", a.authtorized(a.CangePassPage))
 
 	r.POST("/works/snsearch", a.authtorized(a.SnSearch))
 	r.POST("/works/tmcsearch", a.authtorized(a.TMCSearch))
@@ -86,6 +87,7 @@ func (a App) Routs(r *httprouter.Router) {
 	r.POST("/works/releaseproduction", a.authtorized(a.ReleaseProduction))
 	r.POST("/works/returntostorage", a.authtorized(a.ReturnToStorage))
 	r.POST("/works/setpromdate", a.authtorized(a.SetPromDate))
+	r.GET("/works/cangepass", a.authtorized(a.CangePass))
 	//r.GET("/works/new", a.authtorized(a.NewSns))
 }
 

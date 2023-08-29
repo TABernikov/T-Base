@@ -252,16 +252,50 @@ func (a App) StorageByPlacePage(w http.ResponseWriter, r *http.Request, pr httpr
 // Страница склада по моделям
 func (a App) StorageByTModelPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	if r.FormValue("Search") != "" {
-		in := r.FormValue("in")
-		in = strings.TrimSpace(in)
-		qq := `SELECT tmodel, name, condition, count, shiped FROM public."cleanWearByTModel" Where tmodel LIKE '%` + in + `%' OR name LIKE '%` + in + `%' `
+		if r.FormValue("Condition") != "" {
 
-		storage, err := a.Db.TakeStorageByTModelClean(a.ctx, qq)
-		if err != nil {
-			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			_, err := strconv.Atoi(r.FormValue("Condition"))
+			if err != nil {
+				qq := `SELECT tmodel, name, condition, count, shiped FROM public."cleanWearByTModel" Where condition = '` + r.FormValue("Condition") + `'`
+				storage, err := a.Db.TakeStorageByTModelClean(a.ctx, qq)
+				if err != nil {
+					MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+					return
+				}
+				MakeStorageByTModelPage(w, storage, "Склад модели "+r.FormValue("Condition"))
+				return
+			}
+			qq := ` SELECT "tModels"."tModelsName" AS tmodel,
+			"wearByTModel".name,
+			"condNames"."condName" AS condition,
+			"wearByTModel".count,
+			"wearByTModel".shiped
+		   	FROM "wearByTModel"
+			LEFT JOIN "tModels" ON "tModels"."tModelsId" = "wearByTModel".tmodel
+			LEFT JOIN "condNames" ON "condNames"."condNamesId" = "wearByTModel".condition
+			WHERE "wearByTModel".condition = ` + r.FormValue("Condition") + `
+		  	ORDER BY "tModels"."tModelsName", "condNames"."condName";`
+
+			storage, err := a.Db.TakeStorageByTModelClean(a.ctx, qq)
+			if err != nil {
+				MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+				return
+			}
+			MakeStorageByTModelPage(w, storage, "Склад модели")
 			return
+
+		} else {
+			in := r.FormValue("in")
+			in = strings.TrimSpace(in)
+			qq := `SELECT tmodel, name, condition, count, shiped FROM public."cleanWearByTModel" Where tmodel LIKE '%` + in + `%' OR name LIKE '%` + in + `%' `
+
+			storage, err := a.Db.TakeStorageByTModelClean(a.ctx, qq)
+			if err != nil {
+				MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+				return
+			}
+			MakeStorageByTModelPage(w, storage, "Склад модели поиск: "+in)
 		}
-		MakeStorageByTModelPage(w, storage, "Склад модели поиск: "+in)
 	} else {
 		storage, err := a.Db.TakeStorageByTModelClean(a.ctx, "")
 		if err != nil {
@@ -1474,7 +1508,7 @@ func (a App) MakeUserPage(w http.ResponseWriter, user mytypes.User) {
 		block.Title = "В работе"
 		btn = Buton{"SN в работе", "/works/tmc?Search=1&Condition=В работе"}
 		block.Btns = append(block.Btns, btn)
-		btn = Buton{"Модели в работе", "/"}
+		btn = Buton{"Модели в работе", "/works/storage/models?Search=1&Condition=3"}
 		block.Btns = append(block.Btns, btn)
 		Blocks = append(Blocks, block)
 
