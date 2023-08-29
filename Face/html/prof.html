@@ -75,20 +75,18 @@
                   <thead>
                     <tr>
                       <th scope="col">Фио:</th>
-                      <th scope="col"> <div class="text-nowrap">{{.Name}}</div></th>
+                      <th scope="col"> <div class="text-nowrap">{{.User.Name}}</div></th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr>
                       <th scope="row">Отдел:</th>
-                      <td>{{.Acces}}</td>
+                      <td>{{.User.Acces}}</td>
                     </tr>
                     <tr>
                       <th scope="row">Login:</th>
-                      <td>{{.Login}}</td>
+                      <td>{{.User.Login}}</td>
                     </tr>
-                    
-
                   </tbody>
                 </table>
               </div>
@@ -97,47 +95,16 @@
 
         <div class="col">
         <div class="row gy-3 gx-3">
+          {{range .Bl}}
           <div class="col">
-            <h6 class="text-nowrap">Скад</h6>
+            <h6 class="text-nowrap">{{.Title}}</h6>
             <div class="d-grid gap-2">
-              <a class="btn btn-primary" href="/works/tmc" role="button" style="min-width: 150px;">ТМЦ</a>
-              <a class="btn btn-primary" href="/works/tmcadvancesearch" role="button" style="min-width: 150px;">Поиск в ТМЦ</a>
-              <a class="btn btn-primary" href="/works/storage/orders" role="button" style="min-width: 150px;">Скад</a>
-              <a class="btn btn-primary" href="/works/snsearch" role="button" style="min-width: 150px;">Поиск по Sn</a>
+              {{range .Btns}}
+              <a class="btn btn-primary" href="{{.Url}}" role="button" style="min-width: 150px;">{{.Text}}</a>
+              {{end}}
             </div>
           </div>
-
-          <div class="col">
-            <h6 class="text-nowrap">Приемка <i class="icon-users"> </i></h6>
-            <div class="d-grid gap-2">
-              <a class="btn btn-primary" href="/works/takedevicebymodel" role="button" style="min-width: 150px;">Приемка по моделям</a>
-              <a class="btn btn-primary" href="/works/takedemo" role="button" style="min-width: 150px;">Приемка демо</a>
-            </div>
-          </div>
-
-          <div class="col">
-            <h6 class="text-nowrap">Складская логистика</h6>
-            <div class="d-grid gap-2">
-              <a class="btn btn-primary" href="/works/towork" role="button" style="min-width: 150px;">Передать в производство</a>
-              <a class="btn btn-primary" href="/works/setplace" role="button" style="min-width: 150px;">Установить место</a>
-              <a class="btn btn-primary" href="/works/cangeplacenum" role="button" style="min-width: 150px;">Изменить № паллета</a>
-            </div>
-          </div>
-
-          <div class="col">
-            <h6 class="text-nowrap">Заказы</h6>
-            <div class="d-grid gap-2">
-              <a class="btn btn-primary" href="/works/orders" role="button" style="min-width: 150px;">Заказы</a>
-              <a class="btn btn-primary" href="/works/setorder" role="button" style="min-width: 150px;">Назначить заказ/резерв</a>
-            </div>
-          </div>
-          
-          <div class="col">
-            <h6 class="text-nowrap">Отгрузки</h6>
-            <div class="d-grid gap-2">
-              <a class="btn btn-primary" href="/works/toship" role="button" style="min-width: 150px;">Отгрузка</a>
-            </div>
-          </div>
+          {{end}}
         </div>
         </div>
 
@@ -147,11 +114,6 @@
 
     </div>
 
-    <i class="icon-newspaper" style="font-size: 40px"> </i>
-    <i class="icon-file-pdf" style="font-size: 40px"> </i>
-    <i class="icon-check" style="font-size: 40px"> </i>
-    <i class="icon-plus-circled" style="font-size: 40px"> </i>
-    <i class="icon-users" style="font-size: 40px"> </i>
     <script src="Face/html/js/bootstrap.bundle.js"></script>
   </body>
 </html>

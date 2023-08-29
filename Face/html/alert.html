@@ -62,7 +62,7 @@
                 <p class="mb-0">{{.SubText}}</p>
                <div class="d-flex justify-content-end">
                 
-                    <a type="button" class="btn {{if(eq .Status 1 )}} {{print "btn-outline-success"}} {{else if(eq .Status 2 )}} {{print "btn-outline-warning"}} {{else if(eq .Status 3 )}} {{print "btn-outline-info"}} {{else if(eq .Status 4 )}} {{print "btn-outline-primary"}} {{else if(eq .Status 5 )}} {{print "btn-outline-danger"}} {{end}} " href="">Назад</a>
+                    <a type="button" class="btn {{if(eq .Status 1 )}} {{print "btn-outline-success"}} {{else if(eq .Status 2 )}} {{print "btn-outline-warning"}} {{else if(eq .Status 3 )}} {{print "btn-outline-info"}} {{else if(eq .Status 4 )}} {{print "btn-outline-primary"}} {{else if(eq .Status 5 )}} {{print "btn-outline-danger"}} {{end}} " href="#" onclick="history.back();">Назад</a>
                     <p>&nbsp;</p>
                     <a type="button" class="btn {{if(eq .Status 1 )}} {{print "btn-outline-success"}} {{else if(eq .Status 2 )}} {{print "btn-outline-warning"}} {{else if(eq .Status 3 )}} {{print "btn-outline-info"}} {{else if(eq .Status 4 )}} {{print "btn-outline-primary"}} {{else if(eq .Status 5 )}} {{print "btn-outline-danger"}} {{end}} " href="{{.BtnLink}}">{{.BtnText}}</a>
                 

@@ -42,8 +42,7 @@ func (a App) LoginPage(w http.ResponseWriter, in string) {
 
 // Страница профиля
 func (a App) UserPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
-	t := template.Must(template.ParseFiles("Face/html/prof.html"))
-	t.Execute(w, user)
+	a.MakeUserPage(w, user)
 }
 
 // Таблица ТМЦ
@@ -51,7 +50,7 @@ func (a App) TMCPage(w http.ResponseWriter, r *http.Request, pr httprouter.Param
 	var devices []mytypes.DeviceClean
 	var err error
 	if r.FormValue("Search") == "" {
-		devices, err = a.Db.TakeCleanDeviceById(a.ctx)
+		devices, err = a.Db.TakeCleanDeviceByRequest(a.ctx, "LIMIT 1000")
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -124,7 +123,7 @@ func (a App) TMCPage(w http.ResponseWriter, r *http.Request, pr httprouter.Param
 		}
 	}
 
-	MakeTMCPage(w, devices, "ТМЦ устройств: "+strconv.Itoa(len(devices)))
+	MakeTMCPage(w, devices, "ТМЦ показанно устройств: "+strconv.Itoa(len(devices)))
 }
 
 func (a App) TMCSearchPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
@@ -191,33 +190,87 @@ func (a App) SnSearchPage(w http.ResponseWriter, r *http.Request, pr httprouter.
 
 // Страница склада по заказам
 func (a App) StoragePage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
-	storage, err := a.Db.TakeStorageCount(a.ctx, "")
-	if err != nil {
-		return
+	if r.FormValue("Search") != "" {
+		in := r.FormValue("in")
+		in = strings.TrimSpace(in)
+		qq := `SELECT "order", name, count, "orderName" FROM wear Where "orderName" LIKE '%` + in + `%' OR name LIKE '%` + in + `%' `
+		_, err := strconv.Atoi(in)
+		if err == nil {
+			qq += ` OR "order" = ` + in
+		}
+
+		storage, err := a.Db.TakeStorageCount(a.ctx, qq)
+
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+
+		MakeStoragePage(w, storage, "Склад поиск: "+in)
+
+	} else {
+		storage, err := a.Db.TakeStorageCount(a.ctx, "")
+		if err != nil {
+			if err != nil {
+				MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+				return
+			}
+		}
+		MakeStoragePage(w, storage, "Склад заказы")
 	}
-	MakeStoragePage(w, storage, "Склад заказы")
 }
 
 // Страница склада по местам
 func (a App) StorageByPlacePage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
-	storage, err := a.Db.TakeStorageCountByPlace(a.ctx, "")
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	if r.FormValue("Search") != "" {
+		in := r.FormValue("in")
+		in = strings.TrimSpace(in)
+		qq := `SELECT place, name, count FROM public."wearByPlace" Where name LIKE '%` + in + `%' `
+		_, err := strconv.Atoi(in)
+		if err == nil {
+			qq += ` OR place = ` + in
+		}
 
-	MakeStorageByPlacePage(w, storage, "Склад места")
+		storage, err := a.Db.TakeStorageCountByPlace(a.ctx, qq)
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		MakeStorageByPlacePage(w, storage, "Склад места поиск: "+in)
+	} else {
+
+		storage, err := a.Db.TakeStorageCountByPlace(a.ctx, "")
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+
+		MakeStorageByPlacePage(w, storage, "Склад места")
+	}
 }
 
 // Страница склада по моделям
 func (a App) StorageByTModelPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
-	storage, err := a.Db.TakeStorageByTModelClean(a.ctx, "")
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	if r.FormValue("Search") != "" {
+		in := r.FormValue("in")
+		in = strings.TrimSpace(in)
+		qq := `SELECT tmodel, name, condition, count, shiped FROM public."cleanWearByTModel" Where tmodel LIKE '%` + in + `%' OR name LIKE '%` + in + `%' `
 
-	MakeStorageByTModelPage(w, storage, "Склад модели")
+		storage, err := a.Db.TakeStorageByTModelClean(a.ctx, qq)
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		MakeStorageByTModelPage(w, storage, "Склад модели поиск: "+in)
+	} else {
+		storage, err := a.Db.TakeStorageByTModelClean(a.ctx, "")
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		MakeStorageByTModelPage(w, storage, "Склад модели")
+	}
 }
 
 // Таблица заказов
@@ -265,8 +318,7 @@ func (a App) OrderMiniPage(w http.ResponseWriter, r *http.Request, pr httprouter
 
 	reqsest := ` SELECT public."tModels"."tModelsName" AS tmodel, tmp.name, public."condNames"."condName", tmp.count, tmp.shiped From
 	(SELECT sns.tmodel, sns.name, sns.condition, count(sns."snsId") AS "count", sns.shiped FROM sns WHERE sns.order = ` + strconv.Itoa(order.OrderId) + ` GROUP BY sns.tmodel, sns.condition, sns.shiped, sns.name ORDER BY sns.tmodel, sns.condition) tmp
-	LEFT JOIN public."condNames" ON public."condNames"."condNamesId" = tmp.condition LEFT JOIN public."tModels" ON public."tModels"."tModelsId" = tmp.tmodel
-`
+	LEFT JOIN public."condNames" ON public."condNames"."condNamesId" = tmp.condition LEFT JOIN public."tModels" ON public."tModels"."tModelsId" = tmp.tmodel`
 
 	reservs, err := a.Db.TakeStorageByTModelClean(a.ctx, reqsest)
 	if err != nil {
@@ -274,7 +326,7 @@ func (a App) OrderMiniPage(w http.ResponseWriter, r *http.Request, pr httprouter
 		reservs = nil
 	}
 
-	MakeOrderMiniPage(w, order, orderList, reservs)
+	MakeOrderMiniPage(w, order, orderList, reservs, user)
 }
 
 // Страница передачи в производство
@@ -284,31 +336,54 @@ func (a App) ToWorkPage(w http.ResponseWriter, r *http.Request, pr httprouter.Pa
 
 // Страница назначения резерва
 func (a App) SetOrderPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
-	MakeDobleImputPage(w, "/works/setorder", "Назначить заказ/резерв", "Введите серийные номера:", "Номер заказа", "Назначить заказ")
+	MakeDobleImputPage(w, "/works/setorder", "Назначить заказ/резерв", "Введите серийные номера:", "Номер заказа", "number", "Назначить заказ")
 }
 
+// Страница установки места
 func (a App) SetPlacePage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
-	MakeDobleImputPage(w, "/works/setplace", "Установить место", "Введите серийные номера:", "Номер места", "Установить место")
+	MakeDobleImputPage(w, "/works/setplace", "Установить место", "Введите серийные номера:", "Номер места", "number", "Установить место")
 }
 
+// Страница приемки демо
 func (a App) TakeDemoPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	MakeImputPage(w, "", "Приемка демо", "Введите серийные номера", "Принять")
 }
 
+// Страница отгрузки
 func (a App) ToShipPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
-	MakeDobleImputPage(w, "", "Отгрузка", "Введите серийные номера", "Место отгрузки", "Отгрузить")
+	MakeDobleImputPage(w, "", "Отгрузка", "Введите серийные номера", "Место отгрузки", "text", "Отгрузить")
 }
 
+// Страница изменения номера паллета
 func (a App) ChangeNumPlacePage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	MakeDobleImputTypePage(w, "/works/cangeplacenum", "Установить номер места", "Введите старый номер:", "number", "Введите новый номер", "number", "Изменить")
 }
 
+// Страница приемки помодельно
 func (a App) TakeDeviceByModelPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	a.MakeTakeDeviceByModelPage(w)
 }
 
+// Страница создания заказа
 func (a App) CreateOrderPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	MakeCreateOrderPage(w)
+}
+
+// Страница изменения мак адреса устройства
+func (a App) ChangeMACPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	MakeImputPage(w, "", "Изменить маки", "Введите последовательно серийный номер и мак для каждого устройства", "Изменить")
+}
+
+func (a App) ReleaseProductionPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	MakeImputPage(w, "", "Выпуск с производства", "Введите серийные номера", "Выпуск")
+}
+
+func (a App) ReturnToStoragePage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	MakeImputPage(w, "", "Вернуть на склад", "Введите серийные номера через пробез или с новой стрроки", "Вернуть")
+}
+
+func (a App) SetPromDatePage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	MakeDobleImputTypePage(w, "", "Задать дату", "Введите ID заказа "+r.FormValue("Order"), "number", "Введите дату готовности", "date", "Задать дату")
 }
 
 //////////////////////
@@ -349,7 +424,7 @@ func (a App) SnSearch(w http.ResponseWriter, r *http.Request, pr httprouter.Para
 		fmt.Println(err)
 	}
 
-	MakeTMCPage(w, devices, "Результаты поиска")
+	MakeTMCPage(w, devices, "Результаты поиска, показанно устройств: "+strconv.Itoa(len(devices)))
 }
 
 // универсальный поиск в тмц
@@ -360,7 +435,7 @@ func (a App) TMCSearch(w http.ResponseWriter, r *http.Request, pr httprouter.Par
 	if err != nil {
 		fmt.Println(err)
 	}
-	MakeTMCPage(w, devices, "Результаты поиска "+snString+" "+strconv.Itoa(len(devices)))
+	MakeTMCPage(w, devices, "Результаты поиска "+snString+" показанно устройств: "+strconv.Itoa(len(devices)))
 }
 
 // универсальный поиск в заказах
@@ -435,6 +510,7 @@ func (a App) SetOrder(w http.ResponseWriter, r *http.Request, pr httprouter.Para
 	}
 }
 
+// установка места
 func (a App) SetPlace(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	snString := r.FormValue("in1")
 	Sns := strings.Fields(snString)
@@ -467,6 +543,7 @@ func (a App) SetPlace(w http.ResponseWriter, r *http.Request, pr httprouter.Para
 	}
 }
 
+// сложный поиск в тмц
 func (a App) AdvanceTMCSearch(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	rawSelect := `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder" FROM public.sns WHERE true`
 
@@ -568,6 +645,7 @@ func (a App) AdvanceTMCSearch(w http.ResponseWriter, r *http.Request, pr httprou
 	MakeTMCPage(w, devices, "Результаты поиска ТМЦ "+strconv.Itoa(len(devices)))
 }
 
+// приемка демо
 func (a App) TakeDemo(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	snString := r.FormValue("in")
 	Sns := strings.Fields(snString)
@@ -594,6 +672,7 @@ func (a App) TakeDemo(w http.ResponseWriter, r *http.Request, pr httprouter.Para
 	}
 }
 
+// отгрузка
 func (a App) ToShip(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	snString := r.FormValue("in1")
 	Sns := strings.Fields(snString)
@@ -620,6 +699,7 @@ func (a App) ToShip(w http.ResponseWriter, r *http.Request, pr httprouter.Params
 	}
 }
 
+// изменение номера паллета
 func (a App) ChangeNumPlace(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	old, err := strconv.Atoi(r.FormValue("in1"))
 	if err != nil {
@@ -642,6 +722,7 @@ func (a App) ChangeNumPlace(w http.ResponseWriter, r *http.Request, pr httproute
 	MakeAlertPage(w, 1, "Готово", "Измененно", "Номер паллета успешно изменен", "Старый номер "+strconv.Itoa(old)+" ->	Новый "+strconv.Itoa(new), "Главная", "/works/prof")
 }
 
+// добавить комментарий по серийным номерам
 func (a App) AddCommentToSns(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	id, err := strconv.Atoi(r.FormValue("Id"))
 	if err != nil {
@@ -666,6 +747,7 @@ func (a App) AddCommentToSns(w http.ResponseWriter, r *http.Request, pr httprout
 	a.DeviceMiniPage(w, r, pr, user)
 }
 
+// приемка по модельно
 func (a App) TakeDeviceByModel(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 
 	DModelIn := r.FormValue("DModel")
@@ -709,6 +791,7 @@ func (a App) TakeDeviceByModel(w http.ResponseWriter, r *http.Request, pr httpro
 	MakeAlertPage(w, 1, "Готово", "Готово", "Все устройства внесены", "Отличная работа", "Главная", "/works/prof")
 }
 
+// создание заказа
 func (a App) CreateOrder(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	Id1C, err := strconv.Atoi(r.FormValue("1C"))
 	if err != nil {
@@ -727,7 +810,16 @@ func (a App) CreateOrder(w http.ResponseWriter, r *http.Request, pr httprouter.P
 	Partner := r.FormValue("Partner")
 	Distributor := r.FormValue("Distributor")
 
-	Id, err := a.Db.InsertOrder(a.ctx, Id1C, Name, ReqDate, Customer, Partner, Distributor, user)
+	var order mytypes.OrderRaw
+	order.Id1C = Id1C
+	order.Name = Name
+	order.ReqDate = ReqDate
+	order.Customer = Customer
+	order.Partner = Partner
+	order.Distributor = Distributor
+	order.Meneger = user.UserId
+
+	Id, err := a.Db.InsertOrder(a.ctx, order)
 	if err != nil {
 		MakeAlertPage(w, 5, "Ошибка", "Ошибка создания заказа", "Заказ не создан", err.Error(), "Главная", "/works/prof")
 		return
@@ -736,8 +828,239 @@ func (a App) CreateOrder(w http.ResponseWriter, r *http.Request, pr httprouter.P
 	MakeAlertPage(w, 1, "Готово", "Готово", "Заказ "+strconv.Itoa(Id1C)+" "+Name+"создан", "Не забудьте внести состав заказа", "К заказу", "/works/order/mini?Id="+strconv.Itoa(Id))
 }
 
+// удаление заказа
 func (a App) DelOrder(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
-	id
+
+	id, err := strconv.Atoi(r.FormValue("Id"))
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Не существующий Id заказа", "Не существующее число", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	order, err := a.Db.TakeOrderById(a.ctx, id)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Не существующий Id заказа", "Ваш заказ пропал!!!", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	if user.UserId != order[0].Meneger {
+		MakeAlertPage(w, 5, "Ошибка", "Нельзя удалить чужой заказ", "Плохо так делать", "Не надо так", "Главная", "/works/prof")
+		return
+	}
+
+	err = a.Db.DellOrder(a.ctx, id)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка удаления заказа", "Удаление прошло не корректно", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	MakeAlertPage(w, 1, "Готово", "Готово", "Заказ успешно удален", "Отличная работа", "Главная", "/works/prof")
+}
+
+// изменить № 1С у заказа
+func (a App) Change1CNumOrder(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	id, err := strconv.Atoi(r.FormValue("Id"))
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Не существующий Id заказа", "Не существующее число", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	order, err := a.Db.TakeOrderById(a.ctx, id)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Не существующий Id заказа", "Ваш заказ пропал!!!", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	if user.UserId != order[0].Meneger {
+		MakeAlertPage(w, 5, "Ошибка", "Нельзя изменить чужой заказ", "Плохо так делать", "Не надо так", "Главная", "/works/prof")
+		return
+	}
+
+	new1CId, err := strconv.Atoi(r.FormValue("1CNum"))
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Не число", "Новый номер 1С должен быть числом", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	err = a.Db.Change1CNumOrder(a.ctx, id, new1CId)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка изменения номера", "Чтото пошло не так", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	MakeAlertPage(w, 1, "Готово", "Готово", "Номер успешно изменен", "Отличная работа", "Главная", "/works/prof")
+}
+
+// изменение состава заказа (Страница)
+func (a App) CreateOrderListPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+
+	id, err := strconv.Atoi(r.FormValue("Id"))
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Не существующий Id заказа", "Не существующее число", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	order, err := a.Db.TakeOrderById(a.ctx, id)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Не существующий Id заказа", "Ваш заказ пропал!!!", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	if user.UserId != order[0].Meneger {
+		MakeAlertPage(w, 5, "Ошибка", "Нельзя редактировать чужой заказ", "Плохо так делать", "Не надо так", "Главная", "/works/prof")
+		return
+	}
+
+	if r.FormValue("Action") == "Open" {
+		a.MakeCreateOrderListPage(w, -1, id)
+
+	} else if r.FormValue("Action") == "OpenRedact" {
+		listId, err := strconv.Atoi(r.FormValue("ListId"))
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Не существующий элемент заказа", "Не существующее число", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		a.MakeCreateOrderListPage(w, listId, id)
+
+	} else if r.FormValue("Action") == "Create" {
+		var newPos mytypes.OrderList
+		newPos.Model, err = strconv.Atoi(r.FormValue("TModel"))
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка создания", "Неверная модель", err.Error(), "Главная", "/works/prof")
+		}
+		newPos.Amout, err = strconv.Atoi(r.FormValue("Amout"))
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка создания", "Неверное кол-во", err.Error(), "Главная", "/works/prof")
+		}
+		newPos.ServType, err = strconv.Atoi(r.FormValue("Serv"))
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка создания", "Неверный тип сервиса", err.Error(), "Главная", "/works/prof")
+		}
+		newPos.ServActDate, err = time.Parse("2006-01-02", r.FormValue("ServActDate"))
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка создания", "Неверная дата начала сервиса", err.Error(), "Главная", "/works/prof")
+		}
+		newPos.Order = id
+
+		err = a.Db.InsertOrderList(a.ctx, newPos)
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка создания", "Что-то пошло не так", err.Error(), "Главная", "/works/prof")
+		}
+
+		a.MakeCreateOrderListPage(w, -1, id)
+	} else if r.FormValue("Action") == "Redact" {
+		var redPos mytypes.OrderList
+		redPos.Model, err = strconv.Atoi(r.FormValue("TModel"))
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка изменения", "Неверная модель", err.Error(), "Главная", "/works/prof")
+		}
+		redPos.Amout, err = strconv.Atoi(r.FormValue("Amout"))
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка изменения", "Неверное кол-во", err.Error(), "Главная", "/works/prof")
+		}
+		redPos.ServType, err = strconv.Atoi(r.FormValue("Serv"))
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка изменения", "Неверный тип сервиса", err.Error(), "Главная", "/works/prof")
+		}
+		redPos.ServActDate, err = time.Parse("2006-01-02", r.FormValue("ServActDate"))
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка изменения", "Неверная дата начала сервиса", err.Error(), "Главная", "/works/prof")
+		}
+		redPos.Order = id
+		redPos.Id, err = strconv.Atoi(r.FormValue("ListId"))
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка изменения", "Неверный ID элемента", err.Error(), "Главная", "/works/prof")
+		}
+
+		redPos.LastRed = time.Now()
+
+		err = a.Db.ChangeOrderList(a.ctx, redPos)
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка изменения", "Что-то пошло не так", err.Error(), "Главная", "/works/prof")
+		}
+
+		a.MakeCreateOrderListPage(w, -1, id)
+	}
+}
+
+// Изменение мак адреса устройства
+func (a App) ChangeMAC(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	in := strings.Fields(r.FormValue("in"))
+	if len(in)%2 == 1 {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Серийников больше чем маков", "(или наоборот)", "Главная", "/works/prof")
+	}
+
+	var count int
+	for i := 0; i < len(in); i = i + 2 {
+		_, err := a.Db.ChangeMAC(a.ctx, in[i], in[i+1])
+		if err != nil {
+			MakeAlertPage(w, 2, "Ошибка", "Частично", "Изменнено только часть MAC", "Изменены "+strconv.Itoa(count)+" устройств, до "+in[i], "Главная", "/works/prof")
+		}
+		count++
+	}
+	MakeAlertPage(w, 1, "Успешно", "Успешно", "Изменено "+strconv.Itoa(count)+" устройств", "", "Главная", "/works/prof")
+}
+
+func (a App) ReleaseProduction(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	in := strings.Fields(r.FormValue("in"))
+
+	if len(in) == 0 {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Не ввседены серийные номера", "", "Главная", "/works/prof")
+		return
+	}
+
+	counter := a.Db.ReleaseProduction(a.ctx, in...)
+	if counter == 0 {
+		MakeAlertPage(w, 5, "Предупреждение", "Не передано", "Устройства не перобразованы", "Внесено "+strconv.Itoa(len(in))+" серийных номеров	Преобразовано "+strconv.Itoa(counter)+"  серийных номеров", "Главная", "/works/prof")
+		return
+	} else if len(in)-counter == 0 {
+		MakeAlertPage(w, 1, "Готово", "Преобразованно", "Все устройства преобразованы", "Внесено "+strconv.Itoa(len(in))+" серийных номеров	Преобразовано "+strconv.Itoa(counter)+"  серийных номеров", "Главная", "/works/prof")
+		return
+	} else if len(in)-counter > 0 {
+		MakeAlertPage(w, 2, "Готово", "Частично", "Часть устройств не преобразована", "Внесено "+strconv.Itoa(len(in))+" серийных номеров	Преобразовано "+strconv.Itoa(counter)+"  серийных номеров", "Главная", "/works/prof")
+		return
+	}
+	MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", "", "Главная", "/works/prof")
+}
+
+func (a App) ReturnToStorage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	in := strings.Fields(r.FormValue("in"))
+
+	if len(in) == 0 {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Не ввседены серийные номера", "", "Главная", "/works/prof")
+		return
+	}
+
+	counter := a.Db.ReturnToStorage(a.ctx, in...)
+	if counter == 0 {
+		MakeAlertPage(w, 5, "Предупреждение", "Не передано", "Устройства не переданы", "Внесено "+strconv.Itoa(len(in))+" серийных номеров	Преобразовано "+strconv.Itoa(counter)+"  серийных номеров", "Главная", "/works/prof")
+		return
+	} else if len(in)-counter == 0 {
+		MakeAlertPage(w, 1, "Готово", "Передано", "Все устройства переданы", "Внесено "+strconv.Itoa(len(in))+" серийных номеров	Преобразовано "+strconv.Itoa(counter)+"  серийных номеров", "Главная", "/works/prof")
+		return
+	} else if len(in)-counter > 0 {
+		MakeAlertPage(w, 2, "Готово", "Частично", "Часть устройств не передона", "Внесено "+strconv.Itoa(len(in))+" серийных номеров	Преобразовано "+strconv.Itoa(counter)+"  серийных номеров", "Главная", "/works/prof")
+		return
+	}
+	MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", "", "Главная", "/works/prof")
+}
+
+func (a App) SetPromDate(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	order, err := strconv.Atoi(r.FormValue("in1"))
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	date, err := time.Parse("2006-01-02", r.FormValue("in2"))
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	err = a.Db.SetPromDate(a.ctx, order, date)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка присвоения даты", "Вероятно неверно задан ID заказа", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	MakeAlertPage(w, 1, "Готово", "Установленно", "Заказу с ID "+strconv.Itoa(order)+" назначена новая дата производства", "", "Главная", "/works/prof")
 }
 
 //////////////////////////
@@ -747,10 +1070,11 @@ func (a App) DelOrder(w http.ResponseWriter, r *http.Request, pr httprouter.Para
 func MakeTMCPage(w http.ResponseWriter, devices []mytypes.DeviceClean, lable string) {
 
 	type tmcPage struct {
-		Lable string
-		Tab   []mytypes.DeviceClean
+		Lable    string
+		Tab      []mytypes.DeviceClean
+		SnString string
 	}
-	table := tmcPage{lable, devices}
+	table := tmcPage{lable, devices, GetSnfromCleanDevices(devices...)}
 
 	t := template.Must(template.ParseFiles("Face/html/TMC.html"))
 	t.Execute(w, table)
@@ -847,14 +1171,15 @@ func MakeOrdersPage(w http.ResponseWriter, orders []mytypes.OrderClean, lable st
 	t.Execute(w, table)
 }
 
-func MakeOrderMiniPage(w http.ResponseWriter, order mytypes.OrderClean, orderList []mytypes.OrderListClean, reservs []mytypes.StorageByTModelClean) {
+func MakeOrderMiniPage(w http.ResponseWriter, order mytypes.OrderClean, orderList []mytypes.OrderListClean, reservs []mytypes.StorageByTModelClean, User mytypes.User) {
 	type orderPage struct {
 		Order   mytypes.OrderClean
 		List    []mytypes.OrderListClean
 		Reservs []mytypes.StorageByTModelClean
+		User    mytypes.User
 	}
 
-	page := orderPage{order, orderList, reservs}
+	page := orderPage{order, orderList, reservs, User}
 
 	t := template.Must(template.ParseFiles("Face/html/order.html"))
 	t.Execute(w, page)
@@ -908,17 +1233,34 @@ func MakeImputPage(w http.ResponseWriter, postPath, title, imputText, btnText st
 	t.Execute(w, tmp)
 }
 
-func MakeDobleImputPage(w http.ResponseWriter, postPath, title, imputText1, imputText2, btnText string) {
+func MakeImputTypePage(w http.ResponseWriter, postPath, title, typein, imputText, btnText string) {
+
+	type imputPage struct {
+		Title     string
+		InputText string
+		BtnText   string
+		PostPath  string
+		Type      string
+	}
+
+	tmp := imputPage{title, typein, imputText, btnText, postPath}
+
+	t := template.Must(template.ParseFiles("Face/html/insert.html"))
+	t.Execute(w, tmp)
+}
+
+func MakeDobleImputPage(w http.ResponseWriter, postPath, title, imputText1, imputText2, type2, btnText string) {
 
 	type imputPage struct {
 		Title      string
 		InputText1 string
 		InputText2 string
+		Type2      string
 		BtnText    string
 		PostPath   string
 	}
 
-	tmp := imputPage{title, imputText1, imputText2, btnText, postPath}
+	tmp := imputPage{title, imputText1, imputText2, type2, btnText, postPath}
 
 	t := template.Must(template.ParseFiles("Face/html/dobleinsert.html"))
 	t.Execute(w, tmp)
@@ -1021,4 +1363,194 @@ func MakeCreateOrderPage(w http.ResponseWriter) {
 	var page bool
 	t := template.Must(template.ParseFiles("Face/html/CreateOrder.html"))
 	t.Execute(w, page)
+}
+
+func (a App) MakeCreateOrderListPage(w http.ResponseWriter, ListId int, orderId int) {
+	type idChoise struct {
+		Id   int
+		Name string
+	}
+	type TakeForm struct {
+		List       []mytypes.OrderListClean
+		TModels    []idChoise
+		ListId     int
+		OrderId    int
+		RedElement mytypes.OrderListClean
+	}
+
+	OrderList, err := a.Db.TakeCleanOrderList(a.ctx, orderId)
+	if err != nil {
+		OrderList = []mytypes.OrderListClean{}
+	}
+
+	var choise idChoise
+	var tmodelList []idChoise
+	rows, err := a.Db.Db.Query(a.ctx, `SELECT "tModelsId", "tModelsName" FROM public."tModels";`)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	for rows.Next() {
+		err := rows.Scan(&choise.Id, &choise.Name)
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		tmodelList = append(tmodelList, choise)
+	}
+
+	var redElement mytypes.OrderListClean
+	if ListId != -1 {
+		for _, a := range OrderList {
+			if a.Id == ListId {
+				redElement = a
+				s := strings.Split(redElement.ServActDate, ".")
+				redElement.ServActDate = s[2] + "-" + s[1] + "-" + s[0]
+			}
+		}
+	}
+	tmp := TakeForm{OrderList, tmodelList, ListId, orderId, redElement}
+
+	t := template.Must(template.ParseFiles("Face/html/CreateOrderList.html"))
+	t.Execute(w, tmp)
+}
+
+func (a App) MakeUserPage(w http.ResponseWriter, user mytypes.User) {
+	type Buton struct {
+		Text string
+		Url  string
+	}
+	type Block struct {
+		Title string
+		Btns  []Buton
+	}
+	type Page struct {
+		Bl   []Block
+		User mytypes.User
+	}
+
+	var Blocks []Block
+	var block Block
+	var btn Buton
+
+	switch user.Acces {
+	case 1:
+		block = Block{}
+		block.Title = "Склад"
+		btn = Buton{"ТМЦ", "/works/tmc"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{"Поиск в ТМЦ", "/works/tmcadvancesearch"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{"Скад", "/works/storage/orders"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{"Поиск по Sn", "/works/snsearch"}
+		block.Btns = append(block.Btns, btn)
+		Blocks = append(Blocks, block)
+
+		block = Block{}
+		block.Title = "Маки"
+		btn = Buton{"Изменить MAC адрес", "/works/changemac"}
+		block.Btns = append(block.Btns, btn)
+		Blocks = append(Blocks, block)
+
+		block = Block{}
+		block.Title = "Выпуск"
+		btn = Buton{"Выпуск с производства", "/works/releaseproduction"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{"Вернуть на склад", "/works/returntostorage"}
+		block.Btns = append(block.Btns, btn)
+		Blocks = append(Blocks, block)
+
+		block = Block{}
+		block.Title = "Заказы"
+		btn = Buton{"Заказы", "/works/orders"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{"Задать срок", "/works/setpromdate"}
+		block.Btns = append(block.Btns, btn)
+		Blocks = append(Blocks, block)
+
+		block = Block{}
+		block.Title = "В работе"
+		btn = Buton{"SN в работе", "/works/tmc?Search=1&Condition=В работе"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{"Модели в работе", "/"}
+		block.Btns = append(block.Btns, btn)
+		Blocks = append(Blocks, block)
+
+	case 2:
+		block = Block{}
+		block.Title = "Склад"
+		btn = Buton{"ТМЦ", "/works/tmc"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{"Поиск в ТМЦ", "/works/tmcadvancesearch"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{"Скад", "/works/storage/orders"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{"Поиск по Sn", "/works/snsearch"}
+		block.Btns = append(block.Btns, btn)
+		Blocks = append(Blocks, block)
+
+		block = Block{}
+		block.Title = "Приемка"
+		btn = Buton{"Приемка по моделям", "/works/takedevicebymodel"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{"Приемка демо", "/works/takedemo"}
+		block.Btns = append(block.Btns, btn)
+		Blocks = append(Blocks, block)
+
+		block = Block{}
+		block.Title = "Складская логистика"
+		btn = Buton{"Передать в производство", "/works/towork"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{"Установить место", "/works/setplace"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{"Изменить № паллета", "/works/cangeplacenum"}
+		block.Btns = append(block.Btns, btn)
+		Blocks = append(Blocks, block)
+
+		block = Block{}
+		block.Title = "Заказы"
+		btn = Buton{"Заказы", "/works/orders"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{"Назначить заказ/резерв", "/works/setorder"}
+		block.Btns = append(block.Btns, btn)
+		Blocks = append(Blocks, block)
+
+		block = Block{}
+		block.Title = "Отгрузки"
+		btn = Buton{"Отгрузка", "/works/toship"}
+		block.Btns = append(block.Btns, btn)
+		Blocks = append(Blocks, block)
+
+	case 3:
+		block = Block{}
+		block.Title = "Заказы"
+		btn = Buton{"Создать заказ", "/works/createorder"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{"Мои заказы", "/works/orders"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{"Все заказы", "/works/orders"}
+		block.Btns = append(block.Btns, btn)
+		Blocks = append(Blocks, block)
+
+		block = Block{}
+		block.Title = "Склад"
+		btn = Buton{"ТМЦ", "/works/tmc"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{"Поиск в ТМЦ", "/works/tmcadvancesearch"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{"Скад", "/works/storage/orders"}
+		block.Btns = append(block.Btns, btn)
+		Blocks = append(Blocks, block)
+	default:
+		block.Title = "Вас тут не ждали"
+		btn = Buton{"Идите нахуй", "/works/Logout"}
+		block.Btns = append(block.Btns, btn)
+		Blocks = append(Blocks, block)
+	}
+
+	tmp := Page{Blocks, user}
+	t := template.Must(template.ParseFiles("Face/html/prof.html"))
+	t.Execute(w, tmp)
 }

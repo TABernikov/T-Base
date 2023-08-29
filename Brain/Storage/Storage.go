@@ -309,7 +309,7 @@ func (base Base) TakeCleanDeviceBySn(ctx context.Context, inSn ...string) ([]myt
 			row := base.Db.QueryRow(ctx, cleanSelect, sn)
 			err := row.Scan(&device.Id, &device.Sn, &device.Mac, &device.DModel, &device.Rev, &device.TModel, &device.Name, &device.Condition, &CondDate, &device.Order, &device.Place, &Shiped, &ShipedDate, &device.ShippedDest, &TakenDate, &device.TakenDoc, &device.TakenOrder, &commentnull)
 			if err != nil {
-				return devices, err
+				continue
 			}
 			if commentnull.Valid {
 				device.Comment = commentnull.String
@@ -768,13 +768,13 @@ func (base Base) TakeOrderList(ctx context.Context, orderId int) ([]mytypes.Orde
 	var orderList []mytypes.OrderList
 	var pos mytypes.OrderList
 
-	rows, err := base.Db.Query(ctx, `SELECT "orderId", model, amout, "servType", "srevActDate", "lastRed" FROM public."orderList" WHERE "orderId" = $1`, orderId)
+	rows, err := base.Db.Query(ctx, `SELECT "orderListId", "orderId", model, amout, "servType", "srevActDate", "lastRed" FROM public."orderList" WHERE "orderId" = $1`, orderId)
 	if err != nil {
 		return orderList, err
 	}
 
 	for rows.Next() {
-		err := rows.Scan(&pos.Order, &pos.Model, &pos.Amout, &pos.ServType, &pos.ServActDate, &pos.LastRed)
+		err := rows.Scan(&pos.Id, &pos.Order, &pos.Model, &pos.Amout, &pos.ServType, &pos.ServActDate, &pos.LastRed)
 		if err != nil {
 			return orderList, err
 		}
@@ -796,13 +796,14 @@ func (base Base) TakeCleanOrderList(ctx context.Context, orderId int) ([]mytypes
 	var servActDate, lastRed time.Time
 
 	qq := ` SELECT 
+	tmp."orderListId",
     tmp."orderId",
     "tModels"."tModelsName" AS model,
     tmp.amout,
     tmp."servType",
     tmp."srevActDate",
     tmp."lastRed"
-   FROM (SELECT  "orderId", model, amout, "servType", "srevActDate", "lastRed"
+   FROM (SELECT "orderListId", "orderId", model, amout, "servType", "srevActDate", "lastRed"
 	FROM public."orderList" WHERE "orderId" = $1) tmp
      LEFT JOIN "tModels" ON "tModels"."tModelsId" = tmp.model;
 `
@@ -813,7 +814,7 @@ func (base Base) TakeCleanOrderList(ctx context.Context, orderId int) ([]mytypes
 	}
 
 	for rows.Next() {
-		err := rows.Scan(&pos.Order, &pos.Model, &pos.Amout, &pos.ServType, &servActDate, &lastRed)
+		err := rows.Scan(&pos.Id, &pos.Order, &pos.Model, &pos.Amout, &pos.ServType, &servActDate, &lastRed)
 		if err != nil {
 			return orderList, err
 		}
@@ -958,28 +959,6 @@ func (base Base) AddCommentToSns(ctx context.Context, id int, text string, user 
 	return nil
 }
 
-////
-
-func (base Base) DellOrder(ctx context.Context, id int) error {
-
-	qq := `UPDATE sns
-		SET "order" = (case when sns.condition = 1 then 1 else 2 END)
-		WHERE "order" = 47;
-		DELETE FROM public."orderList"
-		WHERE "orderId" = 47;
-		DELETE from public.orders
-		WHERE "orderId" = 47;`
-	_, err := base.Db.Exec(ctx, qq)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-///////////////////
-// Другие функции//
-///////////////////
-
 func (base Base) InsetDeviceByModel(ctx context.Context, DModel int, Name string, TModel int, Rev string, Place int, Doc string, Order string, InSn ...string) (int, []string, error) {
 	if len(InSn) == 0 {
 		return 0, nil, fmt.Errorf("не введены серийные номера")
@@ -1004,20 +983,163 @@ func (base Base) InsetDeviceByModel(ctx context.Context, DModel int, Name string
 	return insertCount, SnErr, lastErr
 }
 
-func (base Base) InsertOrder(ctx context.Context, Id1C int, Name string, ReqDate time.Time, Customer string, Partner string, Distributor string, user mytypes.User) (int, error) {
+func (base Base) ChangeMAC(ctx context.Context, sn, mac string) (int, error) {
+	qq := `UPDATE public.sns SET mac=$2 WHERE sn=$1`
+
+	res, err := base.Db.Exec(ctx, qq, sn, mac)
+
+	return int(res.RowsAffected()), err
+}
+
+func (base Base) ReleaseProduction(ctx context.Context, sn ...string) int {
+	var counter int
+	var err error
+
+	for _, a := range sn {
+		qq := `SELECT "tModelsName"
+		FROM public.sns INNER JOIN public."tModels" on "tModels"."tModelsId" = sns.tmodel
+		WHERE sns.sn = $1`
+		var name string
+		err = base.Db.QueryRow(ctx, qq, a).Scan(&name)
+		if err != nil {
+
+			continue
+		}
+
+		qq = `UPDATE public.sns
+		SET  name = $2, condition = 1, "condDate" = CURRENT_DATE
+		WHERE sn = $1;`
+		_, err = base.Db.Exec(ctx, qq, a, name)
+		if err != nil {
+
+			continue
+		}
+		qq = `UPDATE public.sns
+		SET  "order" = 1
+		WHERE sn=$1 AND "order" = 2;`
+
+		_, err = base.Db.Exec(ctx, qq, a)
+		if err != nil {
+
+			continue
+		}
+		counter++
+	}
+
+	return counter
+}
+
+func (base Base) ReturnToStorage(ctx context.Context, sn ...string) int {
+	var counter int
+	for _, a := range sn {
+		qq := `UPDATE public.sns
+		SET condition = 2
+		WHERE sn = $1 AND "order" <> 3;`
+		res, err := base.Db.Exec(ctx, qq, a)
+		if err != nil || res.RowsAffected() == 0 {
+			qq = `UPDATE public.sns
+			SET condition = 1
+			WHERE sn = $1 AND "order" = 3;`
+			res, err := base.Db.Exec(ctx, qq, a)
+
+			if err != nil || res.RowsAffected() == 0 {
+				continue
+			}
+		}
+		counter++
+	}
+	return counter
+}
+
+///////////////////////////////
+// Функции изменения заказов //
+///////////////////////////////
+
+func (base Base) InsertOrder(ctx context.Context, Order mytypes.OrderRaw) (int, error) {
 	qq := `INSERT INTO public.orders(
 		meneger, "orderDate", "reqDate", "promDate", "shDate", "isAct", coment, customer, partner, disributor, name, "1СName")
 	   VALUES ($1, CURRENT_DATE, $2, '2000-01-01', '2000-01-01', true, '', $3, $4, $5, $6, $7);`
-	_, err := base.Db.Exec(ctx, qq, user.UserId, ReqDate, Customer, Partner, Distributor, Name, Id1C)
+	_, err := base.Db.Exec(ctx, qq, Order.Meneger, Order.ReqDate, Order.Customer, Order.Partner, Order.Distributor, Order.Name, Order.Id1C)
 	var Id int
-	noterr := base.Db.QueryRow(ctx, `SELECT "orderId" from orders Where meneger = $1  ORDER BY "orderId" DESC`, user.UserId).Scan(&Id)
+	noterr := base.Db.QueryRow(ctx, `SELECT "orderId" from orders Where meneger = $1  ORDER BY "orderId" DESC`, Order.Meneger).Scan(&Id)
 	if noterr != nil {
 		return Id, noterr
 	}
 	return Id, err
 }
 
-//////
+func (base Base) DellOrder(ctx context.Context, id int) error {
+
+	qq := `UPDATE sns
+		SET "order" = (case when sns.condition = 1 then 1 else 2 END)
+		WHERE "order" = $1;
+		`
+	_, err := base.Db.Exec(ctx, qq, id)
+	if err != nil {
+		return err
+	}
+	qq = `DELETE FROM public."orderList"
+	WHERE "orderId" = $1;`
+	_, err = base.Db.Exec(ctx, qq, id)
+	if err != nil {
+		return err
+	}
+	qq = `DELETE from public.orders
+	WHERE "orderId" = $1;`
+	_, err = base.Db.Exec(ctx, qq, id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (base Base) Change1CNumOrder(ctx context.Context, id int, new1CId int) error {
+	qq := `UPDATE public.orders
+	SET "1СName"=$1
+	WHERE "orderId"=$2;
+	`
+	_, err := base.Db.Exec(ctx, qq, new1CId, id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (base Base) InsertOrderList(ctx context.Context, OrderList mytypes.OrderList) error {
+	qq := `INSERT INTO public."orderList"(
+	"orderId", model, amout, "servType", "srevActDate", "lastRed")
+	VALUES ($1, $2, $3, $4, $5, $6);`
+
+	_, err := base.Db.Exec(ctx, qq, OrderList.Order, OrderList.Model, OrderList.Amout, OrderList.ServType, OrderList.ServActDate, OrderList.LastRed)
+	return err
+}
+
+func (base Base) ChangeOrderList(ctx context.Context, OrderList mytypes.OrderList) error {
+	qq := `UPDATE public."orderList"
+	SET  "orderId"=$2, model=$3, amout=$4, "servType"=$5, "srevActDate"=$6, "lastRed"=$7
+	WHERE "orderListId"=$1;`
+
+	_, err := base.Db.Exec(ctx, qq, OrderList.Id, OrderList.Order, OrderList.Model, OrderList.Amout, OrderList.ServType, OrderList.ServActDate, OrderList.LastRed)
+	return err
+}
+
+func (base Base) SetPromDate(ctx context.Context, order int, date time.Time) error {
+	qq := `UPDATE public.orders
+	SET "promDate"=$2
+	WHERE "orderId"=$1`
+
+	res, err := base.Db.Exec(ctx, qq, order, date)
+	if res.RowsAffected() == 0 {
+		return fmt.Errorf("no row edits")
+	}
+	return err
+}
+
+////////////////////
+// Другие функции //
+////////////////////
 
 // запись токена генерации
 func (base Base) NewRegenToken(user string, token string, ctx context.Context) {
