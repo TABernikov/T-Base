@@ -420,6 +420,10 @@ func (a App) SetPromDatePage(w http.ResponseWriter, r *http.Request, pr httprout
 	MakeDobleImputTypePage(w, "", "Задать дату", "Введите ID заказа "+r.FormValue("Order"), "number", "Введите дату готовности", "date", "Задать дату")
 }
 
+func (a App) ChangePassPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	MakeChangePassPage(w, "", "", "", "")
+}
+
 //////////////////////
 // Обработчики POST //
 //////////////////////
@@ -1097,6 +1101,41 @@ func (a App) SetPromDate(w http.ResponseWriter, r *http.Request, pr httprouter.P
 	MakeAlertPage(w, 1, "Готово", "Установленно", "Заказу с ID "+strconv.Itoa(order)+" назначена новая дата производства", "", "Главная", "/works/prof")
 }
 
+func (a App) ChangePass(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	oldPass := r.FormValue("old")
+	newPass := r.FormValue("new")
+	chekPass := r.FormValue("chek")
+
+	if oldPass == "" || newPass == "" || chekPass == "" {
+		MakeAlertPage(w, 5, "Ошибка", "Заполните форму", "", "", "Главная", "/")
+		return
+	}
+
+	if newPass != chekPass {
+		MakeChangePassPage(w, "Пароли не совпадают", oldPass, newPass, chekPass)
+		return
+	}
+
+	users, err := a.Db.TakeUserById(a.ctx, user.UserId)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Пользователь не найден", "", err.Error(), "Главная", "/")
+		return
+	}
+	user = users[0]
+
+	if oldPass != user.Pass {
+		MakeChangePassPage(w, "Не верный пароль", oldPass, newPass, chekPass)
+		return
+	}
+
+	res, err := a.Db.Db.Exec(a.ctx, "UPDATE public.users SET  pass=$1 WHERE userid=$2;", newPass, user.UserId)
+	if err != nil || res.RowsAffected() == 0 {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка смены пароля", "", err.Error(), "Главная", "/")
+		return
+	}
+	MakeAlertPage(w, 1, "Успешно", "Успешно", "Изменено ", "", "Главная", "/works/prof")
+}
+
 //////////////////////////
 // Конструкторы страниц //
 //////////////////////////
@@ -1452,7 +1491,7 @@ func (a App) MakeCreateOrderListPage(w http.ResponseWriter, ListId int, orderId 
 
 func (a App) MakeUserPage(w http.ResponseWriter, user mytypes.User) {
 	type Buton struct {
-		Text string
+		Text template.HTML
 		Url  string
 	}
 	type Block struct {
@@ -1472,109 +1511,109 @@ func (a App) MakeUserPage(w http.ResponseWriter, user mytypes.User) {
 	case 1:
 		block = Block{}
 		block.Title = "Склад"
-		btn = Buton{"ТМЦ", "/works/tmc"}
+		btn = Buton{`<i class="icon-table"></i>ТМЦ`, "/works/tmc"}
 		block.Btns = append(block.Btns, btn)
-		btn = Buton{"Поиск в ТМЦ", "/works/tmcadvancesearch"}
+		btn = Buton{`<i class="icon-search"></i>Поиск в ТМЦ`, "/works/tmcadvancesearch"}
 		block.Btns = append(block.Btns, btn)
-		btn = Buton{"Скад", "/works/storage/orders"}
+		btn = Buton{`<i class="icon-home-1"></i>Склад`, "/works/storage/orders"}
 		block.Btns = append(block.Btns, btn)
-		btn = Buton{"Поиск по Sn", "/works/snsearch"}
+		btn = Buton{`<i class="icon-search"></i>Поиск по Sn`, "/works/snsearch"}
 		block.Btns = append(block.Btns, btn)
 		Blocks = append(Blocks, block)
 
 		block = Block{}
 		block.Title = "Маки"
-		btn = Buton{"Изменить MAC адрес", "/works/changemac"}
+		btn = Buton{`<i class="icon-cog"></i>Изменить MAC адрес`, "/works/changemac"}
 		block.Btns = append(block.Btns, btn)
 		Blocks = append(Blocks, block)
 
 		block = Block{}
 		block.Title = "Выпуск"
-		btn = Buton{"Выпуск с производства", "/works/releaseproduction"}
+		btn = Buton{`<i class="icon-industry"></i>Выпуск с производства`, "/works/releaseproduction"}
 		block.Btns = append(block.Btns, btn)
-		btn = Buton{"Вернуть на склад", "/works/returntostorage"}
+		btn = Buton{`<i class="icon-reply"></i>Вернуть на склад`, "/works/returntostorage"}
 		block.Btns = append(block.Btns, btn)
 		Blocks = append(Blocks, block)
 
 		block = Block{}
 		block.Title = "Заказы"
-		btn = Buton{"Заказы", "/works/orders"}
+		btn = Buton{`<i class="icon-briefcase"></i>Заказы`, "/works/orders"}
 		block.Btns = append(block.Btns, btn)
-		btn = Buton{"Задать срок", "/works/setpromdate"}
+		btn = Buton{`<i class="icon-calendar-plus-o"></i>Задать срок`, "/works/setpromdate"}
 		block.Btns = append(block.Btns, btn)
 		Blocks = append(Blocks, block)
 
 		block = Block{}
 		block.Title = "В работе"
-		btn = Buton{"SN в работе", "/works/tmc?Search=1&Condition=В работе"}
+		btn = Buton{`<i class="icon-table"></i>SN в работе`, "/works/tmc?Search=1&Condition=В работе"}
 		block.Btns = append(block.Btns, btn)
-		btn = Buton{"Модели в работе", "/works/storage/models?Search=1&Condition=3"}
+		btn = Buton{`<i class="icon-home-1"></i>Модели в работе`, "/works/storage/models?Search=1&Condition=3"}
 		block.Btns = append(block.Btns, btn)
 		Blocks = append(Blocks, block)
 
 	case 2:
 		block = Block{}
 		block.Title = "Склад"
-		btn = Buton{"ТМЦ", "/works/tmc"}
+		btn = Buton{`<i class="icon-table"></i>ТМЦ`, "/works/tmc"}
 		block.Btns = append(block.Btns, btn)
-		btn = Buton{"Поиск в ТМЦ", "/works/tmcadvancesearch"}
+		btn = Buton{`<i class="icon-search"></i>Поиск в ТМЦ`, "/works/tmcadvancesearch"}
 		block.Btns = append(block.Btns, btn)
-		btn = Buton{"Скад", "/works/storage/orders"}
+		btn = Buton{`<i class="icon-home-1"></i>Склад`, "/works/storage/orders"}
 		block.Btns = append(block.Btns, btn)
-		btn = Buton{"Поиск по Sn", "/works/snsearch"}
+		btn = Buton{`<i class="icon-search"></i>Поиск по Sn`, "/works/snsearch"}
 		block.Btns = append(block.Btns, btn)
 		Blocks = append(Blocks, block)
 
 		block = Block{}
 		block.Title = "Приемка"
-		btn = Buton{"Приемка по моделям", "/works/takedevicebymodel"}
+		btn = Buton{`<i class="icon-plus"></i>Приемка по моделям`, "/works/takedevicebymodel"}
 		block.Btns = append(block.Btns, btn)
-		btn = Buton{"Приемка демо", "/works/takedemo"}
+		btn = Buton{`<i class="icon-forward"></i>Приемка демо`, "/works/takedemo"}
 		block.Btns = append(block.Btns, btn)
 		Blocks = append(Blocks, block)
 
 		block = Block{}
 		block.Title = "Складская логистика"
-		btn = Buton{"Передать в производство", "/works/towork"}
+		btn = Buton{`<i class="icon-industry"></i>Передать в производство`, "/works/towork"}
 		block.Btns = append(block.Btns, btn)
-		btn = Buton{"Установить место", "/works/setplace"}
+		btn = Buton{`<i class="icon-down-big"></i>Установить место`, "/works/setplace"}
 		block.Btns = append(block.Btns, btn)
-		btn = Buton{"Изменить № паллета", "/works/cangeplacenum"}
+		btn = Buton{`<i class="icon-cog"></i>Изменить № паллета`, "/works/cangeplacenum"}
 		block.Btns = append(block.Btns, btn)
 		Blocks = append(Blocks, block)
 
 		block = Block{}
 		block.Title = "Заказы"
-		btn = Buton{"Заказы", "/works/orders"}
+		btn = Buton{`<i class="icon-briefcase"></i>Заказы`, "/works/orders"}
 		block.Btns = append(block.Btns, btn)
-		btn = Buton{"Назначить заказ/резерв", "/works/setorder"}
+		btn = Buton{`<i class="icon-tag"></i>Назначить заказ/резерв`, "/works/setorder"}
 		block.Btns = append(block.Btns, btn)
 		Blocks = append(Blocks, block)
 
 		block = Block{}
 		block.Title = "Отгрузки"
-		btn = Buton{"Отгрузка", "/works/toship"}
+		btn = Buton{`<i class="icon-truck"></i>Отгрузка`, "/works/toship"}
 		block.Btns = append(block.Btns, btn)
 		Blocks = append(Blocks, block)
 
 	case 3:
 		block = Block{}
 		block.Title = "Заказы"
-		btn = Buton{"Создать заказ", "/works/createorder"}
+		btn = Buton{`<i class="icon-plus"></i>Создать заказ`, "/works/createorder"}
 		block.Btns = append(block.Btns, btn)
-		btn = Buton{"Мои заказы", "/works/orders"}
+		btn = Buton{`<i class="icon-handshake-o"></i> Мои заказы`, "/works/orders"}
 		block.Btns = append(block.Btns, btn)
-		btn = Buton{"Все заказы", "/works/orders"}
+		btn = Buton{`<i class="icon-briefcase"></i>Все заказы`, "/works/orders"}
 		block.Btns = append(block.Btns, btn)
 		Blocks = append(Blocks, block)
 
 		block = Block{}
 		block.Title = "Склад"
-		btn = Buton{"ТМЦ", "/works/tmc"}
+		btn = Buton{`<i class="icon-table"></i>ТМЦ`, "/works/tmc"}
 		block.Btns = append(block.Btns, btn)
-		btn = Buton{"Поиск в ТМЦ", "/works/tmcadvancesearch"}
+		btn = Buton{`<i class="icon-search"></i>Поиск в ТМЦ`, "/works/tmcadvancesearch"}
 		block.Btns = append(block.Btns, btn)
-		btn = Buton{"Скад", "/works/storage/orders"}
+		btn = Buton{`<i class="icon-home-1"></i>Склад`, "/works/storage/orders"}
 		block.Btns = append(block.Btns, btn)
 		Blocks = append(Blocks, block)
 	default:
@@ -1586,5 +1625,18 @@ func (a App) MakeUserPage(w http.ResponseWriter, user mytypes.User) {
 
 	tmp := Page{Blocks, user}
 	t := template.Must(template.ParseFiles("Face/html/prof.html"))
+	t.Execute(w, tmp)
+}
+
+func MakeChangePassPage(w http.ResponseWriter, ans string, p1, p2, p3 string) {
+
+	type page struct {
+		Ans string
+		P1  string
+		P2  string
+		P3  string
+	}
+	tmp := page{ans, p1, p2, p3}
+	t := template.Must(template.ParseFiles("Face/html/ChangePass.html"))
 	t.Execute(w, tmp)
 }

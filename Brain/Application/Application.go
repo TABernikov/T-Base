@@ -65,7 +65,7 @@ func (a App) Routs(r *httprouter.Router) {
 	r.GET("/works/releaseproduction", a.authtorized(a.ReleaseProductionPage))
 	r.GET("/works/returntostorage", a.authtorized(a.ReturnToStoragePage))
 	r.GET("/works/setpromdate", a.authtorized(a.SetPromDatePage))
-	r.GET("/works/cangepass", a.authtorized(a.CangePassPage))
+	r.GET("/works/changepass", a.authtorized(a.ChangePassPage))
 
 	r.POST("/works/snsearch", a.authtorized(a.SnSearch))
 	r.POST("/works/tmcsearch", a.authtorized(a.TMCSearch))
@@ -87,8 +87,8 @@ func (a App) Routs(r *httprouter.Router) {
 	r.POST("/works/releaseproduction", a.authtorized(a.ReleaseProduction))
 	r.POST("/works/returntostorage", a.authtorized(a.ReturnToStorage))
 	r.POST("/works/setpromdate", a.authtorized(a.SetPromDate))
-	r.GET("/works/cangepass", a.authtorized(a.CangePass))
-	//r.GET("/works/new", a.authtorized(a.NewSns))
+	r.POST("/works/changepass", a.authtorized(a.ChangePass))
+
 }
 
 // Проверка авторизациия
@@ -171,7 +171,7 @@ func GetSnfromCleanDevices(devices ...mytypes.DeviceClean) string {
 	var SnString string
 
 	for _, a := range devices {
-		SnString += a.Sn + "\n"
+		SnString += a.Sn + " \n"
 	}
 	return SnString
 }

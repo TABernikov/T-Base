@@ -65,7 +65,7 @@ func (base Base) TakeUserById(ctx context.Context, inId ...int) ([]mytypes.User,
 		u := mytypes.User{}
 
 		for _, id := range inId {
-			row := base.Db.QueryRow(ctx, "SELECT UserId, login, pass, access, name, email FROM users where id = $1", id)
+			row := base.Db.QueryRow(ctx, "SELECT userid, login, pass, access, name, email FROM users where userid = $1", id)
 			err := row.Scan(&u.UserId, &u.Login, &u.Pass, &u.Acces, &u.Name, &u.Email)
 			if err != nil {
 				return users, err
