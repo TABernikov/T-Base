@@ -2,6 +2,7 @@ package Application
 
 import (
 	"T-Base/Brain/Auth"
+	"T-Base/Brain/Filer"
 	"T-Base/Brain/mytypes"
 	"fmt"
 	"html/template"
@@ -1134,6 +1135,24 @@ func (a App) ChangePass(w http.ResponseWriter, r *http.Request, pr httprouter.Pa
 		return
 	}
 	MakeAlertPage(w, 1, "Успешно", "Успешно", "Изменено ", "", "Главная", "/works/prof")
+}
+
+//////////////////////
+// Отправка отчетов //
+//////////////////////
+
+// Тестовый файл
+func (a App) TestFile(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	path, name, err := Filer.TextExcell()
+	fmt.Println(path)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	err = sendXLSXFile(w, r, path, name)
+	if err != nil {
+		fmt.Println(err)
+	}
 }
 
 //////////////////////////

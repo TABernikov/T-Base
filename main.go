@@ -5,11 +5,11 @@ import (
 	"context"
 	"net/http"
 
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/julienschmidt/httprouter"
 )
 
 func main() {
+
 	println("hello")
 
 	ctx := context.Background()

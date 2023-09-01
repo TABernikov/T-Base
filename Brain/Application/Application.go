@@ -6,6 +6,7 @@ import (
 	"T-Base/Brain/mytypes"
 	"context"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
@@ -89,6 +90,7 @@ func (a App) Routs(r *httprouter.Router) {
 	r.POST("/works/setpromdate", a.authtorized(a.SetPromDate))
 	r.POST("/works/changepass", a.authtorized(a.ChangePass))
 
+	r.POST("/works/file", a.authtorized(a.TestFile))
 }
 
 // Проверка авторизациия
@@ -174,4 +176,22 @@ func GetSnfromCleanDevices(devices ...mytypes.DeviceClean) string {
 		SnString += a.Sn + " \n"
 	}
 	return SnString
+}
+
+func sendXLSXFile(w http.ResponseWriter, r *http.Request, path, name string) error {
+	f, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+
+	fi, err := f.Stat()
+	if err != nil {
+		return err
+	}
+	w.Header().Set("Content-Disposition", "attachment; filename="+name+".xlsx")
+	http.ServeContent(w, r, "test", fi.ModTime(), f)
+
+	f.Close()
+	os.Remove(path)
+	return nil
 }
