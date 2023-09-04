@@ -50,71 +50,164 @@ func (a App) UserPage(w http.ResponseWriter, r *http.Request, pr httprouter.Para
 func (a App) TMCPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	var devices []mytypes.DeviceClean
 	var err error
+	var link string
 	if r.FormValue("Search") == "" {
 		devices, err = a.Db.TakeCleanDeviceByRequest(a.ctx, "LIMIT 1000")
 		if err != nil {
 			fmt.Println(err)
 		}
 	} else {
+		link = "?Search=1"
 		req := `WHERE true `
 		if r.FormValue("Id") != "" {
 			req += `AND "snsId" = ` + r.FormValue("Id") + ` `
+			link += "&Id=" + r.FormValue("Id")
 		}
 		if r.FormValue("Sn") != "" {
 			req += `AND "sn" = '` + r.FormValue("Sn") + `' `
+			link += "&Sn=" + r.FormValue("Sn")
 		}
 		if r.FormValue("Mac") != "" {
 			req += `AND "mac" = '` + r.FormValue("Mac") + `' `
+			link += "&Mac=" + r.FormValue("Mac")
 		}
 		if r.FormValue("DModel") != "" {
 			req += `AND "dmodel" = '` + r.FormValue("DModel") + `' `
+			link += "&DModel=" + r.FormValue("DModel")
 		}
 		if r.FormValue("Rev") != "" {
 			req += `AND "rev" = '` + r.FormValue("Rev") + `' `
+			link += "&Rev=" + r.FormValue("Rev")
 		}
 		if r.FormValue("TModel") != "" {
 			req += `AND "tmodel" = '` + r.FormValue("TModel") + `' `
+			link += "&TModel=" + r.FormValue("TModel")
 		}
 		if r.FormValue("Name") != "" {
 			req += `AND "name" = '` + r.FormValue("Name") + `' `
+			link += "&Name=" + r.FormValue("Name")
 		}
 		if r.FormValue("Condition") != "" {
 			req += `AND "condition" = '` + r.FormValue("Condition") + `' `
+			link += "&Condition=" + r.FormValue("Condition")
 		}
 		if r.FormValue("Order") != "" {
 			req += `AND "order" = ` + r.FormValue("Order") + ` `
+			link += "&Order=" + r.FormValue("Order")
 		}
 		if r.FormValue("Place") != "" {
 			req += `AND "place" = ` + r.FormValue("Place") + ` `
+			link += "&Place=" + r.FormValue("Place")
 		}
 		if r.FormValue("Shiped") != "" {
 			req += `AND "shiped" = ` + r.FormValue("Shiped") + ` `
+			link += "&Shiped=" + r.FormValue("Shiped")
 		}
 		if r.FormValue("ShippedDest") != "" {
 			req += `AND "shippedDest" = '` + r.FormValue("ShippedDest") + `' `
+			link += "&ShippedDest=" + r.FormValue("ShippedDest")
 		}
 		if r.FormValue("TakenDoc") != "" {
 			req += `AND "takenDoc" = '` + r.FormValue("TakenDoc") + `' `
+			link += "&TakenDoc=" + r.FormValue("TakenDoc")
 		}
 		if r.FormValue("TakenOrder") != "" {
 			req += `AND "takenOrder" = '` + r.FormValue("TakenOrder") + `' `
+			link += "&TakenOrder=" + r.FormValue("TakenOrder")
 		}
-		if r.FormValue("CondDate") != "" {
-			date, err := time.Parse("01.02.2006", r.FormValue("CondDate"))
+		if r.FormValue("CondDateTo") != "" {
+			link += "&CondDateTo=" + r.FormValue("CondDateTo")
+			if r.FormValue("CondDate") != "" {
+				link += "&CondDate=" + r.FormValue("CondDate")
+				date, err := time.Parse("02.01.2006", r.FormValue("CondDate"))
+				if err == nil {
+					req += ` AND "condDate" BETWEEN '` + date.Format("2006-01-02")
+				} else {
+					req += ` AND "condDate" BETWEEN '2000-01-01`
+				}
+			} else {
+				req += ` AND "condDate" BETWEEN '2000-01-01`
+			}
+
+			date, err := time.Parse("02.01.2006", r.FormValue("CondDateTo"))
 			if err == nil {
-				req += `AND "condDate" = '` + date.Format("2006-02-01") + `' `
+				req += `' AND '` + date.Format("2006-01-02") + `'`
+			} else {
+				fmt.Println(err)
+				req += `' AND '2100-01-01'`
+			}
+
+		} else {
+			if r.FormValue("CondDate") != "" {
+				link += "&CondDate=" + r.FormValue("CondDate")
+				date, err := time.Parse("02.01.2006", r.FormValue("CondDate"))
+				if err == nil {
+					req += `AND "condDate" = '` + date.Format("2006-01-02") + `' `
+				}
 			}
 		}
-		if r.FormValue("ShipedDate") != "" {
-			date, err := time.Parse("01.02.2006", r.FormValue("ShipedDate"))
+
+		if r.FormValue("ShipedDateTo") != "" {
+			link += "&ShipedDateTo=" + r.FormValue("ShipedDateTo")
+
+			if r.FormValue("ShipedDate") != "" {
+				link += "&ShipedDate=" + r.FormValue("ShipedDate")
+				date, err := time.Parse("02.01.2006", r.FormValue("ShipedDate"))
+				if err == nil {
+					req += ` AND "shipedDate" BETWEEN '` + date.Format("2006-01-02")
+				} else {
+					req += ` AND "shipedDate" BETWEEN '2000-01-01`
+				}
+			} else {
+				req += ` AND "shipedDate" BETWEEN '2000-01-01`
+			}
+
+			date, err := time.Parse("02.01.2006", r.FormValue("ShipedDateTo"))
 			if err == nil {
-				req += `AND "shipedDate" = '` + date.Format("2006-02-01") + `' `
+				req += `' AND '` + date.Format("2006-01-02") + `'`
+			} else {
+				req += `' AND '2100-01-01'`
+			}
+
+		} else {
+			if r.FormValue("ShipedDate") != "" {
+				link += "&ShipedDate=" + r.FormValue("ShipedDate")
+				date, err := time.Parse("02.01.2006", r.FormValue("ShipedDate"))
+				if err == nil {
+					req += `AND "shipedDate" = '` + date.Format("2006-01-02") + `' `
+				}
 			}
 		}
-		if r.FormValue("TakenDate") != "" {
-			date, err := time.Parse("01.02.2006", r.FormValue("TakenDate"))
+
+		if r.FormValue("TakenDateTo") != "" {
+			link += "&TakenDateTo=" + r.FormValue("TakenDateTo")
+
+			if r.FormValue("TakenDate") != "" {
+				link += "&TakenDate=" + r.FormValue("TakenDate")
+				date, err := time.Parse("02.01.2006", r.FormValue("TakenDate"))
+				if err == nil {
+					req += ` AND "takenDate" BETWEEN '` + date.Format("2006-01-02")
+				} else {
+					req += ` AND "takenDate" BETWEEN '2000-01-01`
+				}
+			} else {
+				req += ` AND "takenDate" BETWEEN '2000-01-01`
+			}
+
+			date, err := time.Parse("02.01.2006", r.FormValue("TakenDateTo"))
 			if err == nil {
-				req += `AND "takenDate" = '` + date.Format("2006-02-01") + `' `
+				req += `' AND '` + date.Format("2006-01-02") + `'`
+			} else {
+				req += `' AND '2100-01-01'`
+			}
+
+		} else {
+			if r.FormValue("TakenDate") != "" {
+				link += "&TakenDate=" + r.FormValue("TakenDate")
+				date, err := time.Parse("02.01.2006", r.FormValue("TakenDate"))
+				if err == nil {
+					req += `AND "takenDate" = '` + date.Format("2006-01-02") + `' `
+				}
 			}
 		}
 
@@ -124,28 +217,11 @@ func (a App) TMCPage(w http.ResponseWriter, r *http.Request, pr httprouter.Param
 		}
 	}
 
-	MakeTMCPage(w, devices, "ТМЦ показанно устройств: "+strconv.Itoa(len(devices)))
+	MakeTMCPage(w, devices, "ТМЦ показанно устройств: "+strconv.Itoa(len(devices)), link)
 }
 
 func (a App) TMCSearchPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	a.MakeTMCAdvanceSearchPage(w)
-}
-
-// Таблица ТМЦ для конкретного заказа
-func (a App) TMCOrderSearch(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
-	order, err := strconv.Atoi(r.FormValue("Order"))
-	if err != nil {
-		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
-		return
-	}
-
-	devices, err := a.Db.TakeCleanDeviceByOrder(a.ctx, order)
-	if err != nil {
-		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
-		return
-	}
-
-	MakeTMCPage(w, devices, "ТМЦ заказ "+r.FormValue("Order"))
 }
 
 // Компактное представление устройства
@@ -409,18 +485,22 @@ func (a App) ChangeMACPage(w http.ResponseWriter, r *http.Request, pr httprouter
 	MakeImputPage(w, "", "Изменить маки", "Введите последовательно серийный номер и мак для каждого устройства", "Изменить")
 }
 
+// Страница выпуска устройств с производства
 func (a App) ReleaseProductionPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	MakeImputPage(w, "", "Выпуск с производства", "Введите серийные номера", "Выпуск")
 }
 
+// Страница возврата не собраных устройств на производство
 func (a App) ReturnToStoragePage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	MakeImputPage(w, "", "Вернуть на склад", "Введите серийные номера через пробез или с новой стрроки", "Вернуть")
 }
 
+// Страница установки обещаной даты выхода заказа с производства
 func (a App) SetPromDatePage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	MakeDobleImputTypePage(w, "", "Задать дату", "Введите ID заказа "+r.FormValue("Order"), "number", "Введите дату готовности", "date", "Задать дату")
 }
 
+// Страница смены пароля
 func (a App) ChangePassPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	MakeChangePassPage(w, "", "", "", "")
 }
@@ -463,7 +543,7 @@ func (a App) SnSearch(w http.ResponseWriter, r *http.Request, pr httprouter.Para
 		fmt.Println(err)
 	}
 
-	MakeTMCPage(w, devices, "Результаты поиска, показанно устройств: "+strconv.Itoa(len(devices)))
+	MakeTMCPage(w, devices, "Результаты поиска, показанно устройств: "+strconv.Itoa(len(devices)), "")
 }
 
 // универсальный поиск в тмц
@@ -474,7 +554,7 @@ func (a App) TMCSearch(w http.ResponseWriter, r *http.Request, pr httprouter.Par
 	if err != nil {
 		fmt.Println(err)
 	}
-	MakeTMCPage(w, devices, "Результаты поиска "+snString+" показанно устройств: "+strconv.Itoa(len(devices)))
+	MakeTMCPage(w, devices, "Результаты поиска "+snString+" показанно устройств: "+strconv.Itoa(len(devices)), "")
 }
 
 // универсальный поиск в заказах
@@ -681,7 +761,7 @@ func (a App) AdvanceTMCSearch(w http.ResponseWriter, r *http.Request, pr httprou
 		return
 	}
 
-	MakeTMCPage(w, devices, "Результаты поиска ТМЦ "+strconv.Itoa(len(devices)))
+	MakeTMCPage(w, devices, "Результаты поиска ТМЦ "+strconv.Itoa(len(devices)), "")
 }
 
 // приемка демо
@@ -1038,6 +1118,7 @@ func (a App) ChangeMAC(w http.ResponseWriter, r *http.Request, pr httprouter.Par
 	MakeAlertPage(w, 1, "Успешно", "Успешно", "Изменено "+strconv.Itoa(count)+" устройств", "", "Главная", "/works/prof")
 }
 
+// Выпуск устройств с производства
 func (a App) ReleaseProduction(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	in := strings.Fields(r.FormValue("in"))
 
@@ -1060,6 +1141,7 @@ func (a App) ReleaseProduction(w http.ResponseWriter, r *http.Request, pr httpro
 	MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", "", "Главная", "/works/prof")
 }
 
+// Вернуть не собраные устройства на склад
 func (a App) ReturnToStorage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	in := strings.Fields(r.FormValue("in"))
 
@@ -1082,6 +1164,7 @@ func (a App) ReturnToStorage(w http.ResponseWriter, r *http.Request, pr httprout
 	MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", "", "Главная", "/works/prof")
 }
 
+// Установить обещаную дату производства заказа
 func (a App) SetPromDate(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	order, err := strconv.Atoi(r.FormValue("in1"))
 	if err != nil {
@@ -1102,6 +1185,7 @@ func (a App) SetPromDate(w http.ResponseWriter, r *http.Request, pr httprouter.P
 	MakeAlertPage(w, 1, "Готово", "Установленно", "Заказу с ID "+strconv.Itoa(order)+" назначена новая дата производства", "", "Главная", "/works/prof")
 }
 
+// Изменить пароль
 func (a App) ChangePass(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	oldPass := r.FormValue("old")
 	newPass := r.FormValue("new")
@@ -1155,18 +1239,201 @@ func (a App) TestFile(w http.ResponseWriter, r *http.Request, pr httprouter.Para
 	}
 }
 
+func (a App) TMCExcell(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+
+	var devices []mytypes.DeviceClean
+	var link string
+	var err error
+	if r.FormValue("Search") == "" {
+		devices, err = a.Db.TakeCleanDeviceById(a.ctx)
+		if err != nil {
+			fmt.Println(err)
+		}
+	} else {
+		req := `WHERE true `
+		link = "?Search=1"
+		if r.FormValue("Id") != "" {
+			req += `AND "snsId" = ` + r.FormValue("Id") + ` `
+			link += "&Id=" + r.FormValue("Id")
+		}
+		if r.FormValue("Sn") != "" {
+			req += `AND "sn" = '` + r.FormValue("Sn") + `' `
+			link += "&Sn=" + r.FormValue("Sn")
+		}
+		if r.FormValue("Mac") != "" {
+			req += `AND "mac" = '` + r.FormValue("Mac") + `' `
+			link += "&Mac=" + r.FormValue("Mac")
+		}
+		if r.FormValue("DModel") != "" {
+			req += `AND "dmodel" = '` + r.FormValue("DModel") + `' `
+			link += "&DModel=" + r.FormValue("DModel")
+		}
+		if r.FormValue("Rev") != "" {
+			req += `AND "rev" = '` + r.FormValue("Rev") + `' `
+			link += "&Rev=" + r.FormValue("Rev")
+		}
+		if r.FormValue("TModel") != "" {
+			req += `AND "tmodel" = '` + r.FormValue("TModel") + `' `
+			link += "&TModel=" + r.FormValue("TModel")
+		}
+		if r.FormValue("Name") != "" {
+			req += `AND "name" = '` + r.FormValue("Name") + `' `
+			link += "&Name=" + r.FormValue("Name")
+		}
+		if r.FormValue("Condition") != "" {
+			req += `AND "condition" = '` + r.FormValue("Condition") + `' `
+			link += "&Condition=" + r.FormValue("Condition")
+		}
+		if r.FormValue("Order") != "" {
+			req += `AND "order" = ` + r.FormValue("Order") + ` `
+			link += "&Order=" + r.FormValue("Order")
+		}
+		if r.FormValue("Place") != "" {
+			req += `AND "place" = ` + r.FormValue("Place") + ` `
+			link += "&Place=" + r.FormValue("Place")
+		}
+		if r.FormValue("Shiped") != "" {
+			req += `AND "shiped" = ` + r.FormValue("Shiped") + ` `
+			link += "&Shiped=" + r.FormValue("Shiped")
+		}
+		if r.FormValue("ShippedDest") != "" {
+			req += `AND "shippedDest" = '` + r.FormValue("ShippedDest") + `' `
+			link += "&ShippedDest=" + r.FormValue("ShippedDest")
+		}
+		if r.FormValue("TakenDoc") != "" {
+			req += `AND "takenDoc" = '` + r.FormValue("TakenDoc") + `' `
+			link += "&TakenDoc=" + r.FormValue("TakenDoc")
+		}
+		if r.FormValue("TakenOrder") != "" {
+			req += `AND "takenOrder" = '` + r.FormValue("TakenOrder") + `' `
+			link += "&TakenOrder=" + r.FormValue("TakenOrder")
+		}
+		if r.FormValue("CondDateTo") != "" {
+			link += "&CondDateTo=" + r.FormValue("CondDateTo")
+			if r.FormValue("CondDate") != "" {
+				link += "&CondDate=" + r.FormValue("CondDate")
+				date, err := time.Parse("02.01.2006", r.FormValue("CondDate"))
+				if err == nil {
+					req += ` AND "condDate" BETWEEN '` + date.Format("2006-01-02")
+				} else {
+					req += ` AND "condDate" BETWEEN '2000-01-01`
+				}
+			} else {
+				req += ` AND "condDate" BETWEEN '2000-01-01`
+			}
+
+			date, err := time.Parse("02.01.2006", r.FormValue("CondDateTo"))
+			if err == nil {
+				req += `' AND '` + date.Format("2006-01-02") + `'`
+			} else {
+				req += `' AND '2100-01-01'`
+			}
+
+		} else {
+			if r.FormValue("CondDate") != "" {
+				link += "&CondDate=" + r.FormValue("CondDate")
+				date, err := time.Parse("02.01.2006", r.FormValue("CondDate"))
+				if err == nil {
+					req += `AND "condDate" = '` + date.Format("2006-01-02") + `' `
+				}
+			}
+		}
+
+		if r.FormValue("ShipedDateTo") != "" {
+			link += "&ShipedDateTo=" + r.FormValue("ShipedDateTo")
+
+			if r.FormValue("ShipedDate") != "" {
+				link += "&ShipedDate=" + r.FormValue("ShipedDate")
+				date, err := time.Parse("02.01.2006", r.FormValue("ShipedDate"))
+				if err == nil {
+					req += ` AND "shipedDate" BETWEEN '` + date.Format("2006-01-02")
+				} else {
+					req += ` AND "shipedDate" BETWEEN '2000-01-01`
+				}
+			} else {
+				req += ` AND "shipedDate" BETWEEN '2000-01-01`
+			}
+
+			date, err := time.Parse("02.01.2006", r.FormValue("ShipedDateTo"))
+			if err == nil {
+				req += `' AND '` + date.Format("2006-01-02") + `'`
+			} else {
+				req += `' AND '2100-01-01'`
+			}
+
+		} else {
+			if r.FormValue("ShipedDate") != "" {
+				link += "&ShipedDate=" + r.FormValue("ShipedDate")
+				date, err := time.Parse("02.01.2006", r.FormValue("ShipedDate"))
+				if err == nil {
+					req += `AND "shipedDate" = '` + date.Format("2006-01-02") + `' `
+				}
+			}
+		}
+
+		if r.FormValue("TakenDateTo") != "" {
+			link += "&TakenDateTo=" + r.FormValue("TakenDateTo")
+
+			if r.FormValue("TakenDate") != "" {
+				link += "&TakenDate=" + r.FormValue("TakenDate")
+				date, err := time.Parse("02.01.2006", r.FormValue("TakenDate"))
+				if err == nil {
+					req += ` AND "takenDate" BETWEEN '` + date.Format("2006-01-02")
+				} else {
+					req += ` AND "takenDate" BETWEEN '2000-01-01`
+				}
+			} else {
+				req += ` AND "takenDate" BETWEEN '2000-01-01`
+			}
+
+			date, err := time.Parse("02.01.2006", r.FormValue("TakenDateTo"))
+			if err == nil {
+				req += `' AND '` + date.Format("2006-01-02") + `'`
+			} else {
+				req += `' AND '2100-01-01'`
+			}
+
+		} else {
+			if r.FormValue("TakenDate") != "" {
+				link += "&TakenDate=" + r.FormValue("TakenDate")
+				date, err := time.Parse("02.01.2006", r.FormValue("TakenDate"))
+				if err == nil {
+					req += `AND "takenDate" = '` + date.Format("2006-01-02") + `' `
+				}
+			}
+		}
+
+		devices, err = a.Db.TakeCleanDeviceByRequest(a.ctx, req)
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
+
+	path, name, err := Filer.TMCExceller("http://127.0.0.1:8080/works/tmc"+link, devices...)
+	fmt.Println(path)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	err = sendXLSXFile(w, r, path, name)
+	if err != nil {
+		fmt.Println(err)
+	}
+}
+
 //////////////////////////
 // Конструкторы страниц //
 //////////////////////////
 
-func MakeTMCPage(w http.ResponseWriter, devices []mytypes.DeviceClean, lable string) {
+func MakeTMCPage(w http.ResponseWriter, devices []mytypes.DeviceClean, lable string, excellLink string) {
 
 	type tmcPage struct {
-		Lable    string
-		Tab      []mytypes.DeviceClean
-		SnString string
+		Lable      string
+		Tab        []mytypes.DeviceClean
+		SnString   string
+		ExcellLink string
 	}
-	table := tmcPage{lable, devices, GetSnfromCleanDevices(devices...)}
+	table := tmcPage{lable, devices, GetSnfromCleanDevices(devices...), excellLink}
 
 	t := template.Must(template.ParseFiles("Face/html/TMC.html"))
 	t.Execute(w, table)

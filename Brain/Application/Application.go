@@ -56,7 +56,6 @@ func (a App) Routs(r *httprouter.Router) {
 	r.GET("/works/towork", a.authtorized(a.ToWorkPage))
 	r.GET("/works/setorder", a.authtorized(a.SetOrderPage))
 	r.GET("/works/setplace", a.authtorized(a.SetPlacePage))
-	r.GET("/works/tmcorder", a.authtorized(a.TMCOrderSearch))
 	r.GET("/works/takedemo", a.authtorized(a.TakeDemoPage))
 	r.GET("/works/toship", a.authtorized(a.ToShipPage))
 	r.GET("/works/cangeplacenum", a.authtorized(a.ChangeNumPlacePage))
@@ -90,7 +89,8 @@ func (a App) Routs(r *httprouter.Router) {
 	r.POST("/works/setpromdate", a.authtorized(a.SetPromDate))
 	r.POST("/works/changepass", a.authtorized(a.ChangePass))
 
-	r.POST("/works/file", a.authtorized(a.TestFile))
+	r.GET("/works/file", a.authtorized(a.TMCExcell))
+	r.POST("/works/file", a.authtorized(a.TMCExcell))
 }
 
 // Проверка авторизациия

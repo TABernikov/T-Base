@@ -81,7 +81,8 @@
                 <table class="table table-hover table-striped"style = "table-layout: fixed;" >
                   <col span="18" style="width: 150px;">
                     <thead>
-                     {{.Lable}} <button class="btn btn-outline-primary btn-sm"name="copybtn" onclick="myFunction()"><i class="icon-docs" ></i></button>
+                     {{.Lable}} <button class="d.inline btn btn-outline-primary btn-sm"name="copybtn" onclick="myFunction()"><i class="icon-docs" ></i></button>
+                     <a class="d.inline btn btn-outline-primary btn-sm"name="copybtn" href="/works/file"><i class="icon-docs" ></i></a>
                         <tr>
                             <th scope="col" id = "12344">Id</th>
                             
@@ -158,6 +159,10 @@
         document.execCommand('copy');
         document.body.removeChild(el);
       }
+
+    
+        
+    
       </script>
         <script src="Face/html/js/bootstrap.bundle.js">
           
