@@ -96,23 +96,18 @@
           </div>
 
         <div class="col">
-        <div class="row gy-3 gx-3">
-          {{range .Bl}}
-          <div class="col">
-            <h6 class="text-nowrap">{{.Title}}</h6>
-            <div class="d-grid gap-2">
-              {{range .Btns}}
-              <a class="btn btn-primary" href="{{.Url}}" role="button" style="min-width: 150px;">{{.Text}}</a>
-              {{end}}
+          <div class="row gy-3 gx-3">
+            {{range .Bl}}
+            <div class="col">
+              <h6 class="text-nowrap">{{.Title}}</h6>
+              <div class="d-grid gap-2">
+                {{range .Btns}}
+                <a class="btn btn-primary" href="{{.Url}}" role="button" style="min-width: 150px;">{{.Text}}</a>
+                {{end}}
+              </div>
             </div>
+            {{end}}
           </div>
-          {{end}}
-        </div>
-        <form  class="p-1" id="filetest" name="filetest" action="/works/file" method="post">   
-          <div class=" input-group input-group-sm" >
-              <button class="btn btn-info" type="submit"  ><small>тестовый фаил</small></button>
-          </div>
-      </form>
         </div>
 
         </div>

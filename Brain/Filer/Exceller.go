@@ -23,7 +23,6 @@ func TMCExceller(link string, devices ...mytypes.DeviceClean) (string, string, e
 	f.SetCellValue("ТМЦ", "B1", len(devices))
 	f.SetCellValue("ТМЦ", "C1", "Открыть в браузере")
 	f.SetCellHyperLink("ТМЦ", "C1", link, "External")
-	f.SetCellValue("ТМЦ", "A2", "Параметры поиска")
 
 	f.SetCellValue("ТМЦ", "A3", "Id")
 	if f.SetColWidth("ТМЦ", "A", "A", 18) != nil {

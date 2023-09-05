@@ -58,8 +58,9 @@
               
             
             
-            <form class="d-flex" role="search" action="/works/tmcsearch" method="post">
+            <form class="d-flex" role="search" action="/works/tmc" method="post">
               <input class="form-control" type="in" id="in" name="in" placeholder="SN/Заказ/..." aria-label="Поиск">
+              <input type="hidden" name="Search" value="Anything">
               <button class="btn btn-outline-success" type="submit">Поиск</button>
             </form>
         
@@ -82,7 +83,7 @@
                   <col span="18" style="width: 150px;">
                     <thead>
                      {{.Lable}} <button class="d.inline btn btn-outline-primary btn-sm"name="copybtn" onclick="myFunction()"><i class="icon-docs" ></i></button>
-                     <a class="d.inline btn btn-outline-primary btn-sm"name="copybtn" href="/works/file"><i class="icon-docs" ></i></a>
+                     &nbsp;<a class="d.inline btn btn-outline-success btn-sm"name="copybtn" href="/works/tmcexcell{{.ExcellLink}}"><i class="icon-file-excel" ></i></a>
                         <tr>
                             <th scope="col" id = "12344">Id</th>
                             

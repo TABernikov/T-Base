@@ -115,7 +115,7 @@
                       {{.Shipped}}
                     </td>
                     <td>
-                      <a class="btn btn-sm {{if(eq .Shipped true )}} {{print "btn-secondary"}} {{else if(eq .Condition "Собрано" )}} {{print "btn-success"}} {{else if(eq .Condition "В работе" )}} {{print "btn-primary"}}     {{else if(eq .Condition "Не собрано")}} {{print "btn-warning"}} {{end}}" href="/works/tmc?Search=1&Condition={{.Condition}}&Name={{.Name}}&TModel={{.Model}}&Shiped=false" type="button" style="width: 100%;">В ТМЦ</a>
+                      <a class="btn btn-sm {{if(eq .Shipped true )}} {{print "btn-secondary"}} {{else if(eq .Condition "Собрано" )}} {{print "btn-success"}} {{else if(eq .Condition "В работе" )}} {{print "btn-primary"}}     {{else if(eq .Condition "Не собрано")}} {{print "btn-warning"}} {{end}}" href="/works/tmc?Search=Clean&Condition={{.Condition}}&Name={{.Name}}&TModel={{.Model}}&Shiped=false" type="button" style="width: 100%;">В ТМЦ</a>
                     </td>
                 </tr>
                 {{end}}

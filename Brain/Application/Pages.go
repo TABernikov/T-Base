@@ -56,8 +56,8 @@ func (a App) TMCPage(w http.ResponseWriter, r *http.Request, pr httprouter.Param
 		if err != nil {
 			fmt.Println(err)
 		}
-	} else {
-		link = "?Search=1"
+	} else if r.FormValue("Search") == "Clean" {
+		link = "?Search=Clean"
 		req := `WHERE true `
 		if r.FormValue("Id") != "" {
 			req += `AND "snsId" = ` + r.FormValue("Id") + ` `
@@ -215,6 +215,149 @@ func (a App) TMCPage(w http.ResponseWriter, r *http.Request, pr httprouter.Param
 		if err != nil {
 			fmt.Println(err)
 		}
+	} else if r.FormValue("Search") == "Raw" {
+		rawSelect := `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder" FROM public.sns WHERE true`
+		link = "?Search=Raw"
+		if r.FormValue("Id") != "" {
+			rawSelect += ` AND "snsId" = ` + r.FormValue("Id")
+			link += "&Id=" + r.FormValue("Id")
+		}
+		if r.FormValue("TModel") != "" {
+			rawSelect += ` AND tmodel = ` + r.FormValue("TModel")
+			link += "&TModel=" + r.FormValue("TModel")
+		}
+
+		if r.FormValue("Sn") != "" {
+			rawSelect += ` AND sn = '` + r.FormValue("Sn") + `'`
+			link += "&Sn=" + r.FormValue("Sn")
+		}
+
+		if r.FormValue("Mac") != "" {
+			rawSelect += ` AND mac = '` + r.FormValue("Mac") + `'`
+			link += "&Mac=" + r.FormValue("Mac")
+		}
+
+		if r.FormValue("Order") != "" {
+			rawSelect += ` AND "order" = ` + r.FormValue("Order")
+			link += "&Order=" + r.FormValue("Order")
+		}
+
+		if r.FormValue("Place") != "" {
+			rawSelect += ` AND place = ` + r.FormValue("Place")
+			link += "&Place=" + r.FormValue("Place")
+		}
+
+		if r.FormValue("DModel") != "" {
+			rawSelect += ` And dmodel = ` + r.FormValue("DModel")
+			link += "&DModel=" + r.FormValue("DModel")
+		}
+
+		if r.FormValue("Rev") != "" {
+			rawSelect += ` AND rev =  '` + r.FormValue("Rev") + `'`
+			link += "&Rev=" + r.FormValue("Rev")
+		}
+
+		if r.FormValue("Name") != "" {
+			rawSelect += ` AND name = '` + r.FormValue("Name") + `'`
+			link += "&Name=" + r.FormValue("Name")
+		}
+
+		if r.FormValue("Condition") != "" {
+			rawSelect += ` AND condition = ` + r.FormValue("Condition")
+			link += "&Condition=" + r.FormValue("Condition")
+		}
+
+		if r.FormValue("CondDateFrom") != "" {
+			rawSelect += ` AND "condDate" BETWEEN '` + r.FormValue("CondDateFrom")
+			link += "&CondDateFrom=" + r.FormValue("CondDateFrom")
+		} else {
+			rawSelect += ` AND "condDate" BETWEEN '2000-01-01`
+			link += "&CondDateFrom=2000-01-01"
+		}
+
+		if r.FormValue("CondDateTo") != "" {
+			rawSelect += `' AND '` + r.FormValue("CondDateTo") + `'`
+			link += "&CondDateTo=" + r.FormValue("CondDateTo")
+		} else {
+			rawSelect += `' AND '2100-01-01'`
+			link += "&CondDateTo=2100-01-01"
+		}
+
+		if r.FormValue("Shiped") != "" {
+			rawSelect += (` AND shiped = ` + r.FormValue("Shiped"))
+			link += "&Shiped=" + r.FormValue("Shiped")
+		}
+
+		if r.FormValue("ShippedDest") != "" {
+			rawSelect += ` AND "shippedDest" = '` + r.FormValue("ShippedDest") + `'`
+			link += "&ShippedDest=" + r.FormValue("ShippedDest")
+		}
+
+		if r.FormValue("ShipedDateFrom") != "" {
+			rawSelect += ` AND "shipedDate" BETWEEN '` + r.FormValue("ShipedDateFrom")
+			link += "&ShipedDateFrom=" + r.FormValue("ShipedDateFrom")
+		} else {
+			rawSelect += ` AND "shipedDate" BETWEEN '2000-01-01`
+			link += "&ShipedDateFrom=2000-01-01"
+		}
+
+		if r.FormValue("ShipedDateTo") != "" {
+			rawSelect += `' AND '` + r.FormValue("ShipedDateTo") + `'`
+			link += "&ShipedDateTo=" + r.FormValue("ShipedDateTo")
+		} else {
+			rawSelect += `' AND '2100-01-01'`
+			link += "&ShipedDateTo=2100-01-01"
+		}
+
+		if r.FormValue("TakenDoc") != "" {
+			rawSelect += ` AND "takenDoc" = '` + r.FormValue("TakenDoc") + `'`
+			link += "&TakenDoc=" + r.FormValue("TakenDoc")
+		}
+
+		if r.FormValue("TakenOrder") != "" {
+			rawSelect += ` AND "takenOrder" = '` + r.FormValue("TakenOrder") + `'`
+			link += "&TakenOrder=" + r.FormValue("TakenOrder")
+		}
+
+		if r.FormValue("TakenDateFrom") != "" {
+			rawSelect += ` AND "takenDate" BETWEEN '` + r.FormValue("TakenDateFrom")
+			link += "&TakenDateFrom=" + r.FormValue("TakenDateFrom")
+		} else {
+			rawSelect += ` AND "takenDate" BETWEEN '2000-01-01`
+			link += "&TakenDateFrom=2000-01-01"
+		}
+
+		if r.FormValue("TakenDateTo") != "" {
+			rawSelect += `' AND '` + r.FormValue("TakenDateTo") + `'`
+			link += "&TakenDateTo=" + r.FormValue("TakenDateTo")
+		} else {
+			rawSelect += `' AND '2100-01-01'`
+			link += "&TakenDateTo=2100-01-01"
+		}
+
+		cleanSelect := `SELECT tmp."snsId", tmp.sn, tmp.mac, "dModels"."dModelName" AS dmodel, tmp.rev, "tModels"."tModelsName" AS tmodel, tmp.name, "condNames"."condName" AS condition, tmp."condDate", tmp."order", tmp.place, tmp.shiped, tmp."shipedDate", tmp."shippedDest", tmp."takenDate", tmp."takenDoc", tmp."takenOrder", snscomment.comment FROM (` + rawSelect + `)tmp LEFT JOIN "dModels" ON "dModels"."dModelsId" = tmp.dmodel LEFT JOIN "tModels" ON "tModels"."tModelsId" = tmp.tmodel LEFT JOIN "condNames" ON "condNames"."condNamesId" = tmp.condition LEFT JOIN snscomment ON snscomment."snsId" = tmp."snsId"`
+
+		devices, err = a.Db.TakeCleanDevice(a.ctx, cleanSelect)
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+	} else if r.FormValue("Search") == "Sns" {
+		snString := r.FormValue("in")
+		link = "?Search=Sns&in=" + r.FormValue("in")
+		Sns := strings.Fields(snString)
+		devices, err = a.Db.TakeCleanDeviceBySn(a.ctx, Sns...)
+		if err != nil {
+			fmt.Println(err)
+		}
+	} else if r.FormValue("Search") == "Anything" {
+		link = "?Search=Anything&in=" + r.FormValue("in")
+		snString := r.FormValue("in")
+		Sns := strings.Split(snString, ";")
+		devices, err = a.Db.TakeCleanDeviceByAnything(a.ctx, Sns...)
+		if err != nil {
+			fmt.Println(err)
+		}
 	}
 
 	MakeTMCPage(w, devices, "ТМЦ показанно устройств: "+strconv.Itoa(len(devices)), link)
@@ -262,7 +405,7 @@ func (a App) DeviceMiniPage(w http.ResponseWriter, r *http.Request, pr httproute
 
 // Тестовая страница ввода серийных номеров
 func (a App) SnSearchPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
-	MakeImputPage(w, "/works/snsearch", "Поиск по Sn", "Введите серийные номера", "Поиск")
+	MakeImputPage(w, "/works/tmc", "Поиск по Sn", "Введите серийные номера", "Поиск")
 }
 
 // Страница склада по заказам
@@ -533,30 +676,6 @@ func (a App) Login(w http.ResponseWriter, r *http.Request, pr httprouter.Params)
 	}
 }
 
-// поиск в тмц по серийным ноомерам
-func (a App) SnSearch(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
-
-	snString := r.FormValue("in")
-	Sns := strings.Fields(snString)
-	devices, err := a.Db.TakeCleanDeviceBySn(a.ctx, Sns...)
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	MakeTMCPage(w, devices, "Результаты поиска, показанно устройств: "+strconv.Itoa(len(devices)), "")
-}
-
-// универсальный поиск в тмц
-func (a App) TMCSearch(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
-	snString := r.FormValue("in")
-	Sns := strings.Split(snString, ";")
-	devices, err := a.Db.TakeCleanDeviceByAnything(a.ctx, Sns...)
-	if err != nil {
-		fmt.Println(err)
-	}
-	MakeTMCPage(w, devices, "Результаты поиска "+snString+" показанно устройств: "+strconv.Itoa(len(devices)), "")
-}
-
 // универсальный поиск в заказах
 func (a App) OrderSearch(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	searchString := r.FormValue("in")
@@ -660,108 +779,6 @@ func (a App) SetPlace(w http.ResponseWriter, r *http.Request, pr httprouter.Para
 		MakeAlertPage(w, 2, "Готово", "Частично", "Части устройств не было назначено место", "Внесено "+strconv.Itoa(len(Sns))+" серийных номеров	Назначено "+strconv.Itoa(count)+"  серийных номеров", "Главная", "/works/prof")
 		return
 	}
-}
-
-// сложный поиск в тмц
-func (a App) AdvanceTMCSearch(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
-	rawSelect := `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder" FROM public.sns WHERE true`
-
-	if r.FormValue("Id") != "" {
-		rawSelect += ` AND "snsId" = ` + r.FormValue("Id")
-	}
-	if r.FormValue("TModel") != "" {
-		rawSelect += ` AND tmodel = ` + r.FormValue("TModel")
-	}
-
-	if r.FormValue("Sn") != "" {
-		rawSelect += ` AND sn = '` + r.FormValue("Sn") + `'`
-	}
-
-	if r.FormValue("Mac") != "" {
-		rawSelect += ` AND mac = '` + r.FormValue("Mac") + `'`
-	}
-
-	if r.FormValue("Order") != "" {
-		rawSelect += ` AND "order" = ` + r.FormValue("Order")
-	}
-
-	if r.FormValue("Place") != "" {
-		rawSelect += ` AND place = ` + r.FormValue("Place")
-	}
-
-	if r.FormValue("DModel") != "" {
-		rawSelect += ` And dmodel = ` + r.FormValue("DModel")
-	}
-
-	if r.FormValue("Rev") != "" {
-		rawSelect += ` AND rev =  '` + r.FormValue("Rev") + `'`
-	}
-
-	if r.FormValue("Condition") != "" {
-		rawSelect += ` AND condition = ` + r.FormValue("Condition")
-	}
-
-	if r.FormValue("CondDateFrom") != "" {
-		rawSelect += ` AND "condDate" BETWEEN '` + r.FormValue("CondDateFrom")
-	} else {
-		rawSelect += ` AND "condDate" BETWEEN '2000-01-01`
-	}
-
-	if r.FormValue("CondDateTo") != "" {
-		rawSelect += `' AND '` + r.FormValue("CondDateTo") + `'`
-	} else {
-		rawSelect += `' AND '2100-01-01'`
-	}
-
-	if r.FormValue("Shiped") != "" {
-		rawSelect += (` AND shiped = ` + r.FormValue("Shiped"))
-	}
-
-	if r.FormValue("ShippedDest") != "" {
-		rawSelect += ` AND "shippedDest" = '` + r.FormValue("ShippedDest") + `'`
-	}
-
-	if r.FormValue("ShipedDateFrom") != "" {
-		rawSelect += ` AND "shipedDate" BETWEEN '` + r.FormValue("ShipedDateFrom")
-	} else {
-		rawSelect += ` AND "shipedDate" BETWEEN '2000-01-01`
-	}
-
-	if r.FormValue("ShipedDateTo") != "" {
-		rawSelect += `' AND '` + r.FormValue("ShipedDateTo") + `'`
-	} else {
-		rawSelect += `' AND '2100-01-01'`
-	}
-
-	if r.FormValue("TakenDoc") != "" {
-		rawSelect += ` AND "takenDoc" = '` + r.FormValue("TakenDoc") + `'`
-	}
-
-	if r.FormValue("TakenOrder") != "" {
-		rawSelect += ` AND "takenOrder" = '` + r.FormValue("TakenOrder") + `'`
-	}
-
-	if r.FormValue("TakenDateFrom") != "" {
-		rawSelect += ` AND "takenDate" BETWEEN '` + r.FormValue("TakenDateFrom")
-	} else {
-		rawSelect += ` AND "takenDate" BETWEEN '2000-01-01`
-	}
-
-	if r.FormValue("TakenDateTo") != "" {
-		rawSelect += `' AND '` + r.FormValue("TakenDateTo") + `'`
-	} else {
-		rawSelect += `' AND '2100-01-01'`
-	}
-
-	cleanSelect := `SELECT tmp."snsId", tmp.sn, tmp.mac, "dModels"."dModelName" AS dmodel, tmp.rev, "tModels"."tModelsName" AS tmodel, tmp.name, "condNames"."condName" AS condition, tmp."condDate", tmp."order", tmp.place, tmp.shiped, tmp."shipedDate", tmp."shippedDest", tmp."takenDate", tmp."takenDoc", tmp."takenOrder", snscomment.comment FROM (` + rawSelect + `)tmp LEFT JOIN "dModels" ON "dModels"."dModelsId" = tmp.dmodel LEFT JOIN "tModels" ON "tModels"."tModelsId" = tmp.tmodel LEFT JOIN "condNames" ON "condNames"."condNamesId" = tmp.condition LEFT JOIN snscomment ON snscomment."snsId" = tmp."snsId"`
-
-	devices, err := a.Db.TakeCleanDevice(a.ctx, cleanSelect)
-	if err != nil {
-		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
-		return
-	}
-
-	MakeTMCPage(w, devices, "Результаты поиска ТМЦ "+strconv.Itoa(len(devices)), "")
 }
 
 // приемка демо
@@ -1249,9 +1266,9 @@ func (a App) TMCExcell(w http.ResponseWriter, r *http.Request, pr httprouter.Par
 		if err != nil {
 			fmt.Println(err)
 		}
-	} else {
+	} else if r.FormValue("Search") == "Clean" {
 		req := `WHERE true `
-		link = "?Search=1"
+		link = "?Search=Clean"
 		if r.FormValue("Id") != "" {
 			req += `AND "snsId" = ` + r.FormValue("Id") + ` `
 			link += "&Id=" + r.FormValue("Id")
@@ -1404,6 +1421,149 @@ func (a App) TMCExcell(w http.ResponseWriter, r *http.Request, pr httprouter.Par
 		}
 
 		devices, err = a.Db.TakeCleanDeviceByRequest(a.ctx, req)
+		if err != nil {
+			fmt.Println(err)
+		}
+	} else if r.FormValue("Search") == "Raw" {
+		rawSelect := `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder" FROM public.sns WHERE true`
+		link = "?Search=Raw"
+		if r.FormValue("Id") != "" {
+			rawSelect += ` AND "snsId" = ` + r.FormValue("Id")
+			link += "&Id=" + r.FormValue("Id")
+		}
+		if r.FormValue("TModel") != "" {
+			rawSelect += ` AND tmodel = ` + r.FormValue("TModel")
+			link += "&TModel=" + r.FormValue("TModel")
+		}
+
+		if r.FormValue("Sn") != "" {
+			rawSelect += ` AND sn = '` + r.FormValue("Sn") + `'`
+			link += "&Sn=" + r.FormValue("Sn")
+		}
+
+		if r.FormValue("Mac") != "" {
+			rawSelect += ` AND mac = '` + r.FormValue("Mac") + `'`
+			link += "&Mac=" + r.FormValue("Mac")
+		}
+
+		if r.FormValue("Order") != "" {
+			rawSelect += ` AND "order" = ` + r.FormValue("Order")
+			link += "&Order=" + r.FormValue("Order")
+		}
+
+		if r.FormValue("Place") != "" {
+			rawSelect += ` AND place = ` + r.FormValue("Place")
+			link += "&Place=" + r.FormValue("Place")
+		}
+
+		if r.FormValue("DModel") != "" {
+			rawSelect += ` And dmodel = ` + r.FormValue("DModel")
+			link += "&DModel=" + r.FormValue("DModel")
+		}
+
+		if r.FormValue("Rev") != "" {
+			rawSelect += ` AND rev =  '` + r.FormValue("Rev") + `'`
+			link += "&Rev=" + r.FormValue("Rev")
+		}
+
+		if r.FormValue("Name") != "" {
+			rawSelect += ` AND name = '` + r.FormValue("Name") + `'`
+			link += "&Name=" + r.FormValue("Name")
+		}
+
+		if r.FormValue("Condition") != "" {
+			rawSelect += ` AND condition = ` + r.FormValue("Condition")
+			link += "&Condition=" + r.FormValue("Condition")
+		}
+
+		if r.FormValue("CondDateFrom") != "" {
+			rawSelect += ` AND "condDate" BETWEEN '` + r.FormValue("CondDateFrom")
+			link += "&CondDateFrom=" + r.FormValue("CondDateFrom")
+		} else {
+			rawSelect += ` AND "condDate" BETWEEN '2000-01-01`
+			link += "&CondDateFrom=2000-01-01"
+		}
+
+		if r.FormValue("CondDateTo") != "" {
+			rawSelect += `' AND '` + r.FormValue("CondDateTo") + `'`
+			link += "&CondDateTo=" + r.FormValue("CondDateTo")
+		} else {
+			rawSelect += `' AND '2100-01-01'`
+			link += "&CondDateTo=2100-01-01"
+		}
+
+		if r.FormValue("Shiped") != "" {
+			rawSelect += (` AND shiped = ` + r.FormValue("Shiped"))
+			link += "&Shiped=" + r.FormValue("Shiped")
+		}
+
+		if r.FormValue("ShippedDest") != "" {
+			rawSelect += ` AND "shippedDest" = '` + r.FormValue("ShippedDest") + `'`
+			link += "&ShippedDest=" + r.FormValue("ShippedDest")
+		}
+
+		if r.FormValue("ShipedDateFrom") != "" {
+			rawSelect += ` AND "shipedDate" BETWEEN '` + r.FormValue("ShipedDateFrom")
+			link += "&ShipedDateFrom=" + r.FormValue("ShipedDateFrom")
+		} else {
+			rawSelect += ` AND "shipedDate" BETWEEN '2000-01-01`
+			link += "&ShipedDateFrom=2000-01-01"
+		}
+
+		if r.FormValue("ShipedDateTo") != "" {
+			rawSelect += `' AND '` + r.FormValue("ShipedDateTo") + `'`
+			link += "&ShipedDateTo=" + r.FormValue("ShipedDateTo")
+		} else {
+			rawSelect += `' AND '2100-01-01'`
+			link += "&ShipedDateTo=2100-01-01"
+		}
+
+		if r.FormValue("TakenDoc") != "" {
+			rawSelect += ` AND "takenDoc" = '` + r.FormValue("TakenDoc") + `'`
+			link += "&TakenDoc=" + r.FormValue("TakenDoc")
+		}
+
+		if r.FormValue("TakenOrder") != "" {
+			rawSelect += ` AND "takenOrder" = '` + r.FormValue("TakenOrder") + `'`
+			link += "&TakenOrder=" + r.FormValue("TakenOrder")
+		}
+
+		if r.FormValue("TakenDateFrom") != "" {
+			rawSelect += ` AND "takenDate" BETWEEN '` + r.FormValue("TakenDateFrom")
+			link += "&TakenDateFrom=" + r.FormValue("TakenDateFrom")
+		} else {
+			rawSelect += ` AND "takenDate" BETWEEN '2000-01-01`
+			link += "&TakenDateFrom=2000-01-01"
+		}
+
+		if r.FormValue("TakenDateTo") != "" {
+			rawSelect += `' AND '` + r.FormValue("TakenDateTo") + `'`
+			link += "&TakenDateTo=" + r.FormValue("TakenDateTo")
+		} else {
+			rawSelect += `' AND '2100-01-01'`
+			link += "&TakenDateTo=2100-01-01"
+		}
+
+		cleanSelect := `SELECT tmp."snsId", tmp.sn, tmp.mac, "dModels"."dModelName" AS dmodel, tmp.rev, "tModels"."tModelsName" AS tmodel, tmp.name, "condNames"."condName" AS condition, tmp."condDate", tmp."order", tmp.place, tmp.shiped, tmp."shipedDate", tmp."shippedDest", tmp."takenDate", tmp."takenDoc", tmp."takenOrder", snscomment.comment FROM (` + rawSelect + `)tmp LEFT JOIN "dModels" ON "dModels"."dModelsId" = tmp.dmodel LEFT JOIN "tModels" ON "tModels"."tModelsId" = tmp.tmodel LEFT JOIN "condNames" ON "condNames"."condNamesId" = tmp.condition LEFT JOIN snscomment ON snscomment."snsId" = tmp."snsId"`
+
+		devices, err = a.Db.TakeCleanDevice(a.ctx, cleanSelect)
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+	} else if r.FormValue("Search") == "Sns" {
+		snString := r.FormValue("in")
+		link = "?Search=Sns&in=" + r.FormValue("in")
+		Sns := strings.Fields(snString)
+		devices, err = a.Db.TakeCleanDeviceBySn(a.ctx, Sns...)
+		if err != nil {
+			fmt.Println(err)
+		}
+	} else if r.FormValue("Search") == "Anything" {
+		link = "?Search=Anything&in=" + r.FormValue("in")
+		snString := r.FormValue("in")
+		Sns := strings.Split(snString, ";")
+		devices, err = a.Db.TakeCleanDeviceByAnything(a.ctx, Sns...)
 		if err != nil {
 			fmt.Println(err)
 		}

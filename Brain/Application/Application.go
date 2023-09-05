@@ -67,13 +67,11 @@ func (a App) Routs(r *httprouter.Router) {
 	r.GET("/works/setpromdate", a.authtorized(a.SetPromDatePage))
 	r.GET("/works/changepass", a.authtorized(a.ChangePassPage))
 
-	r.POST("/works/snsearch", a.authtorized(a.SnSearch))
-	r.POST("/works/tmcsearch", a.authtorized(a.TMCSearch))
+	r.POST("/works/tmc", a.authtorized(a.TMCPage))
 	r.POST("/works/ordersearch", a.authtorized(a.OrderSearch))
 	r.POST("/works/towork", a.authtorized(a.ToWork))
 	r.POST("/works/setorder", a.authtorized(a.SetOrder))
 	r.POST("/works/setplace", a.authtorized(a.SetPlace))
-	r.POST("/works/tmc", a.authtorized(a.AdvanceTMCSearch))
 	r.POST("/works/takedemo", a.authtorized(a.TakeDemo))
 	r.POST("/works/toship", a.authtorized(a.ToShip))
 	r.POST("/works/cangeplacenum", a.authtorized(a.ChangeNumPlace))
@@ -89,8 +87,8 @@ func (a App) Routs(r *httprouter.Router) {
 	r.POST("/works/setpromdate", a.authtorized(a.SetPromDate))
 	r.POST("/works/changepass", a.authtorized(a.ChangePass))
 
-	r.GET("/works/file", a.authtorized(a.TMCExcell))
-	r.POST("/works/file", a.authtorized(a.TMCExcell))
+	r.GET("/works/tmcexcell", a.authtorized(a.TMCExcell))
+	r.POST("/works/tmcexcell", a.authtorized(a.TMCExcell))
 }
 
 // Проверка авторизациия
