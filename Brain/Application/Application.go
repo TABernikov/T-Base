@@ -68,7 +68,7 @@ func (a App) Routs(r *httprouter.Router) {
 	r.GET("/works/changepass", a.authtorized(a.ChangePassPage))
 
 	r.POST("/works/tmc", a.authtorized(a.TMCPage))
-	r.POST("/works/ordersearch", a.authtorized(a.OrderSearch))
+	r.POST("/works/orders", a.authtorized(a.OrderPage))
 	r.POST("/works/towork", a.authtorized(a.ToWork))
 	r.POST("/works/setorder", a.authtorized(a.SetOrder))
 	r.POST("/works/setplace", a.authtorized(a.SetPlace))
@@ -89,6 +89,8 @@ func (a App) Routs(r *httprouter.Router) {
 
 	r.GET("/works/tmcexcell", a.authtorized(a.TMCExcell))
 	r.POST("/works/tmcexcell", a.authtorized(a.TMCExcell))
+
+	r.GET("/works/file", a.authtorized(a.TestFile))
 }
 
 // Проверка авторизациия
@@ -176,7 +178,7 @@ func GetSnfromCleanDevices(devices ...mytypes.DeviceClean) string {
 	return SnString
 }
 
-func sendXLSXFile(w http.ResponseWriter, r *http.Request, path, name string) error {
+func sendFile(w http.ResponseWriter, r *http.Request, path, name string) error {
 	f, err := os.Open(path)
 	if err != nil {
 		return err
@@ -186,7 +188,7 @@ func sendXLSXFile(w http.ResponseWriter, r *http.Request, path, name string) err
 	if err != nil {
 		return err
 	}
-	w.Header().Set("Content-Disposition", "attachment; filename="+name+".xlsx")
+	w.Header().Set("Content-Disposition", "attachment; filename="+name)
 	http.ServeContent(w, r, "test", fi.ModTime(), f)
 
 	f.Close()

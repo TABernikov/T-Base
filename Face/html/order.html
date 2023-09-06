@@ -139,7 +139,8 @@
                     <nav>
                         <div class="nav nav-tabs mb-3" id="nav-tab" role="tablist">
                             {{if .List}}<button class="nav-link active" id="nav-list-tab" data-bs-toggle="tab" data-bs-target="#nav-list" type="button" role="tab" aria-controls="nav-list" aria-selected="true">Состав заказа</button>{{end}}
-                            <button class="nav-link" id="nav-res-tab" data-bs-toggle="tab" data-bs-target="#nav-res" type="button" role="tab" aria-controls="nav-res" aria-selected="false" tabindex="-1">Резерв <a target = "_parent" type="button" class="btn btn-sm btn-outline-info"  href="/works/tmc?Search=Raw&Order={{.Order.OrderId}}">Открыть в ТМЦ</a></button>
+                            {{if .Status}} <button class="nav-link" id="nav-st-tab" data-bs-toggle="tab" data-bs-target="#nav-st" type="button" role="tab" aria-controls="nav-st" aria-selected="false" tabindex="-1">Статус</button> {{end}}
+                            {{if .Reservs}}<button class="nav-link" id="nav-res-tab" data-bs-toggle="tab" data-bs-target="#nav-res" type="button" role="tab" aria-controls="nav-res" aria-selected="false" tabindex="-1">Резерв <a target = "_parent" type="button" class="btn btn-sm btn-outline-info"  href="/works/tmc?Search=Raw&Order={{.Order.OrderId}}">Открыть в ТМЦ</a></button>{{end}}
                         </div>
                     </nav>
 
@@ -172,6 +173,7 @@
                             </div>
                         </div>
                         {{end}}
+                        {{if .Reservs}}
                         <div class="tab-pane fade" id="nav-res" role="tabpanel" aria-labelledby="nav-res-tab">
                             
                             <div class="container-fluid" style="height: 80vh; overflow-y: scroll;">
@@ -199,10 +201,41 @@
                                     </tbody>
                                 </table>
                             </div>
-                        
-                                
-                            
                         </div>
+                        {{end}}
+                        {{if .Status}}
+                        <div class="tab-pane fade" id="nav-st" role="tabpanel" aria-labelledby="nav-st-tab">
+                            
+                            <div class="container-fluid" style="height: 80vh; overflow-y: scroll;">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Модель</th>
+                                            <th scope="col">В заказе</th>
+                                            <th scope="col">Зарезервированно</th>
+                                            <th scope="col">В работе</th>
+                                            <th scope="col">Собрано</th>
+                                            <th scope="col">Отгружено</th>
+                                            
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {{range .Status}}
+                                        <tr>
+                                            <td>{{.Model}}</td>
+                                            <td>{{.Amout}}</td>
+                                            <td>{{.Reserved}}</td>
+                                            <td>{{.InWork}}</td>
+                                            <td>{{.Done}}</td>
+                                            <td>{{.Shipped}}</td>
+                                        </tr>
+                                        {{end}}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        {{end}}
+
                     </div>
                 </div>
                 

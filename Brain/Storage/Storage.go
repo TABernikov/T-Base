@@ -717,7 +717,7 @@ func (base Base) TakeCleanOrderByAnything(ctx context.Context, reqest ...string)
 			return device, err
 		}
 
-		qq += `SELECT "orderId", meneger, "orderDate", "reqDate", "promDate", "shDate", "isAct", coment, customer, partner, disributor, name, "1СName" FROM public."cleanOrder" WHERE meneger = '` + a + `' OR coment = '` + a + `' OR customer = '` + a + `' OR partner = '` + a + `' OR disributor = '` + a + `' OR name = '` + a + `'`
+		qq += `SELECT "orderId", meneger, "orderDate", "reqDate", "promDate", "shDate", "isAct", coment, customer, partner, disributor, name, "1СName" FROM public."cleanOrder" WHERE meneger LIKE '%` + a + `%' OR coment LIKE '%` + a + `%' OR customer LIKE '%` + a + `%' OR partner LIKE '%` + a + `%' OR disributor LIKE '%` + a + `%' OR name LIKE '%` + a + `%'`
 
 		_, err := strconv.Atoi(a)
 		if err == nil {
@@ -805,8 +805,7 @@ func (base Base) TakeCleanOrderList(ctx context.Context, orderId int) ([]mytypes
     tmp."lastRed"
    FROM (SELECT "orderListId", "orderId", model, amout, "servType", "srevActDate", "lastRed"
 	FROM public."orderList" WHERE "orderId" = $1) tmp
-     LEFT JOIN "tModels" ON "tModels"."tModelsId" = tmp.model;
-`
+     LEFT JOIN "tModels" ON "tModels"."tModelsId" = tmp.model;`
 
 	rows, err := base.Db.Query(ctx, qq, orderId)
 	if err != nil {
@@ -825,6 +824,31 @@ func (base Base) TakeCleanOrderList(ctx context.Context, orderId int) ([]mytypes
 	}
 
 	return orderList, nil
+}
+
+func (base Base) TakeCleanOrderStatus(ctx context.Context, orderId int) ([]mytypes.OrderStatusClean, error) {
+	var statusList []mytypes.OrderStatusClean
+	var status mytypes.OrderStatusClean
+	qq := `SELECT "tModels"."tModelsName", "orderList".amout,  count(*)FILTER(WHERE sns.condition IS NOT NULL), count(*)FILTER(WHERE sns.condition = 3), count(*)FILTER(WHERE sns.condition = 1), count(*)FILTER(WHERE sns.shiped = true)
+	FROM "orderList"
+	LEFT JOIN "sns" ON "orderList"."orderId" = "sns".order AND "orderList".model = "sns".tmodel
+	LEFT JOIN "tModels" ON "orderList".model = "tModels"."tModelsId"
+	WHERE "orderList"."orderId" = $1
+	GROUP BY "tModels"."tModelsName","orderList".amout`
+
+	rows, err := base.Db.Query(ctx, qq, orderId)
+	if err != nil {
+		return statusList, err
+	}
+
+	for rows.Next() {
+		err := rows.Scan(&status.Model, &status.Amout, &status.Reserved, &status.InWork, &status.Done, &status.Shipped)
+		if err != nil {
+			return statusList, err
+		}
+		statusList = append(statusList, status)
+	}
+	return statusList, nil
 }
 
 /////////////////////////////////

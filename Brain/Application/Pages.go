@@ -529,9 +529,21 @@ func (a App) StorageByTModelPage(w http.ResponseWriter, r *http.Request, pr http
 
 // Таблица заказов
 func (a App) OrderPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
-	orders, err := a.Db.TakeCleanOrderByReqest(a.ctx, `WHERE "isAct" = true`)
-	if err != nil {
-		fmt.Print(err)
+	var orders []mytypes.OrderClean
+	var err error
+	if r.FormValue("Search") == "" {
+		orders, err = a.Db.TakeCleanOrderByReqest(a.ctx, `WHERE "isAct" = true`)
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		}
+	} else if r.FormValue("Search") == "Anything" {
+		searchString := r.FormValue("in")
+		searchs := strings.Split(searchString, ";")
+		orders, err = a.Db.TakeCleanOrderByAnything(a.ctx, searchs...)
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
 	}
 
 	MakeOrdersPage(w, orders, "Заказы")
@@ -542,7 +554,7 @@ func (a App) OrderMiniPage(w http.ResponseWriter, r *http.Request, pr httprouter
 
 	var order mytypes.OrderClean
 
-	if r.FormValue("Id") == "nil" { // Нужно сделать как в TMCMiniPage
+	if r.FormValue("Id") == "" {
 		orders, err := a.Db.TakeCleanOrderByReqest(a.ctx, `WHERE "isAct" = true LIMIT 1`)
 		if err != nil {
 			fmt.Fprintln(w, err)
@@ -580,7 +592,12 @@ func (a App) OrderMiniPage(w http.ResponseWriter, r *http.Request, pr httprouter
 		reservs = nil
 	}
 
-	MakeOrderMiniPage(w, order, orderList, reservs, user)
+	status, err := a.Db.TakeCleanOrderStatus(a.ctx, order.OrderId)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+	}
+
+	MakeOrderMiniPage(w, order, orderList, reservs, status, user)
 }
 
 // Страница передачи в производство
@@ -674,18 +691,6 @@ func (a App) Login(w http.ResponseWriter, r *http.Request, pr httprouter.Params)
 			a.LoginPage(w, "Неверный пароль")
 		}
 	}
-}
-
-// универсальный поиск в заказах
-func (a App) OrderSearch(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
-	searchString := r.FormValue("in")
-	searchs := strings.Split(searchString, ";")
-	orders, err := a.Db.TakeCleanOrderByAnything(a.ctx, searchs...)
-	if err != nil {
-		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
-		return
-	}
-	MakeOrdersPage(w, orders, "Результаты поиска "+searchString)
 }
 
 // передача в работу
@@ -1244,13 +1249,18 @@ func (a App) ChangePass(w http.ResponseWriter, r *http.Request, pr httprouter.Pa
 
 // Тестовый файл
 func (a App) TestFile(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
-	path, name, err := Filer.TextExcell()
+	order, err := a.Db.TakeCleanOrderById(a.ctx, 48)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	path, name, err := Filer.OrderExceller(order[0], *a.Db)
 	fmt.Println(path)
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	err = sendXLSXFile(w, r, path, name)
+	err = sendFile(w, r, path, name)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -1575,7 +1585,7 @@ func (a App) TMCExcell(w http.ResponseWriter, r *http.Request, pr httprouter.Par
 		fmt.Println(err)
 	}
 
-	err = sendXLSXFile(w, r, path, name)
+	err = sendFile(w, r, path, name)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -1690,15 +1700,16 @@ func MakeOrdersPage(w http.ResponseWriter, orders []mytypes.OrderClean, lable st
 	t.Execute(w, table)
 }
 
-func MakeOrderMiniPage(w http.ResponseWriter, order mytypes.OrderClean, orderList []mytypes.OrderListClean, reservs []mytypes.StorageByTModelClean, User mytypes.User) {
+func MakeOrderMiniPage(w http.ResponseWriter, order mytypes.OrderClean, orderList []mytypes.OrderListClean, reservs []mytypes.StorageByTModelClean, status []mytypes.OrderStatusClean, User mytypes.User) {
 	type orderPage struct {
 		Order   mytypes.OrderClean
 		List    []mytypes.OrderListClean
 		Reservs []mytypes.StorageByTModelClean
+		Status  []mytypes.OrderStatusClean
 		User    mytypes.User
 	}
 
-	page := orderPage{order, orderList, reservs, User}
+	page := orderPage{order, orderList, reservs, status, User}
 
 	t := template.Must(template.ParseFiles("Face/html/order.html"))
 	t.Execute(w, page)

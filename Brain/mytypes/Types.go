@@ -151,3 +151,12 @@ type OrderListClean struct {
 	ServActDate string
 	LastRed     string
 }
+
+type OrderStatusClean struct {
+	Model    string
+	Amout    int
+	Reserved int
+	InWork   int
+	Done     int
+	Shipped  int
+}
