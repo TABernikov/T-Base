@@ -805,7 +805,8 @@ func (base Base) TakeCleanOrderList(ctx context.Context, orderId int) ([]mytypes
     tmp."lastRed"
    FROM (SELECT "orderListId", "orderId", model, amout, "servType", "srevActDate", "lastRed"
 	FROM public."orderList" WHERE "orderId" = $1) tmp
-     LEFT JOIN "tModels" ON "tModels"."tModelsId" = tmp.model;`
+     LEFT JOIN "tModels" ON "tModels"."tModelsId" = tmp.model
+	 ORDER BY model;`
 
 	rows, err := base.Db.Query(ctx, qq, orderId)
 	if err != nil {
@@ -834,7 +835,8 @@ func (base Base) TakeCleanOrderStatus(ctx context.Context, orderId int) ([]mytyp
 	LEFT JOIN "sns" ON "orderList"."orderId" = "sns".order AND "orderList".model = "sns".tmodel
 	LEFT JOIN "tModels" ON "orderList".model = "tModels"."tModelsId"
 	WHERE "orderList"."orderId" = $1
-	GROUP BY "tModels"."tModelsName","orderList".amout`
+	GROUP BY "tModels"."tModelsName","orderList".amout
+	ORDER BY "tModels"."tModelsName"`
 
 	rows, err := base.Db.Query(ctx, qq, orderId)
 	if err != nil {

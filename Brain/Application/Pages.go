@@ -531,12 +531,14 @@ func (a App) StorageByTModelPage(w http.ResponseWriter, r *http.Request, pr http
 func (a App) OrderPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	var orders []mytypes.OrderClean
 	var err error
+	var link string
 	if r.FormValue("Search") == "" {
 		orders, err = a.Db.TakeCleanOrderByReqest(a.ctx, `WHERE "isAct" = true`)
 		if err != nil {
 			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
 		}
 	} else if r.FormValue("Search") == "Anything" {
+		link = "?Search=Anything&in=" + r.FormValue("in")
 		searchString := r.FormValue("in")
 		searchs := strings.Split(searchString, ";")
 		orders, err = a.Db.TakeCleanOrderByAnything(a.ctx, searchs...)
@@ -546,7 +548,7 @@ func (a App) OrderPage(w http.ResponseWriter, r *http.Request, pr httprouter.Par
 		}
 	}
 
-	MakeOrdersPage(w, orders, "Заказы")
+	MakeOrdersPage(w, orders, "Заказы", link)
 }
 
 // Компактное представление заказа
@@ -1249,12 +1251,12 @@ func (a App) ChangePass(w http.ResponseWriter, r *http.Request, pr httprouter.Pa
 
 // Тестовый файл
 func (a App) TestFile(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
-	order, err := a.Db.TakeCleanOrderById(a.ctx, 48)
+	order, err := a.Db.TakeCleanOrderById(a.ctx)
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	path, name, err := Filer.OrderExceller(order[0], *a.Db)
+	path, name, err := Filer.OrderExceller(*a.Db, "http://127.0.0.1:8080/works/orders", order...)
 	fmt.Println(path)
 	if err != nil {
 		fmt.Println(err)
@@ -1591,6 +1593,40 @@ func (a App) TMCExcell(w http.ResponseWriter, r *http.Request, pr httprouter.Par
 	}
 }
 
+func (a App) OrdersExcell(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	var orders []mytypes.OrderClean
+	var link string
+	var err error
+
+	if r.FormValue("Search") == "" {
+		orders, err = a.Db.TakeCleanOrderByReqest(a.ctx, `WHERE "isAct" = true`)
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+	} else if r.FormValue("Search") == "Anything" {
+		link = "?Search=Anything&in=" + r.FormValue("in")
+		searchString := r.FormValue("in")
+		searchs := strings.Split(searchString, ";")
+		orders, err = a.Db.TakeCleanOrderByAnything(a.ctx, searchs...)
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+	}
+
+	path, name, err := Filer.OrderExceller(*a.Db, "http://127.0.0.1:8080/works/orders"+link, orders...)
+	fmt.Println(path)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	err = sendFile(w, r, path, name)
+	if err != nil {
+		fmt.Println(err)
+	}
+}
+
 //////////////////////////
 // Конструкторы страниц //
 //////////////////////////
@@ -1688,13 +1724,14 @@ func MakeDeviceMiniPage(w http.ResponseWriter, device mytypes.DeviceClean, event
 	t.Execute(w, page)
 }
 
-func MakeOrdersPage(w http.ResponseWriter, orders []mytypes.OrderClean, lable string) {
+func MakeOrdersPage(w http.ResponseWriter, orders []mytypes.OrderClean, lable string, link string) {
 
 	type ordersPage struct {
-		Lable string
-		Tab   []mytypes.OrderClean
+		Lable      string
+		Tab        []mytypes.OrderClean
+		ExcellLink string
 	}
-	table := ordersPage{lable, orders}
+	table := ordersPage{lable, orders, link}
 
 	t := template.Must(template.ParseFiles("Face/html/orders.html"))
 	t.Execute(w, table)
