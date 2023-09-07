@@ -95,7 +95,6 @@ func ShortOrdersExceller(link string, orders ...mytypes.OrderClean) (string, str
 		return "", "", err
 	}
 	return path, name, nil
-
 }
 
 func makeTMCSheet(f *excelize.File, name, link string, devices ...mytypes.DeviceClean) {
