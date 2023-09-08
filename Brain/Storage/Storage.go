@@ -1077,6 +1077,26 @@ func (base Base) ReturnToStorage(ctx context.Context, sn ...string) int {
 	return counter
 }
 
+func (base Base) AddDeviceEvent(ctx context.Context, evntType int, eventText string, userId int, InId ...int) int {
+	if len(InId) == 0 {
+		return 0
+	}
+
+	qq := `INSERT INTO public."deviceLog"(
+	"deviceId", "eventType", "eventText", "user")
+	VALUES ($1, $2, $3, $4);`
+
+	var count int
+	for _, id := range InId {
+		_, err := base.Db.Exec(ctx, qq, id, evntType, eventText, userId)
+		if err == nil {
+			count++
+		}
+	}
+
+	return count
+}
+
 ///////////////////////////////
 // Функции изменения заказов //
 ///////////////////////////////
