@@ -65,12 +65,13 @@
 
             <div class="col input-group mb-3" style="min-width: 350px;">
               <span class="input-group-text">TModel</span>
-              <select class="form-select" name="TModel">
-                <option selected value="">Не выбрано</option>
+              <input class="form-select" name="TModel" type="text" placeholder="Не выбрано" list="tmodellist" onchange="resetIfInvalid(this)"></input>
+              <datalist id="tmodellist">
+                <option  value=""></option>
                 {{range .TModels}}
-                <option value="{{.Id}}">{{.Name}}</option>
+                  <option value="{{.Name}}"></option>
                 {{end}}  
-              </select>
+            </datalist>
             </div>
           </div>
 
@@ -108,12 +109,13 @@
           <div class="row">    
             <div class="col input-group mb-3" style="min-width: 350px;">
               <span class="input-group-text">DModel</span>
-              <select class="form-select" name="DModel">
-                <option selected value="">Не выбрано</option>
-                {{range .DModels}}
-                <option value="{{.Id}}">{{.Name}}</option>
-                {{end}}
-              </select>
+              <input class="form-select" name="DModel" type="text" onchange="resetIfInvalid(this)" list="dmodellist" placeholder="Не выбрано"> </input>
+                <datalist id="dmodellist">
+                  <option  value=""></option>
+                  {{range .DModels}}
+                    <option value="{{.Name}}"></option>
+                  {{end}}
+                </datalist>
             </div>
 
             <div class="col input-group mb-3" style="min-width: 350px;">
@@ -129,7 +131,7 @@
                 <select class="form-select" name="Condition">
                   <option selected value="">Не выбрано</option>
                   {{range .Conditions}}
-                  <option value="{{.Id}}">{{.Name}}</option>
+                  <option value="{{.Name}}">{{.Name}}</option>
                   {{end}}
                 </select>
               </div>
@@ -207,11 +209,26 @@
           </div>
 
           
-          <input type="hidden" name="Search" value="Raw">
+          <input type="hidden" name="Search" value="Clean">
           <button class="btn btn-outline-success" type="submit">Поиск</button>
       </form>
     </div>
 
+    <script>
+    function resetIfInvalid(el){
+     
+      if (el.value == "")
+          return;
+      var options = el.list.options;
+      for (var i = 0; i<options.length; i++) {
+          if (el.value == options[i].value)
+              return;
+      }
+      
+      el.value = "";
+    }
+</script>
+   
     <script src="Face/html/js/bootstrap.bundle.js"></script>
 
 </body>

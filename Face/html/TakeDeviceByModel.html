@@ -60,12 +60,14 @@
             <label for="DModel" class="form-label">Модель поставщика</label>
             <div class="input-group mb-3" >
               <span class="input-group-text">DModel</span>
-              <select class="form-select" name="DModel">
-                <option selected value="">Не выбрано</option>
+              <input class="form-select" name="DModel" type="text" onchange="resetIfInvalid(this)" list="dmodellist" placeholder="Не выбрано"></input>
+              <datalist id="dmodellist">
+                <option selected value=""></option>
                 {{range .DModels}}
-                <option value="{{.Id}};{{.Name}}">{{.Name}}</option>
+                  <option value="{{.Name}}"></option>
                 {{end}}
-              </select>
+              </datalist> 
+              
             </div>
             <label for="Rev" class="form-label">Ревизия</label>
             <div class=" input-group mb-3">
@@ -82,12 +84,14 @@
             <label for="TModel" class="form-label">Планируемая модель</label>
             <div class=" input-group mb-3" >
               <span class="input-group-text">TModel</span>
-              <select class="form-select" name="TModel">
-                <option selected value="">Не выбрано</option>
+              <input class="form-select" name="TModel" type="text" placeholder="Не выбрано" list="tmodellist" onchange="resetIfInvalid(this)"></input>
+              <datalist id="tmodellist">
+                <option selected value=""></option>
                 {{range .TModels}}
-                <option value="{{.Id}}">{{.Name}}</option>
+                  <option value="{{.Name}}"></option>
                 {{end}}  
-              </select>
+              </datalist> 
+              
             </div>
             <label for="Place" class="form-label">Номер места</label>
             <div class="input-group mb-3">
@@ -109,6 +113,21 @@
           <button class="btn btn-primary" type="submit" style="width: 100%;">Принять</button>
       </form>
     </div>
+
+    <script>
+      function resetIfInvalid(el){
+       
+        if (el.value == "")
+            return;
+        var options = el.list.options;
+        for (var i = 0; i<options.length; i++) {
+            if (el.value == options[i].value)
+                return;
+        }
+        
+        el.value = "";
+      }
+    </script>
 
     <script src="Face/html/js/bootstrap.bundle.js"></script>
 

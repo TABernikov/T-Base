@@ -3,6 +3,7 @@ package Application
 import (
 	"T-Base/Brain/Auth"
 	"T-Base/Brain/Filer"
+
 	"T-Base/Brain/mytypes"
 	"fmt"
 	"html/template"
@@ -115,99 +116,76 @@ func (a App) TMCPage(w http.ResponseWriter, r *http.Request, pr httprouter.Param
 			req += `AND "takenOrder" = '` + r.FormValue("TakenOrder") + `' `
 			link += "&TakenOrder=" + r.FormValue("TakenOrder")
 		}
-		if r.FormValue("CondDateTo") != "" {
-			link += "&CondDateTo=" + r.FormValue("CondDateTo")
-			if r.FormValue("CondDate") != "" {
-				link += "&CondDate=" + r.FormValue("CondDate")
-				date, err := time.Parse("02.01.2006", r.FormValue("CondDate"))
-				if err == nil {
-					req += ` AND "condDate" BETWEEN '` + date.Format("2006-01-02")
-				} else {
-					req += ` AND "condDate" BETWEEN '2000-01-01`
-				}
+
+		if r.FormValue("CondDate") != "" {
+			link += "&CondDate=" + r.FormValue("CondDate")
+			date, err := time.Parse("02.01.2006", r.FormValue("CondDate"))
+			if err == nil {
+				req += `AND "condDate" = '` + date.Format("2006-01-02") + `' `
+			}
+		} else {
+			if r.FormValue("CondDateFrom") != "" {
+				req += ` AND "condDate" BETWEEN '` + r.FormValue("CondDateFrom")
+				link += "&CondDateFrom=" + r.FormValue("CondDateFrom")
 			} else {
 				req += ` AND "condDate" BETWEEN '2000-01-01`
+
 			}
 
-			date, err := time.Parse("02.01.2006", r.FormValue("CondDateTo"))
-			if err == nil {
-				req += `' AND '` + date.Format("2006-01-02") + `'`
+			if r.FormValue("CondDateTo") != "" {
+				req += `' AND '` + r.FormValue("CondDateTo") + `'`
+				link += "&CondDateTo=" + r.FormValue("CondDateTo")
 			} else {
-				fmt.Println(err)
 				req += `' AND '2100-01-01'`
-			}
 
-		} else {
-			if r.FormValue("CondDate") != "" {
-				link += "&CondDate=" + r.FormValue("CondDate")
-				date, err := time.Parse("02.01.2006", r.FormValue("CondDate"))
-				if err == nil {
-					req += `AND "condDate" = '` + date.Format("2006-01-02") + `' `
-				}
 			}
 		}
 
-		if r.FormValue("ShipedDateTo") != "" {
-			link += "&ShipedDateTo=" + r.FormValue("ShipedDateTo")
-
-			if r.FormValue("ShipedDate") != "" {
-				link += "&ShipedDate=" + r.FormValue("ShipedDate")
-				date, err := time.Parse("02.01.2006", r.FormValue("ShipedDate"))
-				if err == nil {
-					req += ` AND "shipedDate" BETWEEN '` + date.Format("2006-01-02")
-				} else {
-					req += ` AND "shipedDate" BETWEEN '2000-01-01`
-				}
+		if r.FormValue("ShipedDate") != "" {
+			link += "&ShipedDate=" + r.FormValue("ShipedDate")
+			date, err := time.Parse("02.01.2006", r.FormValue("ShipedDate"))
+			if err == nil {
+				req += `AND "shipedDate" = '` + date.Format("2006-01-02") + `' `
+			}
+		} else {
+			if r.FormValue("ShipedDateFrom") != "" {
+				req += ` AND "shipedDate" BETWEEN '` + r.FormValue("ShipedDateFrom")
+				link += "&ShipedDateFrom=" + r.FormValue("ShipedDateFrom")
 			} else {
 				req += ` AND "shipedDate" BETWEEN '2000-01-01`
+
 			}
 
-			date, err := time.Parse("02.01.2006", r.FormValue("ShipedDateTo"))
-			if err == nil {
-				req += `' AND '` + date.Format("2006-01-02") + `'`
+			if r.FormValue("ShipedDateTo") != "" {
+				req += `' AND '` + r.FormValue("ShipedDateTo") + `'`
+				link += "&ShipedDateTo=" + r.FormValue("ShipedDateTo")
 			} else {
 				req += `' AND '2100-01-01'`
-			}
 
-		} else {
-			if r.FormValue("ShipedDate") != "" {
-				link += "&ShipedDate=" + r.FormValue("ShipedDate")
-				date, err := time.Parse("02.01.2006", r.FormValue("ShipedDate"))
-				if err == nil {
-					req += `AND "shipedDate" = '` + date.Format("2006-01-02") + `' `
-				}
 			}
 		}
 
-		if r.FormValue("TakenDateTo") != "" {
-			link += "&TakenDateTo=" + r.FormValue("TakenDateTo")
-
-			if r.FormValue("TakenDate") != "" {
-				link += "&TakenDate=" + r.FormValue("TakenDate")
-				date, err := time.Parse("02.01.2006", r.FormValue("TakenDate"))
-				if err == nil {
-					req += ` AND "takenDate" BETWEEN '` + date.Format("2006-01-02")
-				} else {
-					req += ` AND "takenDate" BETWEEN '2000-01-01`
-				}
+		if r.FormValue("TakenDate") != "" {
+			link += "&TakenDate=" + r.FormValue("TakenDate")
+			date, err := time.Parse("02.01.2006", r.FormValue("TakenDate"))
+			if err == nil {
+				req += `AND "takenDate" = '` + date.Format("2006-01-02") + `' `
+			}
+		} else {
+			if r.FormValue("TakenDateFrom") != "" {
+				req += ` AND "takenDate" BETWEEN '` + r.FormValue("TakenDateFrom")
+				link += "&TakenDateFrom=" + r.FormValue("TakenDateFrom")
 			} else {
 				req += ` AND "takenDate" BETWEEN '2000-01-01`
+
 			}
 
-			date, err := time.Parse("02.01.2006", r.FormValue("TakenDateTo"))
-			if err == nil {
-				req += `' AND '` + date.Format("2006-01-02") + `'`
+			if r.FormValue("TakenDateTo") != "" {
+				req += `' AND '` + r.FormValue("TakenDateTo") + `'`
+				link += "&TakenDateTo=" + r.FormValue("TakenDateTo")
 			} else {
 				req += `' AND '2100-01-01'`
-			}
 
-		} else {
-			if r.FormValue("TakenDate") != "" {
-				link += "&TakenDate=" + r.FormValue("TakenDate")
-				date, err := time.Parse("02.01.2006", r.FormValue("TakenDate"))
-				if err == nil {
-					req += `AND "takenDate" = '` + date.Format("2006-01-02") + `' `
-				}
 			}
 		}
 
@@ -893,19 +871,22 @@ func (a App) AddCommentToSns(w http.ResponseWriter, r *http.Request, pr httprout
 // приемка по модельно
 func (a App) TakeDeviceByModel(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 
+	var DModel int
 	DModelIn := r.FormValue("DModel")
-	split := strings.Split(DModelIn, ";")
-
-	DModel, err := strconv.Atoi(split[0])
+	err := a.Db.Db.QueryRow(a.ctx, `SELECT "dModelsId" FROM "dModels" WHERE "dModelName" = $1`, DModelIn).Scan(&DModel)
 	if err != nil {
 		MakeAlertPage(w, 5, "Ошибка", "Не указана модель", "Укажите модель поставщика", err.Error(), "Главная", "/works/prof")
 		return
 	}
-	Name := split[1]
-	TModel, err := strconv.Atoi(r.FormValue("TModel"))
+	Name := DModelIn
+
+	var TModel int
+	TModelIn := r.FormValue("TModel")
+	err = a.Db.Db.QueryRow(a.ctx, `SELECT "tModelsId" FROM "tModels" WHERE "tModelName" = $1`, TModelIn).Scan(&TModel)
 	if err != nil {
 		TModel = 0
 	}
+
 	Rev := r.FormValue("Rev")
 	Place, err := strconv.Atoi(r.FormValue("Place"))
 	if err != nil {
@@ -1256,7 +1237,7 @@ func (a App) TestFile(w http.ResponseWriter, r *http.Request, pr httprouter.Para
 		fmt.Println(err)
 	}
 
-	path, name, err := Filer.OrderExceller(*a.Db, "http://127.0.0.1:8080/works/orders", order...)
+	path, name, err := Filer.OrderExceller(*a.Db, a.AppIp, "http://"+a.AppIp+"/works/orders", order...)
 	fmt.Println(path)
 	if err != nil {
 		fmt.Println(err)
@@ -1337,98 +1318,75 @@ func (a App) TMCExcell(w http.ResponseWriter, r *http.Request, pr httprouter.Par
 			req += `AND "takenOrder" = '` + r.FormValue("TakenOrder") + `' `
 			link += "&TakenOrder=" + r.FormValue("TakenOrder")
 		}
-		if r.FormValue("CondDateTo") != "" {
-			link += "&CondDateTo=" + r.FormValue("CondDateTo")
-			if r.FormValue("CondDate") != "" {
-				link += "&CondDate=" + r.FormValue("CondDate")
-				date, err := time.Parse("02.01.2006", r.FormValue("CondDate"))
-				if err == nil {
-					req += ` AND "condDate" BETWEEN '` + date.Format("2006-01-02")
-				} else {
-					req += ` AND "condDate" BETWEEN '2000-01-01`
-				}
+		if r.FormValue("CondDate") != "" {
+			link += "&CondDate=" + r.FormValue("CondDate")
+			date, err := time.Parse("02.01.2006", r.FormValue("CondDate"))
+			if err == nil {
+				req += `AND "condDate" = '` + date.Format("2006-01-02") + `' `
+			}
+		} else {
+			if r.FormValue("CondDateFrom") != "" {
+				req += ` AND "condDate" BETWEEN '` + r.FormValue("CondDateFrom")
+				link += "&CondDateFrom=" + r.FormValue("CondDateFrom")
 			} else {
 				req += ` AND "condDate" BETWEEN '2000-01-01`
+
 			}
 
-			date, err := time.Parse("02.01.2006", r.FormValue("CondDateTo"))
-			if err == nil {
-				req += `' AND '` + date.Format("2006-01-02") + `'`
+			if r.FormValue("CondDateTo") != "" {
+				req += `' AND '` + r.FormValue("CondDateTo") + `'`
+				link += "&CondDateTo=" + r.FormValue("CondDateTo")
 			} else {
 				req += `' AND '2100-01-01'`
-			}
 
-		} else {
-			if r.FormValue("CondDate") != "" {
-				link += "&CondDate=" + r.FormValue("CondDate")
-				date, err := time.Parse("02.01.2006", r.FormValue("CondDate"))
-				if err == nil {
-					req += `AND "condDate" = '` + date.Format("2006-01-02") + `' `
-				}
 			}
 		}
 
-		if r.FormValue("ShipedDateTo") != "" {
-			link += "&ShipedDateTo=" + r.FormValue("ShipedDateTo")
-
-			if r.FormValue("ShipedDate") != "" {
-				link += "&ShipedDate=" + r.FormValue("ShipedDate")
-				date, err := time.Parse("02.01.2006", r.FormValue("ShipedDate"))
-				if err == nil {
-					req += ` AND "shipedDate" BETWEEN '` + date.Format("2006-01-02")
-				} else {
-					req += ` AND "shipedDate" BETWEEN '2000-01-01`
-				}
+		if r.FormValue("ShipedDate") != "" {
+			link += "&ShipedDate=" + r.FormValue("ShipedDate")
+			date, err := time.Parse("02.01.2006", r.FormValue("ShipedDate"))
+			if err == nil {
+				req += `AND "shipedDate" = '` + date.Format("2006-01-02") + `' `
+			}
+		} else {
+			if r.FormValue("ShipedDateFrom") != "" {
+				req += ` AND "shipedDate" BETWEEN '` + r.FormValue("ShipedDateFrom")
+				link += "&ShipedDateFrom=" + r.FormValue("ShipedDateFrom")
 			} else {
 				req += ` AND "shipedDate" BETWEEN '2000-01-01`
+
 			}
 
-			date, err := time.Parse("02.01.2006", r.FormValue("ShipedDateTo"))
-			if err == nil {
-				req += `' AND '` + date.Format("2006-01-02") + `'`
+			if r.FormValue("ShipedDateTo") != "" {
+				req += `' AND '` + r.FormValue("ShipedDateTo") + `'`
+				link += "&ShipedDateTo=" + r.FormValue("ShipedDateTo")
 			} else {
 				req += `' AND '2100-01-01'`
-			}
 
-		} else {
-			if r.FormValue("ShipedDate") != "" {
-				link += "&ShipedDate=" + r.FormValue("ShipedDate")
-				date, err := time.Parse("02.01.2006", r.FormValue("ShipedDate"))
-				if err == nil {
-					req += `AND "shipedDate" = '` + date.Format("2006-01-02") + `' `
-				}
 			}
 		}
 
-		if r.FormValue("TakenDateTo") != "" {
-			link += "&TakenDateTo=" + r.FormValue("TakenDateTo")
-
-			if r.FormValue("TakenDate") != "" {
-				link += "&TakenDate=" + r.FormValue("TakenDate")
-				date, err := time.Parse("02.01.2006", r.FormValue("TakenDate"))
-				if err == nil {
-					req += ` AND "takenDate" BETWEEN '` + date.Format("2006-01-02")
-				} else {
-					req += ` AND "takenDate" BETWEEN '2000-01-01`
-				}
+		if r.FormValue("TakenDate") != "" {
+			link += "&TakenDate=" + r.FormValue("TakenDate")
+			date, err := time.Parse("02.01.2006", r.FormValue("TakenDate"))
+			if err == nil {
+				req += `AND "takenDate" = '` + date.Format("2006-01-02") + `' `
+			}
+		} else {
+			if r.FormValue("TakenDateFrom") != "" {
+				req += ` AND "takenDate" BETWEEN '` + r.FormValue("TakenDateFrom")
+				link += "&TakenDateFrom=" + r.FormValue("TakenDateFrom")
 			} else {
 				req += ` AND "takenDate" BETWEEN '2000-01-01`
+
 			}
 
-			date, err := time.Parse("02.01.2006", r.FormValue("TakenDateTo"))
-			if err == nil {
-				req += `' AND '` + date.Format("2006-01-02") + `'`
+			if r.FormValue("TakenDateTo") != "" {
+				req += `' AND '` + r.FormValue("TakenDateTo") + `'`
+				link += "&TakenDateTo=" + r.FormValue("TakenDateTo")
 			} else {
 				req += `' AND '2100-01-01'`
-			}
 
-		} else {
-			if r.FormValue("TakenDate") != "" {
-				link += "&TakenDate=" + r.FormValue("TakenDate")
-				date, err := time.Parse("02.01.2006", r.FormValue("TakenDate"))
-				if err == nil {
-					req += `AND "takenDate" = '` + date.Format("2006-01-02") + `' `
-				}
 			}
 		}
 
@@ -1581,7 +1539,7 @@ func (a App) TMCExcell(w http.ResponseWriter, r *http.Request, pr httprouter.Par
 		}
 	}
 
-	path, name, err := Filer.TMCExceller("http://127.0.0.1:8080/works/tmc"+link, devices...)
+	path, name, err := Filer.TMCExceller("http://"+a.AppIp+"/works/tmc"+link, devices...)
 	fmt.Println(path)
 	if err != nil {
 		fmt.Println(err)
@@ -1627,7 +1585,7 @@ func (a App) OrdersExcell(w http.ResponseWriter, r *http.Request, pr httprouter.
 		}
 	}
 
-	path, name, err := Filer.OrderExceller(*a.Db, "http://127.0.0.1:8080/works/orders"+link, orders...)
+	path, name, err := Filer.OrderExceller(*a.Db, a.AppIp, "http://"+a.AppIp+"/works/orders"+link, orders...)
 	fmt.Println(path)
 	if err != nil {
 		fmt.Println(err)
@@ -1661,7 +1619,7 @@ func (a App) OrdersShortExcell(w http.ResponseWriter, r *http.Request, pr httpro
 		}
 	}
 
-	path, name, err := Filer.ShortOrdersExceller("http://127.0.0.1:8080/works/orders"+link, orders...)
+	path, name, err := Filer.ShortOrdersExceller("http://"+a.AppIp+"/works/orders"+link, orders...)
 	fmt.Println(path)
 	if err != nil {
 		fmt.Println(err)

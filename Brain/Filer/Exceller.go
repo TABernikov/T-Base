@@ -37,7 +37,7 @@ func TMCExceller(link string, devices ...mytypes.DeviceClean) (string, string, e
 	return path, name, nil
 }
 
-func OrderExceller(base Storage.Base, link string, orders ...mytypes.OrderClean) (string, string, error) {
+func OrderExceller(base Storage.Base, ip, link string, orders ...mytypes.OrderClean) (string, string, error) {
 	f := excelize.NewFile()
 
 	if len(orders) > 1 {
@@ -50,7 +50,7 @@ func OrderExceller(base Storage.Base, link string, orders ...mytypes.OrderClean)
 
 	for _, order := range orders {
 		f.NewSheet("Заказ" + strconv.Itoa(order.Id1C) + "(" + strconv.Itoa(order.OrderId) + ")")
-		makeOrderSheet(f, "Заказ"+strconv.Itoa(order.Id1C)+"("+strconv.Itoa(order.OrderId)+")", "http://127.0.0.1:8080/works/order/mini?Id="+strconv.Itoa(order.OrderId), order, base)
+		makeOrderSheet(f, "Заказ"+strconv.Itoa(order.Id1C)+"("+strconv.Itoa(order.OrderId)+")", "http://"+ip+"/works/order/mini?Id="+strconv.Itoa(order.OrderId), order, base)
 
 		// ТМЦ Заказа
 		devices, err := base.TakeCleanDeviceByOrder(context.Background(), order.OrderId)
@@ -59,7 +59,7 @@ func OrderExceller(base Storage.Base, link string, orders ...mytypes.OrderClean)
 		}
 
 		f.NewSheet("ТМЦ" + strconv.Itoa(order.Id1C) + "_" + strconv.Itoa(order.OrderId))
-		makeTMCSheet(f, "ТМЦ"+strconv.Itoa(order.Id1C)+"_"+strconv.Itoa(order.OrderId), "http://127.0.0.1:8080/works/tmc?Search=Raw&Order="+strconv.Itoa(order.OrderId), devices...)
+		makeTMCSheet(f, "ТМЦ"+strconv.Itoa(order.Id1C)+"_"+strconv.Itoa(order.OrderId), "http://"+ip+"/works/tmc?Search=Raw&Order="+strconv.Itoa(order.OrderId), devices...)
 
 	}
 	// сохранение

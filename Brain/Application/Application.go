@@ -17,13 +17,14 @@ type App struct {
 	ctx    context.Context
 	Db     *Storage.Base
 	JwtKey []byte
+	AppIp  string
 }
 
 type HandleUser func(http.ResponseWriter, *http.Request, httprouter.Params, mytypes.User)
 
-func NewApp(ctx context.Context, jwtKey []byte, user, pass, ip, baseName string) (*App, error) {
+func NewApp(ctx context.Context, jwtKey []byte, user, pass, ip, baseName, appIp string) (*App, error) {
 	db, err := Storage.NewBase(user, pass, ip, baseName)
-	return &App{ctx, db, jwtKey}, err
+	return &App{ctx, db, jwtKey, appIp}, err
 }
 
 // Роутер
