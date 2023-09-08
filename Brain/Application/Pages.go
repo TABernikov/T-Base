@@ -1613,9 +1613,55 @@ func (a App) OrdersExcell(w http.ResponseWriter, r *http.Request, pr httprouter.
 			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
 			return
 		}
+	} else if r.FormValue("Search") == "Raw" {
+		link = "&Search=Raw&in=" + r.FormValue("in")
+		id, err := strconv.Atoi(r.FormValue("in"))
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		orders, err = a.Db.TakeCleanOrderById(a.ctx, id)
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
 	}
 
 	path, name, err := Filer.OrderExceller(*a.Db, "http://127.0.0.1:8080/works/orders"+link, orders...)
+	fmt.Println(path)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	err = sendFile(w, r, path, name)
+	if err != nil {
+		fmt.Println(err)
+	}
+}
+
+func (a App) OrdersShortExcell(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	var orders []mytypes.OrderClean
+	var link string
+	var err error
+
+	if r.FormValue("Search") == "" {
+		orders, err = a.Db.TakeCleanOrderByReqest(a.ctx, `WHERE "isAct" = true`)
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+	} else if r.FormValue("Search") == "Anything" {
+		link = "?Search=Anything&in=" + r.FormValue("in")
+		searchString := r.FormValue("in")
+		searchs := strings.Split(searchString, ";")
+		orders, err = a.Db.TakeCleanOrderByAnything(a.ctx, searchs...)
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+	}
+
+	path, name, err := Filer.ShortOrdersExceller("http://127.0.0.1:8080/works/orders"+link, orders...)
 	fmt.Println(path)
 	if err != nil {
 		fmt.Println(err)

@@ -26,6 +26,7 @@
                         <button class="nav-link active" id="nav-home-tab" data-bs-toggle="tab" data-bs-target="#nav-home" type="button" role="tab" aria-controls="nav-home" aria-selected="true">Главная</button>
                         <button class="nav-link" id="nav-profile-tab" data-bs-toggle="tab" data-bs-target="#nav-profile" type="button" role="tab" aria-controls="nav-profile" aria-selected="false" tabindex="-1">Детали</button>
                         <button class="nav-link" id="nav-contact-tab" data-bs-toggle="tab" data-bs-target="#nav-contact" type="button" role="tab" aria-controls="nav-contact" aria-selected="false" tabindex="-1">Даты</button>
+                        
                         {{ if (eq .User.Acces 3)}}
                         <form  class="p-1" id="changenum" name="changenum" action="/works/change1cnumorder" target="_parent" method="post">   
                             <div class=" input-group input-group-sm" >
@@ -52,10 +53,18 @@
                             </div>
                         </form>
                         {{end}}
+                        <form  class="p-1" id="changepromdate" name="changepromdate" action="/works/ordersexcell" target="_parent" method="post">   
+                                <button class="btn btn-outline-success btn-sm" type="submit"  ><i class="icon-file-excel" ></i></button>
+                                <input type="hidden" name="in" value="{{.Order.OrderId}}"/>
+                                <input type="hidden" name="Search" value="Raw"/>
+                        </form>
+                        
                     </div>
+                   
                     </nav>
                     
                     <div class="tab-content" id="nav-tabContent">
+                        
                         <div class="tab-pane fade active show" id="nav-home" role="tabpanel" aria-labelledby="nav-home-tab">
                             <table class="table" style="font-size: 80%;">
                                 <tbody>
@@ -130,6 +139,7 @@
                                 </tbody>
                             </table>
                         </div>
+                        
                     </div>
                     
                 </div>

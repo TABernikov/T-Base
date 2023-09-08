@@ -91,6 +91,8 @@ func (a App) Routs(r *httprouter.Router) {
 	r.POST("/works/tmcexcell", a.authtorized(a.TMCExcell))
 	r.GET("/works/ordersexcell", a.authtorized(a.OrdersExcell))
 	r.POST("/works/ordersexcell", a.authtorized(a.OrdersExcell))
+	r.GET("/works/shortordersexcell", a.authtorized(a.OrdersShortExcell))
+	r.POST("/works/shortordersexcell", a.authtorized(a.OrdersShortExcell))
 
 	r.GET("/works/file", a.authtorized(a.TestFile))
 }
