@@ -645,6 +645,14 @@ func (a App) ChangePassPage(w http.ResponseWriter, r *http.Request, pr httproute
 	MakeChangePassPage(w, "", "", "", "")
 }
 
+func (a App) AddCommentToSnsBySnPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	MakeDobleImputPage(w, "/works/addcommentbysn", "Дополнить комментарии", "Серийные номера", "Коментарий", "text", "Добавить коментарий")
+}
+
+func (a App) TakeDeviceByExcelPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	MakeImputTypePage(w, "", "Приемка файлом", "file", "Выберете файл", "Отправить")
+}
+
 //////////////////////
 // Обработчики POST //
 //////////////////////
@@ -683,6 +691,10 @@ func (a App) ToWork(w http.ResponseWriter, r *http.Request, pr httprouter.Params
 	}
 
 	count, err := a.Db.SnToWork(a.ctx, Sns...)
+	logCount := a.Db.AddDeviceEventBySn(a.ctx, 2, "Передано в работу", user.UserId, Sns...)
+	if logCount != count {
+		fmt.Println("Ошибка записи логов")
+	}
 	if err != nil {
 		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
 		return
@@ -716,6 +728,11 @@ func (a App) SetOrder(w http.ResponseWriter, r *http.Request, pr httprouter.Para
 	}
 
 	count, err := a.Db.SnSetOrder(a.ctx, order, Sns...)
+	logCount := a.Db.AddDeviceEventBySn(a.ctx, 3, "Установлен заказ "+strconv.Itoa(order), user.UserId, Sns...)
+	if logCount != count {
+		fmt.Println("Ошибка записи логов")
+	}
+
 	if err != nil {
 		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
 		return
@@ -749,6 +766,10 @@ func (a App) SetPlace(w http.ResponseWriter, r *http.Request, pr httprouter.Para
 	}
 
 	count, err := a.Db.SnSetPlace(a.ctx, place, Sns...)
+	logCount := a.Db.AddDeviceEventBySn(a.ctx, 6, "Установлено место "+strconv.Itoa(place), user.UserId, Sns...)
+	if logCount != count {
+		fmt.Println("Ошибка записи логов")
+	}
 	if err != nil {
 		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
 		return
@@ -764,6 +785,7 @@ func (a App) SetPlace(w http.ResponseWriter, r *http.Request, pr httprouter.Para
 		MakeAlertPage(w, 2, "Готово", "Частично", "Части устройств не было назначено место", "Внесено "+strconv.Itoa(len(Sns))+" серийных номеров	Назначено "+strconv.Itoa(count)+"  серийных номеров", "Главная", "/works/prof")
 		return
 	}
+
 }
 
 // приемка демо
@@ -776,6 +798,10 @@ func (a App) TakeDemo(w http.ResponseWriter, r *http.Request, pr httprouter.Para
 	}
 
 	count, err := a.Db.SnTakeDemo(a.ctx, Sns...)
+	logCount := a.Db.AddDeviceEventBySn(a.ctx, 1, "Принято демо", user.UserId, Sns...)
+	if logCount != count {
+		fmt.Println("Ошибка записи логов")
+	}
 	if err != nil {
 		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
 		return
@@ -803,6 +829,10 @@ func (a App) ToShip(w http.ResponseWriter, r *http.Request, pr httprouter.Params
 	}
 
 	count, err := a.Db.SnToShip(a.ctx, r.FormValue("in2"), Sns...)
+	logCount := a.Db.AddDeviceEventBySn(a.ctx, 5, "Отгрузка "+r.FormValue("in2"), user.UserId, Sns...)
+	if logCount != count {
+		fmt.Println("Ошибка записи логов")
+	}
 	if err != nil {
 		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
 		return
@@ -843,7 +873,7 @@ func (a App) ChangeNumPlace(w http.ResponseWriter, r *http.Request, pr httproute
 	MakeAlertPage(w, 1, "Готово", "Измененно", "Номер паллета успешно изменен", "Старый номер "+strconv.Itoa(old)+" ->	Новый "+strconv.Itoa(new), "Главная", "/works/prof")
 }
 
-// добавить комментарий по серийным номерам
+// добавить комментарий по Id
 func (a App) AddCommentToSns(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	id, err := strconv.Atoi(r.FormValue("Id"))
 	if err != nil {
@@ -866,6 +896,41 @@ func (a App) AddCommentToSns(w http.ResponseWriter, r *http.Request, pr httprout
 	}
 
 	a.DeviceMiniPage(w, r, pr, user)
+}
+
+// Добавить комментарий по серийным номерам
+func (a App) AddCommentToSnsBySn(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	snString := r.FormValue("in1")
+	Sns := strings.Fields(snString)
+	if len(Sns) == 0 {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Не ввседены серийные номера", "", "Главная", "/works/prof")
+		return
+	}
+
+	text := r.FormValue("in2")
+
+	devices, err := a.Db.TakeDeviceBySn(a.ctx, Sns...)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка поиска устройств", "", "Главная", "/works/prof")
+	}
+	var count int
+	for _, device := range devices {
+		if a.Db.AddCommentToSns(a.ctx, device.Id, text, user) == nil {
+			count++
+		}
+	}
+
+	if count == 0 {
+		MakeAlertPage(w, 5, "Предупреждение", "Не назначено", "Устройствам не было назначен коментарий", "Внесено "+strconv.Itoa(len(Sns))+" серийных номеров	Назначено "+strconv.Itoa(count)+"  серийных номеров", "Главная", "/works/prof")
+		return
+	} else if len(Sns)-count == 0 {
+		MakeAlertPage(w, 1, "Готово", "Назначено", "Всем устройствам было назначен коментарий", "Внесено "+strconv.Itoa(len(Sns))+" серийных номеров	Назначено "+strconv.Itoa(count)+"  серийных номеров", "Главная", "/works/prof")
+		return
+	} else if len(Sns)-count > 0 {
+		MakeAlertPage(w, 2, "Готово", "Частично", "Части устройств не было назначен коментарий", "Внесено "+strconv.Itoa(len(Sns))+" серийных номеров	Назначено "+strconv.Itoa(count)+"  серийных номеров", "Главная", "/works/prof")
+		return
+	}
+	MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденая ошибка", "", "Главная", "/works/prof")
 }
 
 // приемка по модельно
@@ -904,6 +969,7 @@ func (a App) TakeDeviceByModel(w http.ResponseWriter, r *http.Request, pr httpro
 	}
 
 	i, SnErr, err := a.Db.InsetDeviceByModel(a.ctx, DModel, Name, TModel, Rev, Place, Doc, Order, Sns...)
+
 	if err != nil {
 		errString := ""
 		for _, a := range SnErr {
@@ -1115,6 +1181,10 @@ func (a App) ChangeMAC(w http.ResponseWriter, r *http.Request, pr httprouter.Par
 	var count int
 	for i := 0; i < len(in); i = i + 2 {
 		_, err := a.Db.ChangeMAC(a.ctx, in[i], in[i+1])
+		logCount := a.Db.AddDeviceEventBySn(a.ctx, 6, "Установлен mac "+in[i+1], user.UserId, in[i])
+		if logCount != 1 {
+			fmt.Println("Ошибка записи логов")
+		}
 		if err != nil {
 			MakeAlertPage(w, 2, "Ошибка", "Частично", "Изменнено только часть MAC", "Изменены "+strconv.Itoa(count)+" устройств, до "+in[i], "Главная", "/works/prof")
 		}
@@ -1133,6 +1203,10 @@ func (a App) ReleaseProduction(w http.ResponseWriter, r *http.Request, pr httpro
 	}
 
 	counter := a.Db.ReleaseProduction(a.ctx, in...)
+	logCount := a.Db.AddDeviceEventBySn(a.ctx, 4, "Преобразование", user.UserId, in...)
+	if logCount != counter {
+		fmt.Println("Ошибка записи логов")
+	}
 	if counter == 0 {
 		MakeAlertPage(w, 5, "Предупреждение", "Не передано", "Устройства не перобразованы", "Внесено "+strconv.Itoa(len(in))+" серийных номеров	Преобразовано "+strconv.Itoa(counter)+"  серийных номеров", "Главная", "/works/prof")
 		return
@@ -1156,6 +1230,11 @@ func (a App) ReturnToStorage(w http.ResponseWriter, r *http.Request, pr httprout
 	}
 
 	counter := a.Db.ReturnToStorage(a.ctx, in...)
+	logCount := a.Db.AddDeviceEventBySn(a.ctx, 9, "Возврат", user.UserId, in...)
+	if logCount != counter {
+		fmt.Println("Ошибка записи логов")
+	}
+
 	if counter == 0 {
 		MakeAlertPage(w, 5, "Предупреждение", "Не передано", "Устройства не переданы", "Внесено "+strconv.Itoa(len(in))+" серийных номеров	Преобразовано "+strconv.Itoa(counter)+"  серийных номеров", "Главная", "/works/prof")
 		return
@@ -1814,9 +1893,9 @@ func MakeImputTypePage(w http.ResponseWriter, postPath, title, typein, imputText
 		Type      string
 	}
 
-	tmp := imputPage{title, typein, imputText, btnText, postPath}
+	tmp := imputPage{title, imputText, btnText, postPath, typein}
 
-	t := template.Must(template.ParseFiles("Face/html/insert.html"))
+	t := template.Must(template.ParseFiles("Face/html/insertType.html"))
 	t.Execute(w, tmp)
 }
 
@@ -2060,11 +2139,15 @@ func (a App) MakeUserPage(w http.ResponseWriter, user mytypes.User) {
 		block.Btns = append(block.Btns, btn)
 		btn = Buton{`<i class="icon-search"></i>Поиск по Sn`, "/works/snsearch"}
 		block.Btns = append(block.Btns, btn)
+		btn = Buton{`<i class="icon-pencil"></i>Коментарий по Sn`, "/works/addcommentbysn"}
+		block.Btns = append(block.Btns, btn)
 		Blocks = append(Blocks, block)
 
 		block = Block{}
 		block.Title = "Приемка"
 		btn = Buton{`<i class="icon-plus"></i>Приемка по моделям`, "/works/takedevicebymodel"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{`<i class="icon-file-excel"></i>Приемка файлом`, "/works/takedevicebyxlsx"}
 		block.Btns = append(block.Btns, btn)
 		btn = Buton{`<i class="icon-forward"></i>Приемка демо`, "/works/takedemo"}
 		block.Btns = append(block.Btns, btn)

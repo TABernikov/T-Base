@@ -465,7 +465,7 @@ func (base Base) TakeCleanDeviceEvent(ctx context.Context, deviceId int) ([]myty
 	var eventTime time.Time
 
 	qq := ` SELECT
-    tmp."deviceId",
+    tmp."logId",
     "eventTypesNames"."eventName" AS "eventType",
     tmp."eventText",
     tmp."eventTime",
@@ -961,6 +961,9 @@ func (base Base) ChangeNumPlace(ctx context.Context, old, new int) error {
 
 func (base Base) AddCommentToSns(ctx context.Context, id int, text string, user mytypes.User) error {
 
+	time := time.Now().Format("02.01.2006 15:04")
+	text = "[" + user.Name + " " + time + ": " + text + "]     "
+
 	qq := `UPDATE public.snscomment
 			SET comment= comment || $2
 			WHERE "snsId" = $1;`
@@ -1077,7 +1080,7 @@ func (base Base) ReturnToStorage(ctx context.Context, sn ...string) int {
 	return counter
 }
 
-func (base Base) AddDeviceEvent(ctx context.Context, evntType int, eventText string, userId int, InId ...int) int {
+func (base Base) AddDeviceEventById(ctx context.Context, evntType int, eventText string, userId int, InId ...int) int {
 	if len(InId) == 0 {
 		return 0
 	}
@@ -1095,6 +1098,41 @@ func (base Base) AddDeviceEvent(ctx context.Context, evntType int, eventText str
 	}
 
 	return count
+}
+
+func (base Base) AddDeviceEventBySn(ctx context.Context, evntType int, eventText string, userId int, InSn ...string) int {
+	if len(InSn) == 0 {
+		return 0
+	}
+
+	qq := `SELECT "snsId"
+	FROM public.sns
+	WHERE `
+
+	for i, sn := range InSn {
+		if i == 0 {
+			qq += `sn = '` + sn + `'`
+		} else {
+			qq += ` OR sn = '` + sn + `'`
+		}
+	}
+
+	rows, err := base.Db.Query(ctx, qq)
+	if err != nil {
+		return 0
+	}
+
+	var ids []int
+	var id int
+	for rows.Next() {
+		err := rows.Scan(&id)
+		if err != nil {
+			return 0
+		}
+		ids = append(ids, id)
+	}
+
+	return base.AddDeviceEventById(ctx, evntType, eventText, userId, ids...)
 }
 
 ///////////////////////////////

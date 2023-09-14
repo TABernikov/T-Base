@@ -67,6 +67,8 @@ func (a App) Routs(r *httprouter.Router) {
 	r.GET("/works/returntostorage", a.authtorized(a.ReturnToStoragePage))
 	r.GET("/works/setpromdate", a.authtorized(a.SetPromDatePage))
 	r.GET("/works/changepass", a.authtorized(a.ChangePassPage))
+	r.GET("/works/addcommentbysn", a.authtorized(a.AddCommentToSnsBySnPage))
+	r.GET("/works/takedevicebyxlsx", a.authtorized(a.TakeDeviceByExcelPage))
 
 	r.POST("/works/tmc", a.authtorized(a.TMCPage))
 	r.POST("/works/orders", a.authtorized(a.OrderPage))
@@ -87,6 +89,7 @@ func (a App) Routs(r *httprouter.Router) {
 	r.POST("/works/returntostorage", a.authtorized(a.ReturnToStorage))
 	r.POST("/works/setpromdate", a.authtorized(a.SetPromDate))
 	r.POST("/works/changepass", a.authtorized(a.ChangePass))
+	r.POST("/works/addcommentbysn", a.authtorized(a.AddCommentToSnsBySn))
 
 	r.GET("/works/tmcexcell", a.authtorized(a.TMCExcell))
 	r.POST("/works/tmcexcell", a.authtorized(a.TMCExcell))
