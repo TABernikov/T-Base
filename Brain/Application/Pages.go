@@ -785,7 +785,6 @@ func (a App) SetPlace(w http.ResponseWriter, r *http.Request, pr httprouter.Para
 		MakeAlertPage(w, 2, "Готово", "Частично", "Части устройств не было назначено место", "Внесено "+strconv.Itoa(len(Sns))+" серийных номеров	Назначено "+strconv.Itoa(count)+"  серийных номеров", "Главная", "/works/prof")
 		return
 	}
-
 }
 
 // приемка демо
@@ -1305,6 +1304,58 @@ func (a App) ChangePass(w http.ResponseWriter, r *http.Request, pr httprouter.Pa
 	MakeAlertPage(w, 1, "Успешно", "Успешно", "Изменено ", "", "Главная", "/works/prof")
 }
 
+func (a App) TakeDeviceByExcel(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	src, hdr, err := r.FormFile("in")
+	if err != nil {
+		if err.Error() == "http: no such file" {
+			sendFile(w, r, "Files/Templ/Приемка файлом шаблон.xlsx", "Приемка файлом шаблон.xlsx")
+			return
+		}
+
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	defer src.Close()
+
+	f, name, err := takeFile(src, hdr, user)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	f.Close()
+
+	devices, err, litleErr := Filer.ReadNewDevice(f.Name(), *a.Db)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	insertCount, err := a.Db.InsertDivice(a.ctx, devices...)
+	if litleErr {
+		err := sendFile(w, r, f.Name(), name)
+		if err != nil {
+			fmt.Fprintln(w, err)
+		}
+	}
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	if insertCount == 0 {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Устройства небыли приняты", err.Error(), "Главная", "/works/prof")
+		return
+	} else if insertCount < len(devices) {
+		MakeAlertPage(w, 2, "Готово", "Частично", "Часть устройств не было принято", "Внесено "+strconv.Itoa(insertCount), "Главная", "/works/prof")
+		return
+	} else if insertCount > len(devices) {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	MakeAlertPage(w, 1, "Готово", "Готово", "Все "+strconv.Itoa(insertCount)+" устройств внесены", "Отличная работа", "Главная", "/works/prof")
+
+}
+
 //////////////////////
 // Отправка отчетов //
 //////////////////////
@@ -1322,7 +1373,7 @@ func (a App) TestFile(w http.ResponseWriter, r *http.Request, pr httprouter.Para
 		fmt.Println(err)
 	}
 
-	err = sendFile(w, r, path, name)
+	err = sendTMPFile(w, r, path, name)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -1624,7 +1675,7 @@ func (a App) TMCExcell(w http.ResponseWriter, r *http.Request, pr httprouter.Par
 		fmt.Println(err)
 	}
 
-	err = sendFile(w, r, path, name)
+	err = sendTMPFile(w, r, path, name)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -1670,7 +1721,7 @@ func (a App) OrdersExcell(w http.ResponseWriter, r *http.Request, pr httprouter.
 		fmt.Println(err)
 	}
 
-	err = sendFile(w, r, path, name)
+	err = sendTMPFile(w, r, path, name)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -1704,7 +1755,7 @@ func (a App) OrdersShortExcell(w http.ResponseWriter, r *http.Request, pr httpro
 		fmt.Println(err)
 	}
 
-	err = sendFile(w, r, path, name)
+	err = sendTMPFile(w, r, path, name)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -1895,7 +1946,7 @@ func MakeImputTypePage(w http.ResponseWriter, postPath, title, typein, imputText
 
 	tmp := imputPage{title, imputText, btnText, postPath, typein}
 
-	t := template.Must(template.ParseFiles("Face/html/insertType.html"))
+	t := template.Must(template.ParseFiles("Face/html/insert file.html"))
 	t.Execute(w, tmp)
 }
 

@@ -1012,6 +1012,27 @@ func (base Base) InsetDeviceByModel(ctx context.Context, DModel int, Name string
 	return insertCount, SnErr, lastErr
 }
 
+func (base Base) InsertDivice(ctx context.Context, devices ...mytypes.DeviceRaw) (int, error) {
+	if len(devices) == 0 {
+		return 0, fmt.Errorf("не введены серийные номера")
+	}
+	insertCount := 0
+
+	qq := `INSERT INTO public.sns(
+		sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder")
+		VALUES ($1, &2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16);`
+
+	for _, a := range devices {
+		res, err := base.Db.Exec(ctx, qq, a.Sn, a.Mac, a.DModel, a.Rev, a.TModel, a.Name, a.Condition, a.CondDate, a.Order, a.Place, a.Shiped, a.ShipedDate, a.ShippedDest, a.TakenDate, a.TakenDoc, a.TakenOrder)
+		if err != nil {
+			return insertCount, err
+		}
+		insertCount += int(res.RowsAffected())
+	}
+	return insertCount, nil
+
+}
+
 func (base Base) ChangeMAC(ctx context.Context, sn, mac string) (int, error) {
 	qq := `UPDATE public.sns SET mac=$2 WHERE sn=$1`
 

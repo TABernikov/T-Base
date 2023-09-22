@@ -5,8 +5,11 @@ import (
 	"T-Base/Brain/Storage"
 	"T-Base/Brain/mytypes"
 	"context"
+	"io"
+	"mime/multipart"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strconv"
 	"time"
 
@@ -90,6 +93,7 @@ func (a App) Routs(r *httprouter.Router) {
 	r.POST("/works/setpromdate", a.authtorized(a.SetPromDate))
 	r.POST("/works/changepass", a.authtorized(a.ChangePass))
 	r.POST("/works/addcommentbysn", a.authtorized(a.AddCommentToSnsBySn))
+	r.POST("/works/takedevicebyxlsx", a.authtorized(a.TakeDeviceByExcel))
 
 	r.GET("/works/tmcexcell", a.authtorized(a.TMCExcell))
 	r.POST("/works/tmcexcell", a.authtorized(a.TMCExcell))
@@ -186,6 +190,12 @@ func GetSnfromCleanDevices(devices ...mytypes.DeviceClean) string {
 	return SnString
 }
 
+func sendTMPFile(w http.ResponseWriter, r *http.Request, path, name string) error {
+	err := sendFile(w, r, path, name)
+	os.Remove(path)
+	return err
+}
+
 func sendFile(w http.ResponseWriter, r *http.Request, path, name string) error {
 	f, err := os.Open(path)
 	if err != nil {
@@ -200,6 +210,16 @@ func sendFile(w http.ResponseWriter, r *http.Request, path, name string) error {
 	http.ServeContent(w, r, "test", fi.ModTime(), f)
 
 	f.Close()
-	os.Remove(path)
 	return nil
+}
+
+func takeFile(src multipart.File, hdr *multipart.FileHeader, user mytypes.User) (*os.File, string, error) {
+	f, err := os.OpenFile(filepath.Join("Files/Uploaded", user.Login+"_"+time.Now().Format("02-01-06_15-04-05_")+hdr.Filename), os.O_CREATE, 0666)
+	if err != nil {
+		return nil, "", err
+	}
+	defer f.Close()
+	io.Copy(f, src)
+
+	return f, hdr.Filename, nil
 }

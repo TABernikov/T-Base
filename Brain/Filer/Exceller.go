@@ -373,6 +373,107 @@ func makeOrdersListSheet(f *excelize.File, name, link string, orders ...mytypes.
 	fmt.Println(err)
 }
 
+///////////////////
+// Чтение таблиц //
+///////////////////
+
+func ReadNewDevice(path string, base Storage.Base) ([]mytypes.DeviceRaw, error, bool) {
+
+	var device mytypes.DeviceRaw
+	var devices []mytypes.DeviceRaw
+	TNamesMap := make(map[string]int)
+	DNamesMap := make(map[string]int)
+	var s string
+	var i int
+	var isLitleErr bool
+
+	res, err := base.Db.Query(context.Background(), `SELECT "tModelsId", "tModelsName" FROM public."tModels";`)
+	if err != nil {
+		return nil, err, isLitleErr
+	}
+	for res.Next() {
+		err := res.Scan(&i, &s)
+		if err != nil {
+			return nil, err, isLitleErr
+		}
+		TNamesMap[s] = i
+	}
+
+	res, err = base.Db.Query(context.Background(), `SELECT "dModelsId", "dModelName" FROM public."dModels";`)
+	if err != nil {
+		return nil, err, isLitleErr
+	}
+	for res.Next() {
+		err := res.Scan(&i, &s)
+		if err != nil {
+			return nil, err, isLitleErr
+		}
+		DNamesMap[s] = i
+	}
+
+	f, err := excelize.OpenFile(path)
+	if err != nil {
+		return nil, err, isLitleErr
+	}
+	defer f.Close()
+
+	rows, err := f.GetRows("Лист1")
+	if err != nil {
+		return nil, err, isLitleErr
+	}
+
+	for i := 4; i < len(rows); i++ {
+		place, err := strconv.Atoi(rows[i][3])
+		localLittlErr := false
+		if err != nil {
+			f.SetCellValue("Лист1", "G"+strconv.Itoa(i+1), "Ошибка чтения номера места")
+			isLitleErr = true
+			localLittlErr = true
+		}
+		dModel, ok := DNamesMap[rows[i][0]]
+		fmt.Println(dModel)
+		if !ok {
+			f.SetCellValue("Лист1", "H"+strconv.Itoa(i+1), "Ошибка чтения модели поставщика")
+			isLitleErr = true
+			localLittlErr = true
+		}
+		tModel, ok := TNamesMap[rows[i][1]]
+		fmt.Print(tModel)
+		if !ok {
+			f.SetCellValue("Лист1", "I"+strconv.Itoa(i+1), "Ошибка чтения планируемой модели")
+			isLitleErr = true
+			localLittlErr = true
+		}
+		if !localLittlErr {
+			device = mytypes.DeviceRaw{
+				Sn:          rows[i][4],
+				Mac:         rows[i][5],
+				DModel:      dModel,
+				TModel:      tModel,
+				Rev:         rows[i][2],
+				Place:       place,
+				TakenDoc:    rows[0][1],
+				TakenOrder:  rows[1][1],
+				Condition:   2,
+				Order:       2,
+				Name:        rows[i][0],
+				Shiped:      false,
+				TakenDate:   time.Now(),
+				CondDate:    time.Now(),
+				ShippedDest: "",
+				ShipedDate:  time.Date(2000, 1, 1, 1, 1, 1, 1, time.Local),
+			}
+			devices = append(devices, device)
+		}
+	}
+	if err := f.SaveAs(path); err != nil {
+		fmt.Println(err)
+		return devices, err, isLitleErr
+	}
+
+	return devices, nil, isLitleErr
+}
+
 ////////////
 // Другое //
 ////////////
