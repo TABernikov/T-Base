@@ -1312,21 +1312,21 @@ func (a App) TakeDeviceByExcel(w http.ResponseWriter, r *http.Request, pr httpro
 			return
 		}
 
-		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка получения", err.Error(), "Главная", "/works/prof")
 		return
 	}
 	defer src.Close()
 
 	f, name, err := takeFile(src, hdr, user)
 	if err != nil {
-		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка записи", err.Error(), "Главная", "/works/prof")
 		return
 	}
 	f.Close()
 
 	devices, err, litleErr := Filer.ReadNewDevice(f.Name(), *a.Db)
 	if err != nil {
-		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка чтения", err.Error(), "Главная", "/works/prof")
 		return
 	}
 	insertCount, err := a.Db.InsertDivice(a.ctx, devices...)
@@ -1337,7 +1337,7 @@ func (a App) TakeDeviceByExcel(w http.ResponseWriter, r *http.Request, pr httpro
 		}
 	}
 	if err != nil {
-		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка внесения", err.Error(), "Главная", "/works/prof")
 		return
 	}
 

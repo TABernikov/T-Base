@@ -15,7 +15,7 @@ func main() {
 	ctx := context.Background()
 	var jwtKey = []byte("Kr7yRk7Akv3LaN2G11-Adrrr9on5iyG1djj1K4ola5ider-hfdhswkjuIOUGFedyfhKiFGIoy")
 
-	a, err := Application.NewApp(ctx, jwtKey, "postgres", "Superkim61", "localhost:5432", "t-base", "127.0.0.1:8080")
+	a, err := Application.NewApp(ctx, jwtKey, "postgres", "Superkim61", "localhost:5432", "t-base", "192.168.0.139:7070")
 	if err != nil {
 		panic(err)
 	}
@@ -29,6 +29,8 @@ func main() {
 	//a.Db.NewLog()
 
 	srv := &http.Server{Addr: a.AppIp, Handler: router}
+	//http.HandleFunc("/service-worker.js", Application.SendSW)
+	//http.HandleFunc("/manifest.json", Application.SendManifest)
 	srv.ListenAndServe()
 
 }

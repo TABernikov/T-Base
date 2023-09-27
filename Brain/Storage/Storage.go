@@ -1020,12 +1020,12 @@ func (base Base) InsertDivice(ctx context.Context, devices ...mytypes.DeviceRaw)
 
 	qq := `INSERT INTO public.sns(
 		sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder")
-		VALUES ($1, &2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16);`
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16);`
 
 	for _, a := range devices {
 		res, err := base.Db.Exec(ctx, qq, a.Sn, a.Mac, a.DModel, a.Rev, a.TModel, a.Name, a.Condition, a.CondDate, a.Order, a.Place, a.Shiped, a.ShipedDate, a.ShippedDest, a.TakenDate, a.TakenDoc, a.TakenOrder)
 		if err != nil {
-			return insertCount, err
+			continue
 		}
 		insertCount += int(res.RowsAffected())
 	}
