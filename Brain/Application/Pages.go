@@ -582,61 +582,109 @@ func (a App) OrderMiniPage(w http.ResponseWriter, r *http.Request, pr httprouter
 
 // Страница передачи в производство
 func (a App) ToWorkPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 2 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
 	MakeImputPage(w, "/works/towork", "Передать в производство", "Введите серийные номера для передачи", "Передать")
 }
 
 // Страница назначения резерва
 func (a App) SetOrderPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 2 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
 	MakeDobleImputPage(w, "/works/setorder", "Назначить заказ/резерв", "Введите серийные номера:", "Номер заказа", "number", "Назначить заказ")
 }
 
 // Страница установки места
 func (a App) SetPlacePage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 2 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
 	MakeDobleImputPage(w, "/works/setplace", "Установить место", "Введите серийные номера:", "Номер места", "number", "Установить место")
 }
 
 // Страница приемки демо
 func (a App) TakeDemoPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 2 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
 	MakeImputPage(w, "", "Приемка демо", "Введите серийные номера", "Принять")
 }
 
 // Страница отгрузки
 func (a App) ToShipPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 2 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
 	MakeDobleImputPage(w, "", "Отгрузка", "Введите серийные номера", "Место отгрузки", "text", "Отгрузить")
 }
 
 // Страница изменения номера паллета
 func (a App) ChangeNumPlacePage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 2 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
 	MakeDobleImputTypePage(w, "/works/cangeplacenum", "Установить номер места", "Введите старый номер:", "number", "Введите новый номер", "number", "Изменить")
 }
 
 // Страница приемки помодельно
 func (a App) TakeDeviceByModelPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 2 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
 	a.MakeTakeDeviceByModelPage(w)
 }
 
 // Страница создания заказа
 func (a App) CreateOrderPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 3 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
 	MakeCreateOrderPage(w)
 }
 
 // Страница изменения мак адреса устройства
 func (a App) ChangeMACPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 1 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
 	MakeImputPage(w, "", "Изменить маки", "Введите последовательно серийный номер и мак для каждого устройства", "Изменить")
 }
 
 // Страница выпуска устройств с производства
 func (a App) ReleaseProductionPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 1 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
 	MakeImputPage(w, "", "Выпуск с производства", "Введите серийные номера", "Выпуск")
 }
 
 // Страница возврата не собраных устройств на производство
 func (a App) ReturnToStoragePage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 1 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
 	MakeImputPage(w, "", "Вернуть на склад", "Введите серийные номера через пробез или с новой стрроки", "Вернуть")
 }
 
 // Страница установки обещаной даты выхода заказа с производства
 func (a App) SetPromDatePage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 1 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
 	MakeDobleImputTypePage(w, "", "Задать дату", "Введите ID заказа "+r.FormValue("Order"), "number", "Введите дату готовности", "date", "Задать дату")
 }
 
@@ -650,6 +698,10 @@ func (a App) AddCommentToSnsBySnPage(w http.ResponseWriter, r *http.Request, pr 
 }
 
 func (a App) TakeDeviceByExcelPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 2 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
 	MakeImputTypePage(w, "", "Приемка файлом", "file", "Выберете файл", "Отправить")
 }
 
@@ -683,6 +735,11 @@ func (a App) Login(w http.ResponseWriter, r *http.Request, pr httprouter.Params)
 
 // передача в работу
 func (a App) ToWork(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 2 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
+
 	snString := r.FormValue("in")
 	Sns := strings.Fields(snString)
 	if len(Sns) == 0 {
@@ -714,6 +771,11 @@ func (a App) ToWork(w http.ResponseWriter, r *http.Request, pr httprouter.Params
 
 // установка заказа
 func (a App) SetOrder(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 2 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
+
 	snString := r.FormValue("in1")
 	Sns := strings.Fields(snString)
 	if len(Sns) == 0 {
@@ -752,6 +814,11 @@ func (a App) SetOrder(w http.ResponseWriter, r *http.Request, pr httprouter.Para
 
 // установка места
 func (a App) SetPlace(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 2 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
+
 	snString := r.FormValue("in1")
 	Sns := strings.Fields(snString)
 	if len(Sns) == 0 {
@@ -789,6 +856,11 @@ func (a App) SetPlace(w http.ResponseWriter, r *http.Request, pr httprouter.Para
 
 // приемка демо
 func (a App) TakeDemo(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 2 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
+
 	snString := r.FormValue("in")
 	Sns := strings.Fields(snString)
 	if len(Sns) == 0 {
@@ -820,6 +892,11 @@ func (a App) TakeDemo(w http.ResponseWriter, r *http.Request, pr httprouter.Para
 
 // отгрузка
 func (a App) ToShip(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 2 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
+
 	snString := r.FormValue("in1")
 	Sns := strings.Fields(snString)
 	if len(Sns) == 0 {
@@ -851,6 +928,11 @@ func (a App) ToShip(w http.ResponseWriter, r *http.Request, pr httprouter.Params
 
 // изменение номера паллета
 func (a App) ChangeNumPlace(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 2 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
+
 	old, err := strconv.Atoi(r.FormValue("in1"))
 	if err != nil {
 		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
@@ -934,6 +1016,10 @@ func (a App) AddCommentToSnsBySn(w http.ResponseWriter, r *http.Request, pr http
 
 // приемка по модельно
 func (a App) TakeDeviceByModel(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 2 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
 
 	var DModel int
 	DModelIn := r.FormValue("DModel")
@@ -982,6 +1068,10 @@ func (a App) TakeDeviceByModel(w http.ResponseWriter, r *http.Request, pr httpro
 
 // создание заказа
 func (a App) CreateOrder(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 3 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
 	Id1C, err := strconv.Atoi(r.FormValue("1C"))
 	if err != nil {
 		MakeAlertPage(w, 5, "Ошибка", "Номер 1С не число", "Номер 1С не число", err.Error(), "Главная", "/works/prof")
@@ -1019,6 +1109,10 @@ func (a App) CreateOrder(w http.ResponseWriter, r *http.Request, pr httprouter.P
 
 // удаление заказа
 func (a App) DelOrder(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 3 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
 
 	id, err := strconv.Atoi(r.FormValue("Id"))
 	if err != nil {
@@ -1047,6 +1141,10 @@ func (a App) DelOrder(w http.ResponseWriter, r *http.Request, pr httprouter.Para
 
 // изменить № 1С у заказа
 func (a App) Change1CNumOrder(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 3 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
 	id, err := strconv.Atoi(r.FormValue("Id"))
 	if err != nil {
 		MakeAlertPage(w, 5, "Ошибка", "Не существующий Id заказа", "Не существующее число", err.Error(), "Главная", "/works/prof")
@@ -1080,6 +1178,10 @@ func (a App) Change1CNumOrder(w http.ResponseWriter, r *http.Request, pr httprou
 
 // изменение состава заказа (Страница)
 func (a App) CreateOrderListPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 3 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
 
 	id, err := strconv.Atoi(r.FormValue("Id"))
 	if err != nil {
@@ -1172,6 +1274,11 @@ func (a App) CreateOrderListPage(w http.ResponseWriter, r *http.Request, pr http
 
 // Изменение мак адреса устройства
 func (a App) ChangeMAC(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 1 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
+
 	in := strings.Fields(r.FormValue("in"))
 	if len(in)%2 == 1 {
 		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Серийников больше чем маков", "(или наоборот)", "Главная", "/works/prof")
@@ -1194,6 +1301,11 @@ func (a App) ChangeMAC(w http.ResponseWriter, r *http.Request, pr httprouter.Par
 
 // Выпуск устройств с производства
 func (a App) ReleaseProduction(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 1 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
+
 	in := strings.Fields(r.FormValue("in"))
 
 	if len(in) == 0 {
@@ -1221,6 +1333,11 @@ func (a App) ReleaseProduction(w http.ResponseWriter, r *http.Request, pr httpro
 
 // Вернуть не собраные устройства на склад
 func (a App) ReturnToStorage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 1 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
+
 	in := strings.Fields(r.FormValue("in"))
 
 	if len(in) == 0 {
@@ -1249,6 +1366,11 @@ func (a App) ReturnToStorage(w http.ResponseWriter, r *http.Request, pr httprout
 
 // Установить обещаную дату производства заказа
 func (a App) SetPromDate(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 1 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
+
 	order, err := strconv.Atoi(r.FormValue("in1"))
 	if err != nil {
 		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
@@ -1305,6 +1427,11 @@ func (a App) ChangePass(w http.ResponseWriter, r *http.Request, pr httprouter.Pa
 }
 
 func (a App) TakeDeviceByExcel(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 2 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
+
 	src, hdr, err := r.FormFile("in")
 	if err != nil {
 		if err.Error() == "http: no such file" {
@@ -1353,7 +1480,6 @@ func (a App) TakeDeviceByExcel(w http.ResponseWriter, r *http.Request, pr httpro
 	}
 
 	MakeAlertPage(w, 1, "Готово", "Готово", "Все "+strconv.Itoa(insertCount)+" устройств внесены", "Отличная работа", "Главная", "/works/prof")
-
 }
 
 //////////////////////
