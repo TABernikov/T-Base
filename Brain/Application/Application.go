@@ -6,7 +6,6 @@ import (
 	"T-Base/Brain/mytypes"
 	"context"
 	"io"
-	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"os"
@@ -226,7 +225,7 @@ func takeFile(src multipart.File, hdr *multipart.FileHeader, user mytypes.User) 
 }
 
 func SendSW(w http.ResponseWriter, r *http.Request) {
-	data, err := ioutil.ReadFile("service-worker.js")
+	data, err := os.ReadFile("Face/service-worker.js")
 	if err != nil {
 		http.Error(w, "Couldn't read file", http.StatusInternalServerError)
 		return
@@ -236,7 +235,7 @@ func SendSW(w http.ResponseWriter, r *http.Request) {
 }
 
 func SendManifest(w http.ResponseWriter, r *http.Request) {
-	data, err := ioutil.ReadFile("manifest.json")
+	data, err := os.ReadFile("Face/manifest.json")
 	if err != nil {
 		http.Error(w, "Couldn't read file", http.StatusInternalServerError)
 		return
