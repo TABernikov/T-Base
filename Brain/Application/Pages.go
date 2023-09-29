@@ -705,6 +705,26 @@ func (a App) TakeDeviceByExcelPage(w http.ResponseWriter, r *http.Request, pr ht
 	MakeImputTypePage(w, "", "Приемка файлом", "file", "Выберете файл", "Отправить")
 }
 
+func (a App) CreateMatPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 2 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
+	MakeCreateMatPage(w)
+}
+
+func (a App) TakeMatPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 2 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
+
+	a.MakeTakeMatPage(w)
+}
+func (a App) StorageMats(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	a.MakeStorageMatsPage(w)
+}
+
 //////////////////////
 // Обработчики POST //
 //////////////////////
@@ -1480,6 +1500,55 @@ func (a App) TakeDeviceByExcel(w http.ResponseWriter, r *http.Request, pr httpro
 	}
 
 	MakeAlertPage(w, 1, "Готово", "Готово", "Все "+strconv.Itoa(insertCount)+" устройств внесены", "Отличная работа", "Главная", "/works/prof")
+}
+
+func (a App) CreateMat(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 2 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
+
+	name := r.FormValue("Name")
+	name1C := r.FormValue("1СName")
+	fmt.Println(name1C)
+	matType, err := strconv.Atoi(r.FormValue("Type"))
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка получения", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	err = a.Db.InsertMat(a.ctx, name, name1C, matType)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка внесения", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	MakeAlertPage(w, 1, "Готово", "Готово", "Успешно", "Отличная работа", "Главная", "/works/prof")
+}
+
+func (a App) TakeMat(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 2 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
+
+	name := r.FormValue("Name")
+	amout, err := strconv.Atoi(r.FormValue("Amout"))
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка получения", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	if amout < 0 {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Нельзя принять отрицательное число материала", "Это называется списание", "Главная", "/works/prof")
+		return
+	}
+
+	err = a.Db.AddMat(a.ctx, name, amout)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка внесения", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	MakeAlertPage(w, 1, "Готово", "Готово", "Успешно", "Отличная работа", "Главная", "/works/prof")
 }
 
 //////////////////////
@@ -2354,6 +2423,20 @@ func (a App) MakeUserPage(w http.ResponseWriter, user mytypes.User) {
 		block.Btns = append(block.Btns, btn)
 		Blocks = append(Blocks, block)
 
+		block = Block{}
+		block.Title = "Материалы"
+		btn = Buton{`Склад материалов`, "/works/storage/mats"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{`Сборки`, "/"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{`Добавить сборку`, "/"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{`Добавить материал`, "/works/createmat"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{`Принять материалы`, "/works/takemat"}
+		block.Btns = append(block.Btns, btn)
+		Blocks = append(Blocks, block)
+
 	case 3:
 		block = Block{}
 		block.Title = "Заказы"
@@ -2397,4 +2480,54 @@ func MakeChangePassPage(w http.ResponseWriter, ans string, p1, p2, p3 string) {
 	tmp := page{ans, p1, p2, p3}
 	t := template.Must(template.ParseFiles("Face/html/ChangePass.html"))
 	t.Execute(w, tmp)
+}
+
+func MakeCreateMatPage(w http.ResponseWriter) {
+	var page bool
+	t := template.Must(template.ParseFiles("Face/html/CreateMat.html"))
+	t.Execute(w, page)
+}
+
+func (a App) MakeTakeMatPage(w http.ResponseWriter) {
+	type TakeForm struct {
+		NameList []string
+	}
+	var NameList []string
+	var Name string
+
+	rows, err := a.Db.Db.Query(a.ctx, `SELECT "name" FROM public."mats";`)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	for rows.Next() {
+		err := rows.Scan(&Name)
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		NameList = append(NameList, Name)
+	}
+	fmt.Println(NameList)
+
+	tmp := TakeForm{NameList}
+	t := template.Must(template.ParseFiles("Face/html/TakeMat.html"))
+	t.Execute(w, tmp)
+}
+
+func (a App) MakeStorageMatsPage(w http.ResponseWriter) {
+	Mats, err := a.Db.TakeMatsById(a.ctx)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	type storagePage struct {
+		Lable string
+		Mats  []mytypes.Mat
+	}
+	table := storagePage{"Материалы", Mats}
+
+	t := template.Must(template.ParseFiles("Face/html/storage mats.html"))
+	t.Execute(w, table)
 }

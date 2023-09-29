@@ -72,6 +72,9 @@ func (a App) Routs(r *httprouter.Router) {
 	r.GET("/works/changepass", a.authtorized(a.ChangePassPage))
 	r.GET("/works/addcommentbysn", a.authtorized(a.AddCommentToSnsBySnPage))
 	r.GET("/works/takedevicebyxlsx", a.authtorized(a.TakeDeviceByExcelPage))
+	r.GET("/works/createmat", a.authtorized(a.CreateMatPage))
+	r.GET("/works/takemat", a.authtorized(a.TakeMatPage))
+	r.GET("/works/storage/mats", a.authtorized(a.StorageMats))
 
 	r.POST("/works/tmc", a.authtorized(a.TMCPage))
 	r.POST("/works/orders", a.authtorized(a.OrderPage))
@@ -94,6 +97,8 @@ func (a App) Routs(r *httprouter.Router) {
 	r.POST("/works/changepass", a.authtorized(a.ChangePass))
 	r.POST("/works/addcommentbysn", a.authtorized(a.AddCommentToSnsBySn))
 	r.POST("/works/takedevicebyxlsx", a.authtorized(a.TakeDeviceByExcel))
+	r.POST("/works/createmat", a.authtorized(a.CreateMat))
+	r.POST("/works/takemat", a.authtorized(a.TakeMat))
 
 	r.GET("/works/tmcexcell", a.authtorized(a.TMCExcell))
 	r.POST("/works/tmcexcell", a.authtorized(a.TMCExcell))

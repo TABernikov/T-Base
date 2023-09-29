@@ -1,0 +1,106 @@
+<!doctype html>
+<html>
+
+<head>
+    <title>Материалы</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="Face\img\t-kom-ico.svg">
+
+    <link href="Face/html/css/bootstrap.min.css" rel="stylesheet">
+    <link href="Face/html/css/fontello.css" rel="stylesheet">
+    <link href="Face/html/css/style.css" rel="stylesheet">
+
+</head>
+<body>
+    
+  <nav class="navbar navbar-expand-lg sticky-top navbar-light bg-light" aria-label="Fifth navbar example">
+    <div class="container-fluid">
+    
+      <a class="navbar-brand" href="/works/prof">
+        <img src="Face\img\t-kom-logo.svg" width="100" height="50" alt="" loading="lazy">
+      </a>
+
+      <button class="navbar-toggler collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#navbarsExample05" aria-controls="navbarsExample05" aria-expanded="false" aria-label="Переключить навигацию">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="navbar-collapse collapse" id="navbarsExample05">
+
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+          
+          <li class="nav-item">
+            <a class="nav-link active" href="/works/prof">Профиль</a>
+          </li>
+          
+          
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false">Таблицы</a>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="/works/tmc">ТМЦ</a></li>
+              <li><a class="dropdown-item" href="/works/orders">Заказы</a></li>
+              <li><a class="dropdown-item" href="/works/storage">Склад</a></li>
+            </ul>
+          </li>
+          <form id="logout" name="logout" action="/works/logout" method="post"> 
+            <input class="btn btn-outline-danger" type="submit" name="logoutBtn" value="Выйти">
+          </form>
+        </ul>
+
+        
+
+        <form class="d-flex" role="search" method="get">
+          <input type="hidden" name="Search" value="1">
+          <input class="form-control" type="search" placeholder="Заказ/Наименование..." name="in" aria-label="Поиск">
+          <button class="btn btn-outline-success" type="submit">Поиск</button>
+        </form>
+
+      </div>
+
+    </div>
+  </nav>
+
+
+
+
+      <div class="container">
+        <nav>
+          <div class="nav nav-tabs mb-3" id="nav-tab" role="tablist">
+             
+              <a class="nav-link active" id="toMats" href="/works/storage/mats" type="button">Общее</a>
+              <a class="nav-link" id="toMatsName" href="#" type="button" role="button" >Наименование</a>
+              <a class="nav-link" id="toMats1C" href="#" type="button">1С</a>
+          </div>
+        </nav>
+
+        <table class="table table-bordered table-hover table-striped">
+            <thead>
+                <tr>
+                  <th scope="col">
+                      Наименование
+                  </th>
+                  <th scope="col">
+                    Кол-во
+                  </th>
+                </tr>
+            </thead>
+            <tbody>
+                {{range .Mats}}
+                <tr>
+                    <td>
+                      {{.Name}}
+                    </td>
+                    <td>
+                      {{.Amout}}
+                  </td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+
+      </div>
+        <script src="Face/html/js/bootstrap.bundle.js"></script>
+</body>
+
+
+</html>

@@ -1242,6 +1242,56 @@ func (base Base) SetPromDate(ctx context.Context, order int, date time.Time) err
 	return err
 }
 
+///////////////
+// Материалы //
+///////////////
+
+func (base Base) TakeMatsById(ctx context.Context, Ids ...int) ([]mytypes.Mat, error) {
+
+	var mat mytypes.Mat
+	var mats []mytypes.Mat
+	if len(Ids) == 0 {
+		qq := `SELECT "matId", name, "1CName", amout, "inWork", type FROM public."cleanMats" ORDER BY "name";`
+		rows, err := base.Db.Query(ctx, qq)
+		if err != nil {
+			return mats, err
+		}
+
+		for rows.Next() {
+			err := rows.Scan(&mat.Id, &mat.Name, &mat.Name1C, &mat.Amout, &mat.InWork, &mat.Type)
+			if err != nil {
+				return mats, err
+			}
+			mats = append(mats, mat)
+		}
+	} else {
+		qq := `SELECT "matId", name, "1CName", amout, "inWork", type FROM public."cleanMats" WHERE "matId" = $1 ORDER BY "name"`
+
+		for _, a := range Ids {
+			err := base.Db.QueryRow(ctx, qq, a).Scan(&mat.Id, &mat.Name, &mat.Name1C, &mat.Amout, &mat.InWork, &mat.Type)
+			if err != nil {
+				return mats, err
+			}
+			mats = append(mats, mat)
+		}
+	}
+	return mats, nil
+}
+
+func (base Base) InsertMat(ctx context.Context, name string, name1c string, matType int) error {
+	qq := `INSERT INTO public.mats (name, "1CName", type) VALUES ($1, $2, $3)`
+
+	_, err := base.Db.Exec(ctx, qq, name, name1c, matType)
+	return err
+}
+
+func (base Base) AddMat(ctx context.Context, name string, amout int) error {
+	qq := `UPDATE public.mats SET amout = amout + $2 WHERE name =$1;`
+
+	_, err := base.Db.Exec(ctx, qq, name, amout)
+	return err
+}
+
 ////////////////////
 // Другие функции //
 ////////////////////

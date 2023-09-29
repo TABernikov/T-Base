@@ -160,3 +160,12 @@ type OrderStatusClean struct {
 	Done     int
 	Shipped  int
 }
+
+type Mat struct {
+	Id     int
+	Name   string
+	Name1C string
+	Amout  int
+	InWork int
+	Type   string
+}
