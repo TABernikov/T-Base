@@ -60,10 +60,17 @@
           <div class="col mb-3" style="min-width: 350px;">
             <label for="Name" class="form-label">Наименование</label>
             <div class=" input-group mb-3">
-              <input type="text" class="form-control" placeholder="Наименование" name="Name" id="Name" onchange="resetIfInvalid(this)" list="nameList" required>
+              <input type="text" class="form-control" placeholder="Факт" name="Name" id="Name" onchange="resetIfInvalid(this)" list="nameList" required>
               <datalist id="nameList">
                 <option selected value=""></option>
                 {{range .NameList}}
+                  <option value="{{.}}"></option>
+                {{end}}
+              </datalist>
+              <input type="text" class="form-control" placeholder="1C" name="Name1C" id="Name1C" onchange="resetIfInvalid(this)" list="nameList1C" required>
+              <datalist id="nameList1C">
+                <option selected value=""></option>
+                {{range .NameList1C}}
                   <option value="{{.}}"></option>
                 {{end}}
               </datalist> 

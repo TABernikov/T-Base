@@ -1278,6 +1278,68 @@ func (base Base) TakeMatsById(ctx context.Context, Ids ...int) ([]mytypes.Mat, e
 	return mats, nil
 }
 
+func (base Base) TakeAmoutMatsByName(ctx context.Context, names ...string) ([]mytypes.Mat, error) {
+	var mat mytypes.Mat
+	var mats []mytypes.Mat
+	if len(names) == 0 {
+		qq := `SELECT name, sum FROM "matsByName" ORDER BY name`
+		rows, err := base.Db.Query(ctx, qq)
+		if err != nil {
+			return mats, err
+		}
+
+		for rows.Next() {
+			err := rows.Scan(&mat.Name, &mat.Amout)
+			if err != nil {
+				return mats, err
+			}
+			mats = append(mats, mat)
+		}
+	} else {
+		qq := `SELECT name, sum FROM "matsByName" WHERE "name" = $1 ORDER BY "name"`
+
+		for _, a := range names {
+			err := base.Db.QueryRow(ctx, qq, a).Scan(&mat.Name, &mat.Amout)
+			if err != nil {
+				return mats, err
+			}
+			mats = append(mats, mat)
+		}
+	}
+	return mats, nil
+}
+
+func (base Base) TakeAmoutMatsBy1C(ctx context.Context, names1c ...string) ([]mytypes.Mat, error) {
+	var mat mytypes.Mat
+	var mats []mytypes.Mat
+	if len(names1c) == 0 {
+		qq := `SELECT "1CName", sum FROM "matsBy1C" ORDER BY "1CName"`
+		rows, err := base.Db.Query(ctx, qq)
+		if err != nil {
+			return mats, err
+		}
+
+		for rows.Next() {
+			err := rows.Scan(&mat.Name1C, &mat.Amout)
+			if err != nil {
+				return mats, err
+			}
+			mats = append(mats, mat)
+		}
+	} else {
+		qq := `SELECT "1CName", sum FROM "matsBy1C" WHERE "1CName" = $1 ORDER BY "1CName"`
+
+		for _, a := range names1c {
+			err := base.Db.QueryRow(ctx, qq, a).Scan(&mat.Name1C, &mat.Amout)
+			if err != nil {
+				return mats, err
+			}
+			mats = append(mats, mat)
+		}
+	}
+	return mats, nil
+}
+
 func (base Base) InsertMat(ctx context.Context, name string, name1c string, matType int) error {
 	qq := `INSERT INTO public.mats (name, "1CName", type) VALUES ($1, $2, $3)`
 
@@ -1285,11 +1347,12 @@ func (base Base) InsertMat(ctx context.Context, name string, name1c string, matT
 	return err
 }
 
-func (base Base) AddMat(ctx context.Context, name string, amout int) error {
-	qq := `UPDATE public.mats SET amout = amout + $2 WHERE name =$1;`
+func (base Base) AddMat(ctx context.Context, name string, name1c string, amout int) (int, error) {
+	qq := `UPDATE public.mats SET amout = amout + $2 WHERE name =$1 AND "1CName" = $3;`
 
-	_, err := base.Db.Exec(ctx, qq, name, amout)
-	return err
+	res, err := base.Db.Exec(ctx, qq, name, amout, name1c)
+	done := int(res.RowsAffected())
+	return done, err
 }
 
 ////////////////////

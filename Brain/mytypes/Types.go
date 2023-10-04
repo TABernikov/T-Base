@@ -169,3 +169,15 @@ type Mat struct {
 	InWork int
 	Type   string
 }
+
+type BuildListElement struct {
+	MatId int
+	Amout int
+}
+
+type Build struct {
+	Id        int
+	DModel    int
+	TModel    int
+	BuildList []BuildListElement
+}

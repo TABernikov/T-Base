@@ -721,8 +721,21 @@ func (a App) TakeMatPage(w http.ResponseWriter, r *http.Request, pr httprouter.P
 
 	a.MakeTakeMatPage(w)
 }
-func (a App) StorageMats(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+
+func (a App) StorageMatsPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	a.MakeStorageMatsPage(w)
+}
+
+func (a App) StorageMatsByNamePage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	a.MakeStorageMatsByNamePage(w)
+}
+
+func (a App) StorageMatsBy1CPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	a.MakeStorageMatsBy1CPage(w)
+}
+
+func (a App) MakeBuildPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	a.MakeMakeBuildPage(w)
 }
 
 //////////////////////
@@ -1510,7 +1523,6 @@ func (a App) CreateMat(w http.ResponseWriter, r *http.Request, pr httprouter.Par
 
 	name := r.FormValue("Name")
 	name1C := r.FormValue("1СName")
-	fmt.Println(name1C)
 	matType, err := strconv.Atoi(r.FormValue("Type"))
 	if err != nil {
 		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка получения", err.Error(), "Главная", "/works/prof")
@@ -1532,6 +1544,7 @@ func (a App) TakeMat(w http.ResponseWriter, r *http.Request, pr httprouter.Param
 	}
 
 	name := r.FormValue("Name")
+	name1c := r.FormValue("Name1C")
 	amout, err := strconv.Atoi(r.FormValue("Amout"))
 	if err != nil {
 		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка получения", err.Error(), "Главная", "/works/prof")
@@ -1542,9 +1555,17 @@ func (a App) TakeMat(w http.ResponseWriter, r *http.Request, pr httprouter.Param
 		return
 	}
 
-	err = a.Db.AddMat(a.ctx, name, amout)
+	added, err := a.Db.AddMat(a.ctx, name, name1c, amout)
 	if err != nil {
 		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка внесения", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	if added == 0 {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Нет такой комбинации наименований", "", "Главная", "/works/prof")
+		return
+	}
+	if added < amout {
+		MakeAlertPage(w, 4, "Ошибка", "Ошибка", "ОШИБКА НЕВОЗМОЖНАЯ", "", "Главная", "/works/prof")
 		return
 	}
 
@@ -2429,7 +2450,7 @@ func (a App) MakeUserPage(w http.ResponseWriter, user mytypes.User) {
 		block.Btns = append(block.Btns, btn)
 		btn = Buton{`Сборки`, "/"}
 		block.Btns = append(block.Btns, btn)
-		btn = Buton{`Добавить сборку`, "/"}
+		btn = Buton{`Добавить сборку`, "/works/makebuild"}
 		block.Btns = append(block.Btns, btn)
 		btn = Buton{`Добавить материал`, "/works/createmat"}
 		block.Btns = append(block.Btns, btn)
@@ -2490,12 +2511,14 @@ func MakeCreateMatPage(w http.ResponseWriter) {
 
 func (a App) MakeTakeMatPage(w http.ResponseWriter) {
 	type TakeForm struct {
-		NameList []string
+		NameList   []string
+		NameList1C []string
 	}
 	var NameList []string
+	var NameList1C []string
 	var Name string
 
-	rows, err := a.Db.Db.Query(a.ctx, `SELECT "name" FROM public."mats";`)
+	rows, err := a.Db.Db.Query(a.ctx, `SELECT "name" FROM public."mats" GROUP BY name ORDER BY name;`)
 	if err != nil {
 		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
 		return
@@ -2509,9 +2532,23 @@ func (a App) MakeTakeMatPage(w http.ResponseWriter) {
 		}
 		NameList = append(NameList, Name)
 	}
-	fmt.Println(NameList)
 
-	tmp := TakeForm{NameList}
+	rows, err = a.Db.Db.Query(a.ctx, `SELECT "1CName" FROM public."mats" GROUP BY "1CName" ORDER BY "1CName";`)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	for rows.Next() {
+		err := rows.Scan(&Name)
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		NameList1C = append(NameList1C, Name)
+	}
+
+	tmp := TakeForm{NameList, NameList1C}
 	t := template.Must(template.ParseFiles("Face/html/TakeMat.html"))
 	t.Execute(w, tmp)
 }
@@ -2530,4 +2567,164 @@ func (a App) MakeStorageMatsPage(w http.ResponseWriter) {
 
 	t := template.Must(template.ParseFiles("Face/html/storage mats.html"))
 	t.Execute(w, table)
+}
+
+func (a App) MakeStorageMatsByNamePage(w http.ResponseWriter) {
+	Mats, err := a.Db.TakeAmoutMatsByName(a.ctx)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	type storagePage struct {
+		Lable string
+		Mats  []mytypes.Mat
+	}
+	table := storagePage{"Материалы", Mats}
+
+	t := template.Must(template.ParseFiles("Face/html/storage matsbyname.html"))
+	t.Execute(w, table)
+}
+
+func (a App) MakeStorageMatsBy1CPage(w http.ResponseWriter) {
+	Mats, err := a.Db.TakeAmoutMatsBy1C(a.ctx)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	type storagePage struct {
+		Lable string
+		Mats  []mytypes.Mat
+	}
+	table := storagePage{"Материалы", Mats}
+
+	t := template.Must(template.ParseFiles("Face/html/storage matsby1c.html"))
+	t.Execute(w, table)
+}
+
+func (a App) MakeMakeBuildPage(w http.ResponseWriter) {
+	type SelectList struct {
+		Id     int
+		Name   string
+		Name1C string
+	}
+	type TakeForm struct {
+		ModelListT    []string
+		ModelListD    []string
+		CaseList      []SelectList
+		StikerList    []SelectList
+		BoxList       []SelectList
+		BoxholderList []SelectList
+		AnotherList   []SelectList
+	}
+	var ModelListT []string
+	var ModelListD []string
+	var CaseList []SelectList
+	var StikerList []SelectList
+	var BoxList []SelectList
+	var BoxholderList []SelectList
+	var AnotherList []SelectList
+	var Name string
+	var choise SelectList
+
+	rows, err := a.Db.Db.Query(a.ctx, `SELECT "tModelsName" FROM "tModels" ORDER BY "tModelsName"`)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	for rows.Next() {
+		err := rows.Scan(&Name)
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		ModelListT = append(ModelListT, Name)
+	}
+
+	rows, err = a.Db.Db.Query(a.ctx, `SELECT "dModelName" FROM "dModels" ORDER BY "dModelName"`)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	for rows.Next() {
+		err := rows.Scan(&Name)
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		ModelListD = append(ModelListD, Name)
+	}
+
+	rows, err = a.Db.Db.Query(a.ctx, `SELECT "matId", name, "1CName" FROM public.mats WHERE type = '1'`)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	for rows.Next() {
+		err := rows.Scan(&choise.Id, &choise.Name, &choise.Name1C)
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		CaseList = append(CaseList, choise)
+	}
+
+	rows, err = a.Db.Db.Query(a.ctx, `SELECT "matId", name, "1CName" FROM public.mats WHERE type = '2'`)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	for rows.Next() {
+		err := rows.Scan(&choise.Id, &choise.Name, &choise.Name1C)
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		StikerList = append(StikerList, choise)
+	}
+
+	rows, err = a.Db.Db.Query(a.ctx, `SELECT "matId", name, "1CName" FROM public.mats WHERE type = '3'`)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	for rows.Next() {
+		err := rows.Scan(&choise.Id, &choise.Name, &choise.Name1C)
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		BoxList = append(BoxList, choise)
+	}
+
+	rows, err = a.Db.Db.Query(a.ctx, `SELECT "matId", name, "1CName" FROM public.mats WHERE type = '4'`)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	for rows.Next() {
+		err := rows.Scan(&choise.Id, &choise.Name, &choise.Name1C)
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		BoxholderList = append(BoxholderList, choise)
+	}
+
+	rows, err = a.Db.Db.Query(a.ctx, `SELECT "matId", name, "1CName" FROM public.mats WHERE type = '7'`)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	for rows.Next() {
+		err := rows.Scan(&choise.Id, &choise.Name, &choise.Name1C)
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		AnotherList = append(AnotherList, choise)
+	}
+
+	tmp := TakeForm{ModelListT, ModelListD, CaseList, StikerList, BoxList, BoxholderList, AnotherList}
+	t := template.Must(template.ParseFiles("Face/html/MakeBuild.html"))
+	t.Execute(w, tmp)
 }

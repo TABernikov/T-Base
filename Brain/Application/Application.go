@@ -74,7 +74,10 @@ func (a App) Routs(r *httprouter.Router) {
 	r.GET("/works/takedevicebyxlsx", a.authtorized(a.TakeDeviceByExcelPage))
 	r.GET("/works/createmat", a.authtorized(a.CreateMatPage))
 	r.GET("/works/takemat", a.authtorized(a.TakeMatPage))
-	r.GET("/works/storage/mats", a.authtorized(a.StorageMats))
+	r.GET("/works/storage/mats", a.authtorized(a.StorageMatsPage))
+	r.GET("/works/storage/matsbyname", a.authtorized(a.StorageMatsByNamePage))
+	r.GET("/works/storage/matsby1c", a.authtorized(a.StorageMatsBy1CPage))
+	r.GET("/works/makebuild", a.authtorized(a.MakeBuildPage))
 
 	r.POST("/works/tmc", a.authtorized(a.TMCPage))
 	r.POST("/works/orders", a.authtorized(a.OrderPage))
