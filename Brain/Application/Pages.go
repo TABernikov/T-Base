@@ -734,8 +734,12 @@ func (a App) StorageMatsBy1CPage(w http.ResponseWriter, r *http.Request, pr http
 	a.MakeStorageMatsBy1CPage(w)
 }
 
-func (a App) MakeBuildPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
-	a.MakeMakeBuildPage(w)
+func (a App) CreateBuildPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	a.MakeCreateBuildPage(w)
+}
+
+func (a App) BuildsPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	a.MakeBuildsPage(w)
 }
 
 //////////////////////
@@ -1570,6 +1574,61 @@ func (a App) TakeMat(w http.ResponseWriter, r *http.Request, pr httprouter.Param
 	}
 
 	MakeAlertPage(w, 1, "Готово", "Готово", "Успешно", "Отличная работа", "Главная", "/works/prof")
+}
+
+func (a App) MakeBuild(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	var build mytypes.Build
+	dModelstr := r.FormValue("DModel")
+	tModelstr := r.FormValue("TModel")
+
+	err := a.Db.Db.QueryRow(a.ctx, `SELECT "dModelsId" FROM public."dModels" WHERE "dModelName" = $1`, dModelstr).Scan(&build.DModel)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", "", "Главная", "/works/prof")
+		return
+	}
+
+	err = a.Db.Db.QueryRow(a.ctx, `SELECT "tModelsId" FROM public."tModels" WHERE "tModelsName" = $1`, tModelstr).Scan(&build.TModel)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", "", "Главная", "/works/prof")
+		return
+	}
+
+	type buildPoint struct {
+		Id    string
+		Amout string
+	}
+
+	buildPoints := []buildPoint{{Id: "case", Amout: "caseAmout"}, {Id: "stiker", Amout: "stikerAmout"}, {Id: "box", Amout: "boxAmout"}, {Id: "boxholder", Amout: "boxholderAmout"}, {Id: "another1", Amout: "another1Amout"}, {Id: "another2", Amout: "another2Amout"}, {Id: "another3", Amout: "another3Amout"}}
+
+	for _, point := range buildPoints {
+		tmp := r.FormValue(point.Id)
+
+		elId, err := strconv.Atoi(tmp)
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка 1", "", "Главная", "/works/prof")
+			return
+		}
+		tmp = r.FormValue(point.Amout)
+
+		if tmp == "" {
+			continue
+		}
+		elAmout, err := strconv.Atoi(tmp)
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка 2", "", "Главная", "/works/prof")
+			return
+		}
+		if elId != -1 && elAmout > 0 {
+			element := mytypes.BuildListElement{MatId: elId, Amout: elAmout}
+			build.BuildList = append(build.BuildList, element)
+		}
+	}
+
+	count, err := a.Db.InsertBuild(a.ctx, build)
+	if count != 1 || err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка заведения", strconv.Itoa(count)+err.Error(), "Главная", "/works/prof")
+	}
+
 }
 
 //////////////////////
@@ -2448,7 +2507,7 @@ func (a App) MakeUserPage(w http.ResponseWriter, user mytypes.User) {
 		block.Title = "Материалы"
 		btn = Buton{`Склад материалов`, "/works/storage/mats"}
 		block.Btns = append(block.Btns, btn)
-		btn = Buton{`Сборки`, "/"}
+		btn = Buton{`Сборки`, "/works/buildlist"}
 		block.Btns = append(block.Btns, btn)
 		btn = Buton{`Добавить сборку`, "/works/makebuild"}
 		block.Btns = append(block.Btns, btn)
@@ -2601,7 +2660,7 @@ func (a App) MakeStorageMatsBy1CPage(w http.ResponseWriter) {
 	t.Execute(w, table)
 }
 
-func (a App) MakeMakeBuildPage(w http.ResponseWriter) {
+func (a App) MakeCreateBuildPage(w http.ResponseWriter) {
 	type SelectList struct {
 		Id     int
 		Name   string
@@ -2727,4 +2786,10 @@ func (a App) MakeMakeBuildPage(w http.ResponseWriter) {
 	tmp := TakeForm{ModelListT, ModelListD, CaseList, StikerList, BoxList, BoxholderList, AnotherList}
 	t := template.Must(template.ParseFiles("Face/html/MakeBuild.html"))
 	t.Execute(w, tmp)
+}
+
+func (a App) MakeBuildsPage(w http.ResponseWriter) {
+
+	t := template.Must(template.ParseFiles("Face/html/builds.html"))
+	t.Execute(w, []int{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1})
 }

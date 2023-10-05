@@ -83,27 +83,27 @@
           <div class="col mb-3" style="min-width: 350px;">
             <label class="form-label">Крышка</label>
             <div class=" input-group mb-3">
-              <select class="form-select" name="caes" id="case" required>
-                <option selected value="-1">Выберете</option>
+              <select class="form-select" name="case" id="case" required>
+                <option selected value="-1">Выберите</option>
                 <option value="-1">Нет</option>
                 {{range .CaseList}}
                 <option value="{{.Id}}">{{.Name}} / {{.Name1C}}</option>
                 {{end}}
               </select>
-              <input type="number" class="form-control" placeholder="Кол-во" name="caesAmout" id="caesAmout" >
+              <input type="number" class="form-control" value="1" placeholder="Кол-во" name="caseAmout" id="caseAmout" >
             </div>
           </div>
           <div class="col mb-3" style="min-width: 350px;">
             <label class="form-label">Ф. Наклейка</label>
             <div class=" input-group mb-3">
               <select class="form-select" name="stiker" id="stiker" required>
-                <option selected value="-1">Выберете</option>
+                <option selected value="-1">Выберите</option>
                 <option value="-1">Нет</option>
                 {{range .StikerList}}
                 <option value="{{.Id}}">{{.Name}} / {{.Name1C}}</option>
                 {{end}}
               </select>
-              <input type="number" class="form-control" placeholder="Кол-во" name="stikerAmout" id="stikerAmout" >
+              <input type="number" class="form-control" placeholder="Кол-во" value="1" name="stikerAmout" id="stikerAmout" >
             </div>
           </div>
         </div>
@@ -112,26 +112,26 @@
             <label class="form-label">Коробка</label>
             <div class=" input-group mb-3">
               <select class="form-select" name="box" id="box" required>
-                <option selected value="-1">Выберете</option>
+                <option selected value="-1">Выберите</option>
                 <option value="-1">Нет</option>
                 {{range .BoxList}}
                 <option value="{{.Id}}">{{.Name}} / {{.Name1C}}</option>
                 {{end}}
               </select>
-              <input type="number" class="form-control" placeholder="Кол-во" name="boxAmout" id="boxAmout" >
+              <input type="number" class="form-control" placeholder="Кол-во" value="1" name="boxAmout" id="boxAmout" >
             </div>
           </div>
           <div class="col mb-3" style="min-width: 350px;">
             <label class="form-label">Демпферы</label>
             <div class=" input-group mb-3">
               <select class="form-select" name="boxholder" id="boxholder" required>
-                <option selected value="-1">Выберете</option>
+                <option selected value="-1">Выберите</option>
                 <option value="-1">Нет</option>
                 {{range .BoxholderList}}
                 <option value="{{.Id}}">{{.Name}} / {{.Name1C}}</option>
                 {{end}}
               </select>
-              <input type="number" class="form-control" placeholder="Кол-во" name="boxholderAmout" id="boxholderAmout" >
+              <input type="number" class="form-control" placeholder="Кол-во" value="1" name="boxholderAmout" id="boxholderAmout" >
             </div>
           </div>
         </div>
@@ -140,7 +140,7 @@
             <label class="form-label">Другое1</label>
             <div class=" input-group mb-3">
               <select class="form-select" name="another1" id="another1" required>
-                <option selected value="-1">Выберете</option>
+                <option selected value="-1">Выберите</option>
                 <option value="-1">Нет</option>
                 {{range .AnotherList}}
                 <option value="{{.Id}}">{{.Name}} / {{.Name1C}}</option>
@@ -155,7 +155,7 @@
             <label class="form-label">Другое2</label>
             <div class=" input-group mb-3">
               <select class="form-select" name="another2" id="another2" required>
-                <option selected value="-1">Выберете</option>
+                <option selected value="-1">Выберите</option>
                 <option value="-1">Нет</option>
                 {{range .AnotherList}}
                 <option value="{{.Id}}">{{.Name}} / {{.Name1C}}</option>
@@ -170,7 +170,7 @@
             <label class="form-label">Другое3</label>
             <div class=" input-group mb-3">
               <select class="form-select" name="another3" id="another3" required>
-                <option selected value="-1">Выберете</option>
+                <option selected value="-1">Выберите</option>
                 <option value="-1">Нет</option>
                 {{range .AnotherList}}
                 <option value="{{.Id}}">{{.Name}} / {{.Name1C}}</option>

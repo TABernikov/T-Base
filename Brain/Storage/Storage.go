@@ -1355,6 +1355,42 @@ func (base Base) AddMat(ctx context.Context, name string, name1c string, amout i
 	return done, err
 }
 
+////////////
+// Сборки //
+////////////
+
+func (base Base) InsertBuild(ctx context.Context, builds ...mytypes.Build) (int, error) {
+	qq := `INSERT INTO public.builds("buildId", "dModel", "tModel") VALUES ($1, $2, $3);`
+	counter := 0
+	for _, build := range builds {
+
+		var id int
+		err := base.Db.QueryRow(ctx, `SELECT "buildId" FROM builds ORDER BY "buildId" DESC`).Scan(&id)
+		if err != nil {
+			if err.Error() != "no rows in result set" {
+				return counter, err
+			}
+			id = 0
+		}
+		id++
+
+		_, err = base.Db.Exec(ctx, qq, id, build.DModel, build.TModel)
+		if err != nil {
+			return counter, err
+		}
+
+		for _, a := range build.BuildList {
+			_, err := base.Db.Exec(ctx, `INSERT INTO public."buildMatList"("billdId", "matId", amout) VALUES ($1, $2, $3);`, id, a.MatId, a.Amout)
+			if err != nil {
+				return counter, err
+			}
+		}
+		counter++
+	}
+
+	return counter, nil
+}
+
 ////////////////////
 // Другие функции //
 ////////////////////

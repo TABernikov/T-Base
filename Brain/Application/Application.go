@@ -77,7 +77,8 @@ func (a App) Routs(r *httprouter.Router) {
 	r.GET("/works/storage/mats", a.authtorized(a.StorageMatsPage))
 	r.GET("/works/storage/matsbyname", a.authtorized(a.StorageMatsByNamePage))
 	r.GET("/works/storage/matsby1c", a.authtorized(a.StorageMatsBy1CPage))
-	r.GET("/works/makebuild", a.authtorized(a.MakeBuildPage))
+	r.GET("/works/makebuild", a.authtorized(a.CreateBuildPage))
+	r.GET("/works/buildlist", a.authtorized(a.BuildsPage))
 
 	r.POST("/works/tmc", a.authtorized(a.TMCPage))
 	r.POST("/works/orders", a.authtorized(a.OrderPage))
@@ -102,6 +103,7 @@ func (a App) Routs(r *httprouter.Router) {
 	r.POST("/works/takedevicebyxlsx", a.authtorized(a.TakeDeviceByExcel))
 	r.POST("/works/createmat", a.authtorized(a.CreateMat))
 	r.POST("/works/takemat", a.authtorized(a.TakeMat))
+	r.POST("/works/makebuild", a.authtorized(a.MakeBuild))
 
 	r.GET("/works/tmcexcell", a.authtorized(a.TMCExcell))
 	r.POST("/works/tmcexcell", a.authtorized(a.TMCExcell))
