@@ -167,6 +167,7 @@ type Mat struct {
 	Name1C string
 	Amout  int
 	InWork int
+	Price  int
 	Type   string
 }
 
@@ -180,4 +181,16 @@ type Build struct {
 	DModel    int
 	TModel    int
 	BuildList []BuildListElement
+}
+
+type BuildListElementClean struct {
+	Mat   string
+	Amout int
+}
+
+type BuildClean struct {
+	Id        int
+	DModel    string
+	TModel    string
+	BuildList []BuildListElementClean
 }

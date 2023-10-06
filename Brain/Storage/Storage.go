@@ -1251,24 +1251,24 @@ func (base Base) TakeMatsById(ctx context.Context, Ids ...int) ([]mytypes.Mat, e
 	var mat mytypes.Mat
 	var mats []mytypes.Mat
 	if len(Ids) == 0 {
-		qq := `SELECT "matId", name, "1CName", amout, "inWork", type FROM public."cleanMats" ORDER BY "name";`
+		qq := `SELECT "matId", name, "1CName", amout, "inWork", type, price FROM public."cleanMats" ORDER BY "name";`
 		rows, err := base.Db.Query(ctx, qq)
 		if err != nil {
 			return mats, err
 		}
 
 		for rows.Next() {
-			err := rows.Scan(&mat.Id, &mat.Name, &mat.Name1C, &mat.Amout, &mat.InWork, &mat.Type)
+			err := rows.Scan(&mat.Id, &mat.Name, &mat.Name1C, &mat.Amout, &mat.InWork, &mat.Type, &mat.Price)
 			if err != nil {
 				return mats, err
 			}
 			mats = append(mats, mat)
 		}
 	} else {
-		qq := `SELECT "matId", name, "1CName", amout, "inWork", type FROM public."cleanMats" WHERE "matId" = $1 ORDER BY "name"`
+		qq := `SELECT "matId", name, "1CName", amout, "inWork", type, price FROM public."cleanMats" WHERE "matId" = $1 ORDER BY "name"`
 
 		for _, a := range Ids {
-			err := base.Db.QueryRow(ctx, qq, a).Scan(&mat.Id, &mat.Name, &mat.Name1C, &mat.Amout, &mat.InWork, &mat.Type)
+			err := base.Db.QueryRow(ctx, qq, a).Scan(&mat.Id, &mat.Name, &mat.Name1C, &mat.Amout, &mat.InWork, &mat.Type, &mat.Price)
 			if err != nil {
 				return mats, err
 			}
@@ -1340,19 +1340,45 @@ func (base Base) TakeAmoutMatsBy1C(ctx context.Context, names1c ...string) ([]my
 	return mats, nil
 }
 
-func (base Base) InsertMat(ctx context.Context, name string, name1c string, matType int) error {
-	qq := `INSERT INTO public.mats (name, "1CName", type) VALUES ($1, $2, $3)`
+func (base Base) InsertMat(ctx context.Context, name string, matType int) error {
+	qq := `INSERT INTO public."matsName" (name, type) VALUES ($1, $2)`
 
-	_, err := base.Db.Exec(ctx, qq, name, name1c, matType)
+	_, err := base.Db.Exec(ctx, qq, name, matType)
 	return err
 }
 
-func (base Base) AddMat(ctx context.Context, name string, name1c string, amout int) (int, error) {
-	qq := `UPDATE public.mats SET amout = amout + $2 WHERE name =$1 AND "1CName" = $3;`
+func (base Base) AddMat(ctx context.Context, name string, name1c string, price int, amout int) error {
+	var nameId int
+	qq := `SELECT "matNameId" FROM public."matsName" WHERE "name" = $1;`
+	err := base.Db.QueryRow(ctx, qq, name).Scan(&nameId)
+	if err != nil {
+		return err
+	}
 
-	res, err := base.Db.Exec(ctx, qq, name, amout, name1c)
+	qq = `UPDATE public.mats SET amout=amout + $4 WHERE name = $1 AND "1CName" = $2 AND prise = $3;`
+	res, err := base.Db.Exec(ctx, qq, nameId, name1c, price, amout)
 	done := int(res.RowsAffected())
-	return done, err
+	if err != nil {
+		return err
+	}
+	if done != 1 {
+		if done == 0 {
+			qq := `INSERT INTO public.mats( "1CName", amout, name, prise) VALUES ($1, $2, $3, $4);`
+			res, err = base.Db.Exec(ctx, qq, name1c, amout, nameId, price)
+			if err != nil {
+				return err
+			}
+			done = int(res.RowsAffected())
+			if done != 1 {
+				return fmt.Errorf("критическая ошибка")
+			}
+		} else {
+			return fmt.Errorf("критическая ошибка")
+		}
+
+	}
+
+	return err
 }
 
 ////////////
@@ -1380,7 +1406,7 @@ func (base Base) InsertBuild(ctx context.Context, builds ...mytypes.Build) (int,
 		}
 
 		for _, a := range build.BuildList {
-			_, err := base.Db.Exec(ctx, `INSERT INTO public."buildMatList"("billdId", "matId", amout) VALUES ($1, $2, $3);`, id, a.MatId, a.Amout)
+			_, err := base.Db.Exec(ctx, `INSERT INTO public."buildMatList"("billdId", "mat", amout) VALUES ($1, $2, $3);`, id, a.MatId, a.Amout)
 			if err != nil {
 				return counter, err
 			}
@@ -1390,6 +1416,136 @@ func (base Base) InsertBuild(ctx context.Context, builds ...mytypes.Build) (int,
 
 	return counter, nil
 }
+
+func (base Base) TakeBuildByTModel(ctx context.Context, TModels ...int) ([]mytypes.Build, error) {
+	var Builds []mytypes.Build
+	if len(TModels) > 0 {
+		qq := `SELECT "buildId", "dModel", "tModel" FROM public.builds WHERE "tModel" = $1;`
+		for _, a := range TModels {
+
+			var build mytypes.Build
+
+			err := base.Db.QueryRow(ctx, qq, a).Scan(&build.Id, &build.DModel, &build.TModel)
+			if err != nil {
+				return Builds, err
+			}
+
+			qq = `SELECT "mat", amout FROM public."buildMatList" WHERE "billdId" = $1;`
+			rows, err := base.Db.Query(ctx, qq, build.Id)
+			if err != nil {
+				return Builds, err
+			}
+
+			var buildlist []mytypes.BuildListElement
+			var buildElement mytypes.BuildListElement
+			for rows.Next() {
+				err := rows.Scan(&buildElement.MatId, &buildElement.Amout)
+				if err != nil {
+					return Builds, err
+				}
+				buildlist = append(buildlist, buildElement)
+			}
+			build.BuildList = buildlist
+			Builds = append(Builds, build)
+		}
+
+	} else {
+
+		qq := `SELECT "buildId", "dModel", "tModel" FROM public.builds;`
+
+		var build mytypes.Build
+		err := base.Db.QueryRow(ctx, qq).Scan(&build.Id, &build.DModel, &build.TModel)
+		if err != nil {
+			return Builds, err
+		}
+
+		qq = `SELECT amout, mat FROM public."buildMatList" WHERE "billdId" = $1;`
+
+		rows, err := base.Db.Query(ctx, qq, build.Id)
+		if err != nil {
+			return Builds, err
+		}
+
+		var buildlist []mytypes.BuildListElement
+		var buildElement mytypes.BuildListElement
+		for rows.Next() {
+			err := rows.Scan(&buildElement.Amout, &buildElement.MatId)
+			if err != nil {
+				return Builds, err
+			}
+			buildlist = append(buildlist, buildElement)
+		}
+		build.BuildList = buildlist
+	}
+	return Builds, nil
+}
+
+//func (base Base) TakeBuildByDModel(ctx context.Context, DModels ...string)
+
+func (base Base) TakeCleanBuildByTModel(ctx context.Context, TModels ...int) ([]mytypes.BuildClean, error) {
+	var Builds []mytypes.BuildClean
+	if len(TModels) > 0 {
+		qq := `SELECT "buildId", "dModel", "tModel" FROM public."cleanBuilds" WHERE "tModel" = $1;`
+		for _, a := range TModels {
+
+			var build mytypes.BuildClean
+
+			err := base.Db.QueryRow(ctx, qq, a).Scan(&build.Id, &build.DModel, &build.TModel)
+			if err != nil {
+				return Builds, err
+			}
+
+			qq = `SELECT "mat", amout FROM public."cleanBuildMatList" WHERE "billdId" = $1;`
+			rows, err := base.Db.Query(ctx, qq, build.Id)
+			if err != nil {
+				return Builds, err
+			}
+
+			var buildlist []mytypes.BuildListElementClean
+			var buildElement mytypes.BuildListElementClean
+			for rows.Next() {
+				err := rows.Scan(&buildElement.Mat, &buildElement.Amout)
+				if err != nil {
+					return Builds, err
+				}
+				buildlist = append(buildlist, buildElement)
+			}
+			build.BuildList = buildlist
+			Builds = append(Builds, build)
+		}
+
+	} else {
+
+		qq := `SELECT "buildId", "dModel", "tModel" FROM public."cleanBuilds";`
+
+		var build mytypes.BuildClean
+		err := base.Db.QueryRow(ctx, qq).Scan(&build.Id, &build.DModel, &build.TModel)
+		if err != nil {
+			return Builds, err
+		}
+
+		qq = `SELECT amout, mat FROM public."cleanBuildMatList" WHERE "billdId" = $1;`
+
+		rows, err := base.Db.Query(ctx, qq, build.Id)
+		if err != nil {
+			return Builds, err
+		}
+
+		var buildlist []mytypes.BuildListElementClean
+		var buildElement mytypes.BuildListElementClean
+		for rows.Next() {
+			err := rows.Scan(&buildElement.Amout, &buildElement.Mat)
+			if err != nil {
+				return Builds, err
+			}
+			buildlist = append(buildlist, buildElement)
+		}
+		build.BuildList = buildlist
+	}
+	return Builds, nil
+}
+
+//func (base Base) TakeCleanBuildByDModel(ctx context.Context, DModels ...string)
 
 ////////////////////
 // Другие функции //

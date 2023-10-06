@@ -67,7 +67,7 @@
                   <option value="{{.}}"></option>
                 {{end}}
               </datalist>
-              <input type="text" class="form-control" placeholder="1C" name="Name1C" id="Name1C" onchange="resetIfInvalid(this)" list="nameList1C" required>
+              <input type="text" class="form-control" placeholder="1C" name="Name1C" id="Name1C" list="nameList1C" required>
               <datalist id="nameList1C">
                 <option selected value=""></option>
                 {{range .NameList1C}}
@@ -75,9 +75,19 @@
                 {{end}}
               </datalist> 
             </div>
-            <label for="Amout" class="form-label">Кол-во</label>
-            <div class=" input-group mb-3">
-              <input type="number" class="form-control" placeholder="Кол-во" name="Amout" id="Amout" required>
+            <div class="row">
+              <div class="col">
+                <label for="Amout" class="form-label">Кол-во</label>
+                <div class=" input-group mb-3">
+                  <input type="number" class="form-control" placeholder="Кол-во" name="Amout" id="Amout" required>
+                </div>
+              </div>
+              <div class="col">
+                <label for="Price" class="form-label">Цена</label>
+                <div class=" input-group mb-3">
+                  <input type="number" class="form-control" placeholder="Цена в рублях" name="Price" id="Price" required>
+                </div>
+              </div>
             </div>
           </div>
 

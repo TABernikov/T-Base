@@ -54,18 +54,18 @@
     &nbsp;
     <div class="container-xxl g-3">
       <div class="row g-3 ">
-        {{range .}}
+        {{range .Builds}}
         <div class="col" style="width: 100%; min-width: 400px;">
-          <div class="card" style=" width: 100%;">
-            <h5 class="card-header">Модель T-KOM</h5>
+          <div class="card" style=" width: 100%; max-width: 801px;">
+            <h5 class="card-header">{{.TModel}}</h5>
             <div class="card-body">
-              <h6 class="card-title">Модель D-Link</h6>
+              <h6 class="card-title">{{.DModel}}</h6>
               <p class="card-text"></p>
             </div>
             <ul class="list-group list-group-flush">
-              <li class="list-group-item">Элемент</li>
-              <li class="list-group-item">Второй элемент</li>
-              <li class="list-group-item">Третий элемент</li>
+              {{range .BuildList}}
+              <li class="list-group-item">{{.Mat}} [{{.Amout}}]</li>
+              {{end}}
             </ul>
             <div class="card-body">
               <a href="#" class="btn btn-primary">Ссылка</a>

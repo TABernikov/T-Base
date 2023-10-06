@@ -739,7 +739,13 @@ func (a App) CreateBuildPage(w http.ResponseWriter, r *http.Request, pr httprout
 }
 
 func (a App) BuildsPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
-	a.MakeBuildsPage(w)
+
+	Builds, err := a.Db.TakeCleanBuildByTModel(a.ctx)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения сборок", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	a.MakeBuildsPage(w, Builds)
 }
 
 //////////////////////
@@ -1526,13 +1532,12 @@ func (a App) CreateMat(w http.ResponseWriter, r *http.Request, pr httprouter.Par
 	}
 
 	name := r.FormValue("Name")
-	name1C := r.FormValue("1СName")
 	matType, err := strconv.Atoi(r.FormValue("Type"))
 	if err != nil {
 		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка получения", err.Error(), "Главная", "/works/prof")
 		return
 	}
-	err = a.Db.InsertMat(a.ctx, name, name1C, matType)
+	err = a.Db.InsertMat(a.ctx, name, matType)
 	if err != nil {
 		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка внесения", err.Error(), "Главная", "/works/prof")
 		return
@@ -1559,18 +1564,24 @@ func (a App) TakeMat(w http.ResponseWriter, r *http.Request, pr httprouter.Param
 		return
 	}
 
-	added, err := a.Db.AddMat(a.ctx, name, name1c, amout)
+	price, err := strconv.Atoi(r.FormValue("Price"))
 	if err != nil {
-		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка внесения", err.Error(), "Главная", "/works/prof")
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка получения", err.Error(), "Главная", "/works/prof")
 		return
 	}
-	if added == 0 {
-		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Нет такой комбинации наименований", "", "Главная", "/works/prof")
+	if price < 0 {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Цена не может быть отрицательной", "Это называется списание", "Главная", "/works/prof")
 		return
 	}
-	if added < amout {
-		MakeAlertPage(w, 4, "Ошибка", "Ошибка", "ОШИБКА НЕВОЗМОЖНАЯ", "", "Главная", "/works/prof")
-		return
+
+	err = a.Db.AddMat(a.ctx, name, name1c, price, amout)
+	if err != nil {
+		if err.Error() == "критическая ошибка" {
+			MakeAlertPage(w, 5, "Ошибка", "КРИТИЧЕСКАЯ ОШИБКА !!!", "ОБРАТИТЕСЬ К АДМИНЕСТРАТОРУ ДЛЯ ВНЕСЕНИЯ ИСПРАВЛЕНИЙ", err.Error(), "Главная", "/works/prof")
+		} else {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка внесения", err.Error(), "Главная", "/works/prof")
+			return
+		}
 	}
 
 	MakeAlertPage(w, 1, "Готово", "Готово", "Успешно", "Отличная работа", "Главная", "/works/prof")
@@ -1629,6 +1640,7 @@ func (a App) MakeBuild(w http.ResponseWriter, r *http.Request, pr httprouter.Par
 		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка заведения", strconv.Itoa(count)+err.Error(), "Главная", "/works/prof")
 	}
 
+	MakeAlertPage(w, 1, "Успешно", "Успешно", "Сборка создана", "не забудьте что сборку нужно указывать в параметрах модели", "Главная", "/works/prof")
 }
 
 //////////////////////
@@ -2577,7 +2589,7 @@ func (a App) MakeTakeMatPage(w http.ResponseWriter) {
 	var NameList1C []string
 	var Name string
 
-	rows, err := a.Db.Db.Query(a.ctx, `SELECT "name" FROM public."mats" GROUP BY name ORDER BY name;`)
+	rows, err := a.Db.Db.Query(a.ctx, `SELECT "name" FROM public."matsName" GROUP BY name ORDER BY name;`)
 	if err != nil {
 		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
 		return
@@ -2662,9 +2674,8 @@ func (a App) MakeStorageMatsBy1CPage(w http.ResponseWriter) {
 
 func (a App) MakeCreateBuildPage(w http.ResponseWriter) {
 	type SelectList struct {
-		Id     int
-		Name   string
-		Name1C string
+		Id   int
+		Name string
 	}
 	type TakeForm struct {
 		ModelListT    []string
@@ -2713,13 +2724,13 @@ func (a App) MakeCreateBuildPage(w http.ResponseWriter) {
 		ModelListD = append(ModelListD, Name)
 	}
 
-	rows, err = a.Db.Db.Query(a.ctx, `SELECT "matId", name, "1CName" FROM public.mats WHERE type = '1'`)
+	rows, err = a.Db.Db.Query(a.ctx, `SELECT "matNameId", name FROM public."matsName" WHERE type = '1'`)
 	if err != nil {
 		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
 		return
 	}
 	for rows.Next() {
-		err := rows.Scan(&choise.Id, &choise.Name, &choise.Name1C)
+		err := rows.Scan(&choise.Id, &choise.Name)
 		if err != nil {
 			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
 			return
@@ -2727,13 +2738,13 @@ func (a App) MakeCreateBuildPage(w http.ResponseWriter) {
 		CaseList = append(CaseList, choise)
 	}
 
-	rows, err = a.Db.Db.Query(a.ctx, `SELECT "matId", name, "1CName" FROM public.mats WHERE type = '2'`)
+	rows, err = a.Db.Db.Query(a.ctx, `SELECT "matNameId", name FROM public."matsName" WHERE type = '2'`)
 	if err != nil {
 		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
 		return
 	}
 	for rows.Next() {
-		err := rows.Scan(&choise.Id, &choise.Name, &choise.Name1C)
+		err := rows.Scan(&choise.Id, &choise.Name)
 		if err != nil {
 			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
 			return
@@ -2741,13 +2752,13 @@ func (a App) MakeCreateBuildPage(w http.ResponseWriter) {
 		StikerList = append(StikerList, choise)
 	}
 
-	rows, err = a.Db.Db.Query(a.ctx, `SELECT "matId", name, "1CName" FROM public.mats WHERE type = '3'`)
+	rows, err = a.Db.Db.Query(a.ctx, `SELECT "matNameId", name FROM public."matsName" WHERE type = '3'`)
 	if err != nil {
 		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
 		return
 	}
 	for rows.Next() {
-		err := rows.Scan(&choise.Id, &choise.Name, &choise.Name1C)
+		err := rows.Scan(&choise.Id, &choise.Name)
 		if err != nil {
 			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
 			return
@@ -2755,13 +2766,13 @@ func (a App) MakeCreateBuildPage(w http.ResponseWriter) {
 		BoxList = append(BoxList, choise)
 	}
 
-	rows, err = a.Db.Db.Query(a.ctx, `SELECT "matId", name, "1CName" FROM public.mats WHERE type = '4'`)
+	rows, err = a.Db.Db.Query(a.ctx, `SELECT "matNameId", name FROM public."matsName" WHERE type = '4'`)
 	if err != nil {
 		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
 		return
 	}
 	for rows.Next() {
-		err := rows.Scan(&choise.Id, &choise.Name, &choise.Name1C)
+		err := rows.Scan(&choise.Id, &choise.Name)
 		if err != nil {
 			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
 			return
@@ -2769,13 +2780,13 @@ func (a App) MakeCreateBuildPage(w http.ResponseWriter) {
 		BoxholderList = append(BoxholderList, choise)
 	}
 
-	rows, err = a.Db.Db.Query(a.ctx, `SELECT "matId", name, "1CName" FROM public.mats WHERE type = '7'`)
+	rows, err = a.Db.Db.Query(a.ctx, `SELECT "matNameId", name FROM public."matsName" WHERE type = '7'`)
 	if err != nil {
 		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
 		return
 	}
 	for rows.Next() {
-		err := rows.Scan(&choise.Id, &choise.Name, &choise.Name1C)
+		err := rows.Scan(&choise.Id, &choise.Name)
 		if err != nil {
 			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
 			return
@@ -2788,8 +2799,12 @@ func (a App) MakeCreateBuildPage(w http.ResponseWriter) {
 	t.Execute(w, tmp)
 }
 
-func (a App) MakeBuildsPage(w http.ResponseWriter) {
+func (a App) MakeBuildsPage(w http.ResponseWriter, builds []mytypes.BuildClean) {
+	type BPage struct {
+		Builds []mytypes.BuildClean
+	}
 
+	table := BPage{builds}
 	t := template.Must(template.ParseFiles("Face/html/builds.html"))
-	t.Execute(w, []int{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1})
+	t.Execute(w, table)
 }
