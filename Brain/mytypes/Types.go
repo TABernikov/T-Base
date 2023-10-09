@@ -194,3 +194,9 @@ type BuildClean struct {
 	TModel    string
 	BuildList []BuildListElementClean
 }
+
+type TModel struct {
+	Id    int
+	Name  string
+	Build int
+}

@@ -16,7 +16,9 @@ import (
 )
 
 /////////////////////
+
 // Обработчики GET //
+
 /////////////////////
 
 // Стартовая страница
@@ -748,8 +750,42 @@ func (a App) BuildsPage(w http.ResponseWriter, r *http.Request, pr httprouter.Pa
 	a.MakeBuildsPage(w, Builds)
 }
 
+func (a App) TModelsPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	models, err := a.Db.TakeTModelsById(a.ctx)
+
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения моделей", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	MakeTModelsPage(w, models)
+}
+
+func (a App) TModelPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	id, err := strconv.Atoi(r.FormValue("Id"))
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка преобразования ID", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	model, err := a.Db.TakeTModelsById(a.ctx, id)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения модели", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	builds, err := a.Db.TakeCleanBuildByTModel(a.ctx, id)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения сборок", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	MakeTModelPage(w, model[0], builds)
+}
+
 //////////////////////
+
 // Обработчики POST //
+
 //////////////////////
 
 // Обработчик авторизации
@@ -1643,8 +1679,31 @@ func (a App) MakeBuild(w http.ResponseWriter, r *http.Request, pr httprouter.Par
 	MakeAlertPage(w, 1, "Успешно", "Успешно", "Сборка создана", "не забудьте что сборку нужно указывать в параметрах модели", "Главная", "/works/prof")
 }
 
+func (a App) ChangeDefBuild(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	tModel, err := strconv.Atoi(r.FormValue("TModel"))
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	newBuild, err := strconv.Atoi(r.FormValue("NewBuild"))
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	err = a.Db.ChangeDefBuild(a.ctx, tModel, newBuild)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	MakeAlertPage(w, 1, "Готово", "Готово", "Успешно", "Отличная работа", "Главная", "/works/prof")
+
+}
+
 //////////////////////
+
 // Отправка отчетов //
+
 //////////////////////
 
 // Тестовый файл
@@ -2049,7 +2108,9 @@ func (a App) OrdersShortExcell(w http.ResponseWriter, r *http.Request, pr httpro
 }
 
 //////////////////////////
+
 // Конструкторы страниц //
+
 //////////////////////////
 
 func MakeTMCPage(w http.ResponseWriter, devices []mytypes.DeviceClean, lable string, excellLink string) {
@@ -2527,6 +2588,8 @@ func (a App) MakeUserPage(w http.ResponseWriter, user mytypes.User) {
 		block.Btns = append(block.Btns, btn)
 		btn = Buton{`Принять материалы`, "/works/takemat"}
 		block.Btns = append(block.Btns, btn)
+		btn = Buton{`Модели`, "/works/tmodels"}
+		block.Btns = append(block.Btns, btn)
 		Blocks = append(Blocks, block)
 
 	case 3:
@@ -2804,7 +2867,28 @@ func (a App) MakeBuildsPage(w http.ResponseWriter, builds []mytypes.BuildClean) 
 		Builds []mytypes.BuildClean
 	}
 
-	table := BPage{builds}
+	table := BPage{Builds: builds}
 	t := template.Must(template.ParseFiles("Face/html/builds.html"))
 	t.Execute(w, table)
+}
+
+func MakeTModelsPage(w http.ResponseWriter, TModels []mytypes.TModel) {
+	type TModelPage struct {
+		Tab []mytypes.TModel
+	}
+	table := TModelPage{Tab: TModels}
+
+	t := template.Must(template.ParseFiles("Face/html/tmodels.html"))
+	t.Execute(w, table)
+}
+
+func MakeTModelPage(w http.ResponseWriter, TModel mytypes.TModel, builds []mytypes.BuildClean) {
+	type Page struct {
+		Model  mytypes.TModel
+		Builds []mytypes.BuildClean
+	}
+
+	tmp := Page{Model: TModel, Builds: builds}
+	t := template.Must(template.ParseFiles("Face/html/tmodel.html"))
+	t.Execute(w, tmp)
 }

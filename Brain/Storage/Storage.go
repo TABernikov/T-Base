@@ -1454,28 +1454,36 @@ func (base Base) TakeBuildByTModel(ctx context.Context, TModels ...int) ([]mytyp
 		qq := `SELECT "buildId", "dModel", "tModel" FROM public.builds;`
 
 		var build mytypes.Build
-		err := base.Db.QueryRow(ctx, qq).Scan(&build.Id, &build.DModel, &build.TModel)
+		rows, err := base.Db.Query(ctx, qq)
 		if err != nil {
 			return Builds, err
 		}
 
-		qq = `SELECT amout, mat FROM public."buildMatList" WHERE "billdId" = $1;`
-
-		rows, err := base.Db.Query(ctx, qq, build.Id)
-		if err != nil {
-			return Builds, err
-		}
-
-		var buildlist []mytypes.BuildListElement
-		var buildElement mytypes.BuildListElement
 		for rows.Next() {
-			err := rows.Scan(&buildElement.Amout, &buildElement.MatId)
+			err := rows.Scan(&build.Id, &build.DModel, &build.TModel)
 			if err != nil {
 				return Builds, err
 			}
-			buildlist = append(buildlist, buildElement)
+
+			qq = `SELECT amout, mat FROM public."buildMatList" WHERE "billdId" = $1;`
+
+			rows, err := base.Db.Query(ctx, qq, build.Id)
+			if err != nil {
+				return Builds, err
+			}
+
+			var buildlist []mytypes.BuildListElement
+			var buildElement mytypes.BuildListElement
+			for rows.Next() {
+				err := rows.Scan(&buildElement.Amout, &buildElement.MatId)
+				if err != nil {
+					return Builds, err
+				}
+				buildlist = append(buildlist, buildElement)
+			}
+			build.BuildList = buildlist
+			Builds = append(Builds, build)
 		}
-		build.BuildList = buildlist
 	}
 	return Builds, nil
 }
@@ -1485,17 +1493,74 @@ func (base Base) TakeBuildByTModel(ctx context.Context, TModels ...int) ([]mytyp
 func (base Base) TakeCleanBuildByTModel(ctx context.Context, TModels ...int) ([]mytypes.BuildClean, error) {
 	var Builds []mytypes.BuildClean
 	if len(TModels) > 0 {
-		qq := `SELECT "buildId", "dModel", "tModel" FROM public."cleanBuilds" WHERE "tModel" = $1;`
+		qq := ` SELECT builds."buildId",
+					"tModels"."tModelsName" AS "tModel",
+					"dModels"."dModelName" AS "dModel"
+	  			FROM builds
+		 			LEFT JOIN "tModels" ON builds."tModel" = "tModels"."tModelsId"
+		 			LEFT JOIN "dModels" ON builds."dModel" = "dModels"."dModelsId"
+				WHERE builds."tModel" = $1;`
 		for _, a := range TModels {
 
 			var build mytypes.BuildClean
 
-			err := base.Db.QueryRow(ctx, qq, a).Scan(&build.Id, &build.DModel, &build.TModel)
+			rows, err := base.Db.Query(ctx, qq, a)
+			if err != nil {
+				if err.Error() == "no rows in result set" {
+					continue
+				}
+				return Builds, err
+			}
+
+			for rows.Next() {
+
+				err := rows.Scan(&build.Id, &build.TModel, &build.DModel)
+				if err != nil {
+					return Builds, err
+				}
+
+				qq = `SELECT "mat", amout FROM public."cleanBuildMatList" WHERE "billdId" = $1;`
+				rows, err := base.Db.Query(ctx, qq, build.Id)
+				if err != nil {
+					if err.Error() == "no rows in result set" {
+						continue
+					}
+					return Builds, err
+				}
+
+				var buildlist []mytypes.BuildListElementClean
+				var buildElement mytypes.BuildListElementClean
+				for rows.Next() {
+					err := rows.Scan(&buildElement.Mat, &buildElement.Amout)
+					if err != nil {
+						return Builds, err
+					}
+					buildlist = append(buildlist, buildElement)
+				}
+				build.BuildList = buildlist
+				Builds = append(Builds, build)
+			}
+
+		}
+
+	} else if len(TModels) == 0 {
+
+		qq := `SELECT "buildId", "dModel", "tModel" FROM public."cleanBuilds";`
+
+		var build mytypes.BuildClean
+		rows, err := base.Db.Query(ctx, qq)
+		if err != nil {
+			return Builds, err
+		}
+
+		for rows.Next() {
+			err := rows.Scan(&build.Id, &build.DModel, &build.TModel)
 			if err != nil {
 				return Builds, err
 			}
 
-			qq = `SELECT "mat", amout FROM public."cleanBuildMatList" WHERE "billdId" = $1;`
+			qq = `SELECT amout, mat FROM public."cleanBuildMatList" WHERE "billdId" = $1;`
+
 			rows, err := base.Db.Query(ctx, qq, build.Id)
 			if err != nil {
 				return Builds, err
@@ -1504,7 +1569,7 @@ func (base Base) TakeCleanBuildByTModel(ctx context.Context, TModels ...int) ([]
 			var buildlist []mytypes.BuildListElementClean
 			var buildElement mytypes.BuildListElementClean
 			for rows.Next() {
-				err := rows.Scan(&buildElement.Mat, &buildElement.Amout)
+				err := rows.Scan(&buildElement.Amout, &buildElement.Mat)
 				if err != nil {
 					return Builds, err
 				}
@@ -1513,39 +1578,58 @@ func (base Base) TakeCleanBuildByTModel(ctx context.Context, TModels ...int) ([]
 			build.BuildList = buildlist
 			Builds = append(Builds, build)
 		}
-
-	} else {
-
-		qq := `SELECT "buildId", "dModel", "tModel" FROM public."cleanBuilds";`
-
-		var build mytypes.BuildClean
-		err := base.Db.QueryRow(ctx, qq).Scan(&build.Id, &build.DModel, &build.TModel)
-		if err != nil {
-			return Builds, err
-		}
-
-		qq = `SELECT amout, mat FROM public."cleanBuildMatList" WHERE "billdId" = $1;`
-
-		rows, err := base.Db.Query(ctx, qq, build.Id)
-		if err != nil {
-			return Builds, err
-		}
-
-		var buildlist []mytypes.BuildListElementClean
-		var buildElement mytypes.BuildListElementClean
-		for rows.Next() {
-			err := rows.Scan(&buildElement.Amout, &buildElement.Mat)
-			if err != nil {
-				return Builds, err
-			}
-			buildlist = append(buildlist, buildElement)
-		}
-		build.BuildList = buildlist
 	}
 	return Builds, nil
 }
 
 //func (base Base) TakeCleanBuildByDModel(ctx context.Context, DModels ...string)
+
+////////////
+// Модели //
+////////////
+
+func (base Base) TakeTModelsById(ctx context.Context, Ids ...int) ([]mytypes.TModel, error) {
+	var TModels []mytypes.TModel
+	var TModel mytypes.TModel
+
+	if len(Ids) == 0 {
+		qq := `SELECT "tModelsId", "tModelsName", build FROM public."tModels" ORDER BY "tModelsName";`
+
+		rows, err := base.Db.Query(ctx, qq)
+		if err != nil {
+			return nil, err
+		}
+		for rows.Next() {
+			err := rows.Scan(&TModel.Id, &TModel.Name, &TModel.Build)
+			if err != nil {
+				return TModels, err
+			}
+			TModels = append(TModels, TModel)
+		}
+
+	} else {
+		qq := `SELECT "tModelsId", "tModelsName", build FROM public."tModels" WHERE "tModelsId" = $1 ORDER BY "tModelsName";`
+
+		for _, a := range Ids {
+			err := base.Db.QueryRow(ctx, qq, a).Scan(&TModel.Id, &TModel.Name, &TModel.Build)
+			if err != nil {
+				return TModels, err
+			}
+			TModels = append(TModels, TModel)
+		}
+	}
+	return TModels, nil
+}
+
+func (base Base) ChangeDefBuild(ctx context.Context, tModelId int, newBuild int) error {
+	qq := `UPDATE public."tModels" SET "build" = $1 WHERE "tModelsId" = $2;`
+
+	_, err := base.Db.Exec(ctx, qq, newBuild, tModelId)
+	if err != nil {
+		return err
+	}
+	return nil
+}
 
 ////////////////////
 // Другие функции //
