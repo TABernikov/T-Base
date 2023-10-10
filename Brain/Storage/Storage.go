@@ -29,7 +29,9 @@ func NewBase(user, pass, ip, baseName string) (*Base, error) {
 }
 
 /////////////////////////////////////
+
 // Функции получения пользователей //
+
 /////////////////////////////////////
 
 // Получение пользователя по логину
@@ -78,7 +80,9 @@ func (base Base) TakeUserById(ctx context.Context, inId ...int) ([]mytypes.User,
 }
 
 ///////////////////////////////
+
 // Функции поучения устройств//
+
 ///////////////////////////////
 
 // Получение слайса девайсов по Id
@@ -169,7 +173,9 @@ func (base Base) TakeDeviceBySn(ctx context.Context, inSn ...string) ([]mytypes.
 }
 
 ///////////////////////////////////////////
+
 // Функции поучения читабельных устройств//
+
 ///////////////////////////////////////////
 
 func (base Base) TakeCleanDevice(ctx context.Context, fullReqest string) ([]mytypes.DeviceClean, error) {
@@ -434,7 +440,9 @@ func (base Base) TakeCleanDeviceByAnything(ctx context.Context, request ...strin
 }
 
 ////////////////////////////////////////
+
 // Функции получения событий устройств//
+
 ////////////////////////////////////////
 
 // Получение слайса событий коммутатора по его ID
@@ -493,7 +501,9 @@ func (base Base) TakeCleanDeviceEvent(ctx context.Context, deviceId int) ([]myty
 }
 
 ///////////////////////////////////////
+
 // Функции получения кол-ва устройств//
+
 ///////////////////////////////////////
 
 // Получение кол-ва устройств на складе по заказам
@@ -570,7 +580,9 @@ func (base Base) TakeStorageByTModelClean(ctx context.Context, fullReqest string
 }
 
 //////////////////////////////
+
 // Функции получения заказов//
+
 //////////////////////////////
 
 // Получение слайса заказов по ID
@@ -759,7 +771,9 @@ func (base Base) TakeCleanOrderByAnything(ctx context.Context, reqest ...string)
 }
 
 ////////////////////////////////////
+
 // функции получения листа заказов//
+
 ////////////////////////////////////
 
 // Получение листа заказа по его ID
@@ -785,7 +799,9 @@ func (base Base) TakeOrderList(ctx context.Context, orderId int) ([]mytypes.Orde
 }
 
 /////////////////////////////////////////////////
+
 // функции получения читабельного листа заказов//
+
 /////////////////////////////////////////////////
 
 // Получение читабельного листа заказа по его ID
@@ -853,7 +869,9 @@ func (base Base) TakeCleanOrderStatus(ctx context.Context, orderId int) ([]mytyp
 }
 
 /////////////////////////////////
+
 // Функции изменения устройств //
+
 /////////////////////////////////
 
 func (base Base) SnToWork(ctx context.Context, InSn ...string) (int, error) {
@@ -1155,7 +1173,9 @@ func (base Base) AddDeviceEventBySn(ctx context.Context, evntType int, eventText
 }
 
 ///////////////////////////////
+
 // Функции изменения заказов //
+
 ///////////////////////////////
 
 func (base Base) InsertOrder(ctx context.Context, Order mytypes.OrderRaw) (int, error) {
@@ -1241,7 +1261,9 @@ func (base Base) SetPromDate(ctx context.Context, order int, date time.Time) err
 }
 
 ///////////////
+
 // Материалы //
+
 ///////////////
 
 func (base Base) TakeMatsById(ctx context.Context, Ids ...int) ([]mytypes.Mat, error) {
@@ -1249,7 +1271,7 @@ func (base Base) TakeMatsById(ctx context.Context, Ids ...int) ([]mytypes.Mat, e
 	var mat mytypes.Mat
 	var mats []mytypes.Mat
 	if len(Ids) == 0 {
-		qq := `SELECT "matId", name, "1CName", amout, "inWork", type, price FROM public."cleanMats" ORDER BY "name";`
+		qq := `SELECT "matId", name, "1CName", amout, "inWork", type, price FROM public."cleanMats" ORDER BY "name", "matId";`
 		rows, err := base.Db.Query(ctx, qq)
 		if err != nil {
 			return mats, err
@@ -1277,6 +1299,51 @@ func (base Base) TakeMatsById(ctx context.Context, Ids ...int) ([]mytypes.Mat, e
 		}
 	} else {
 		qq := `SELECT "matId", name, "1CName", amout, "inWork", type, price FROM public."cleanMats" WHERE "matId" = $1 ORDER BY "name"`
+
+		for _, a := range Ids {
+			err := base.Db.QueryRow(ctx, qq, a).Scan(&mat.Id, &mat.Name, &mat.Name1C, &mat.Amout, &mat.InWork, &mat.Type, &mat.Price)
+			if err != nil {
+				return mats, err
+			}
+			mats = append(mats, mat)
+		}
+	}
+	return mats, nil
+}
+
+func (base Base) TakeMatsInWorkById(ctx context.Context, Ids ...int) ([]mytypes.Mat, error) {
+
+	var mat mytypes.Mat
+	var mats []mytypes.Mat
+	if len(Ids) == 0 {
+		qq := `SELECT "matId", name, "1CName", amout, "inWork", type, price FROM public."cleanMats" WHERE "inWork" > 0 ORDER BY "name", "matId";`
+		rows, err := base.Db.Query(ctx, qq)
+		if err != nil {
+			return mats, err
+		}
+
+		for rows.Next() {
+			err := rows.Scan(&mat.Id, &mat.Name, &mat.Name1C, &mat.Amout, &mat.InWork, &mat.Type, &mat.Price)
+			if err != nil {
+				return mats, err
+			}
+			mat.Places = nil
+			rows, err := base.Db.Query(ctx, `SELECT place FROM public.matplaces WHERE mat = $1`, mat.Id)
+			if err != nil {
+				return mats, err
+			}
+			for rows.Next() {
+				var place int
+				err := rows.Scan(&place)
+				if err != nil {
+					return mats, err
+				}
+				mat.Places = append(mat.Places, place)
+			}
+			mats = append(mats, mat)
+		}
+	} else {
+		qq := `SELECT "matId", name, "1CName", amout, "inWork", type, price FROM public."cleanMats" WHERE "matId" = $1 AND WHERE "inWork" > 0 ORDER BY "name"`
 
 		for _, a := range Ids {
 			err := base.Db.QueryRow(ctx, qq, a).Scan(&mat.Id, &mat.Name, &mat.Name1C, &mat.Amout, &mat.InWork, &mat.Type, &mat.Price)
@@ -1415,8 +1482,45 @@ func (base Base) SetMatPlace(ctx context.Context, matId int, place int) error {
 	return nil
 }
 
+func (base Base) AddMatToWork(ctx context.Context, matId int, toWork int) error {
+	var amount, inWork int
+	err := base.Db.QueryRow(ctx, `SELECT amout, "inWork" FROM public.mats WHERE "matId" = $1`, matId).Scan(&amount, &inWork)
+	if err != nil {
+		return err
+	}
+	if amount < toWork+inWork {
+		return fmt.Errorf("нельзя взять в работу больше материалов чем есть на складе")
+
+	}
+	qq := `UPDATE public.mats SET "inWork" = "inWork" + $1 WHERE "matId" = $2;`
+	_, err = base.Db.Exec(ctx, qq, toWork, matId)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (base Base) RemuveMatFromWork(ctx context.Context, matId int, toWork int) error {
+	var inWork int
+	err := base.Db.QueryRow(ctx, `SELECT "inWork" FROM public.mats WHERE "matId" = $1`, matId).Scan(&inWork)
+	if err != nil {
+		return err
+	}
+	if inWork < toWork {
+		return fmt.Errorf("нельзя снять из работы больше чем есть на производстве")
+	}
+	qq := `UPDATE public.mats SET "inWork" = "inWork" - $1 WHERE "matId" = $2;`
+	_, err = base.Db.Exec(ctx, qq, toWork, matId)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 ////////////
+
 // Сборки //
+
 ////////////
 
 func (base Base) InsertBuild(ctx context.Context, builds ...mytypes.Build) (int, error) {
@@ -1619,7 +1723,9 @@ func (base Base) TakeCleanBuildByTModel(ctx context.Context, TModels ...int) ([]
 //func (base Base) TakeCleanBuildByDModel(ctx context.Context, DModels ...string)
 
 ////////////
+
 // Модели //
+
 ////////////
 
 func (base Base) TakeTModelsById(ctx context.Context, Ids ...int) ([]mytypes.TModel, error) {
@@ -1666,7 +1772,9 @@ func (base Base) ChangeDefBuild(ctx context.Context, tModelId int, newBuild int)
 }
 
 ////////////////////
+
 // Другие функции //
+
 ////////////////////
 
 // запись токена генерации

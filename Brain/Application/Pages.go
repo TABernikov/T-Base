@@ -782,6 +782,10 @@ func (a App) TModelPage(w http.ResponseWriter, r *http.Request, pr httprouter.Pa
 	MakeTModelPage(w, model[0], builds)
 }
 
+func (a App) StorageMatsInWorkPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	a.MakeStorageMatsInWorkPage(w)
+}
+
 //////////////////////
 
 // Обработчики POST //
@@ -1709,6 +1713,47 @@ func (a App) ChangeDefBuild(w http.ResponseWriter, r *http.Request, pr httproute
 	http.Redirect(w, r, "/works/tmodel?Id="+strconv.Itoa(tModel), http.StatusSeeOther)
 }
 
+func (a App) MatToWork(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	matId, err := strconv.Atoi(r.FormValue("toworkid"))
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	toWorkAmout, err := strconv.Atoi(r.FormValue("toworkamout"))
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	err = a.Db.AddMatToWork(a.ctx, matId, toWorkAmout)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка передачи материала", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	http.Redirect(w, r, "/works/storage/mats", http.StatusSeeOther)
+}
+
+func (a App) MatFromWork(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	matId, err := strconv.Atoi(r.FormValue("toworkid"))
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	fromWorkAmout, err := strconv.Atoi(r.FormValue("toworkamout"))
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	err = a.Db.RemuveMatFromWork(a.ctx, matId, fromWorkAmout)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка передачи материала", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	http.Redirect(w, r, "/works/matsinwork", http.StatusSeeOther)
+}
+
 //////////////////////
 
 // Отправка отчетов //
@@ -2599,6 +2644,8 @@ func (a App) MakeUserPage(w http.ResponseWriter, user mytypes.User) {
 		block.Btns = append(block.Btns, btn)
 		btn = Buton{`Модели`, "/works/tmodels"}
 		block.Btns = append(block.Btns, btn)
+		btn = Buton{`Материалы в работе`, "/works/matsinwork"}
+		block.Btns = append(block.Btns, btn)
 		Blocks = append(Blocks, block)
 
 	case 3:
@@ -2900,4 +2947,21 @@ func MakeTModelPage(w http.ResponseWriter, TModel mytypes.TModel, builds []mytyp
 	tmp := Page{Model: TModel, Builds: builds}
 	t := template.Must(template.ParseFiles("Face/html/tmodel.html"))
 	t.Execute(w, tmp)
+}
+
+func (a App) MakeStorageMatsInWorkPage(w http.ResponseWriter) {
+	Mats, err := a.Db.TakeMatsInWorkById(a.ctx)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	type storagePage struct {
+		Lable string
+		Mats  []mytypes.Mat
+	}
+	table := storagePage{"Материалы", Mats}
+
+	t := template.Must(template.ParseFiles("Face/html/storage matsinwork.html"))
+	t.Execute(w, table)
+
 }

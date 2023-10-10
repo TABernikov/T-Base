@@ -81,6 +81,7 @@ func (a App) Routs(r *httprouter.Router) {
 	r.GET("/works/buildlist", a.authtorized(a.BuildsPage))
 	r.GET("/works/tmodels", a.authtorized(a.TModelsPage))
 	r.GET("/works/tmodel", a.authtorized(a.TModelPage))
+	r.GET("/works/matsinwork", a.authtorized(a.StorageMatsInWorkPage))
 
 	r.POST("/works/tmc", a.authtorized(a.TMCPage))
 	r.POST("/works/orders", a.authtorized(a.OrderPage))
@@ -107,6 +108,8 @@ func (a App) Routs(r *httprouter.Router) {
 	r.POST("/works/takemat", a.authtorized(a.TakeMat))
 	r.POST("/works/makebuild", a.authtorized(a.MakeBuild))
 	r.POST("/works/changedefbuild", a.authtorized(a.ChangeDefBuild))
+	r.POST("/works/mattowork", a.authtorized(a.MatToWork))
+	r.POST("/works/matfromwork", a.authtorized(a.MatFromWork))
 
 	r.GET("/works/tmcexcell", a.authtorized(a.TMCExcell))
 	r.POST("/works/tmcexcell", a.authtorized(a.TMCExcell))

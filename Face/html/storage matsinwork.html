@@ -2,7 +2,7 @@
 <html lang="ru">
 
 <head>
-    <title>Материалы</title>
+    <title>Материалы в работе</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" href="Face\img\t-kom-ico.svg">
@@ -81,15 +81,11 @@
                     <th scope="col">
                         1C
                     </th>
-                    <th scope="col">
-                      Цена
-                    </th>
+                    
                     <th scope="col">
                       Кол-во
                     </th>
-                    <th scope="col">
-                      Места хранения
-                    </th>
+                    
                     <th scope="col">
                       Тип
                     </th>
@@ -108,13 +104,7 @@
                         {{.Name1C}}
                       </td>
                       <td>
-                        {{.Price}}
-                      </td>
-                      <td>
-                        {{.Amout}} ({{.InWork}})
-                      </td>
-                      <td>
-                        {{range .Places}} {{.}}, {{end}}
+                        {{.InWork}}
                       </td>
                       <td>
                         {{.Type}} 
@@ -130,13 +120,13 @@
           <div class="modal-dialog">
             <div class="modal-content">
               <div class="modal-header">
-                <h5 class="modal-title" id="ModalLabel">Передача в производство</h5>
+                <h5 class="modal-title" id="ModalLabel">Вернуть на склад</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
               </div>
               <div class="modal-body">
                 <p id="toworkname"></p>
                 <div class="mb-3">
-                  <form method="post" action="/works/mattowork">
+                  <form method="post" action="/works/matfromwork">
                     <input type="hidden" name="toworkid" id="toworkid" value="">
                     <div class=" input-group mb-3">
                       <input type="number" class="form-control" name="toworkamout" id="toworkamout" placeholder="введите кол-во">
@@ -154,7 +144,7 @@
 
       <script>
         function openModal(value1, value2) {
-          document.getElementById('toworkname').textContent = 'Передать ' + value1; 
+          document.getElementById('toworkname').textContent = 'Вернуть ' + value1; 
           document.getElementById('toworkid').value = value2;
           var myModal = new bootstrap.Modal(document.getElementById('myModal'));
           myModal.show();
