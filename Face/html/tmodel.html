@@ -1,5 +1,5 @@
 <!doctype html>
-<html>
+<html lang="ru">
 
 <head>
     <title>Модель {{.Model.Name}}</title>
@@ -108,7 +108,7 @@
                     {{end}}
                   </ul>
                   <div class="card-body">
-                    <form id="changedefbuild" name="changedefbuild" action="/works/changedefbuild" method="post">
+                    <form id="changedefbuild" name="changedefbuild" action="/works/changedefbuild" method="post" target="">
                       <input type="hidden" name="TModel" value="{{$.Model.Id}}">
                       <input type="hidden" name="NewBuild" value="{{.Id}}"> 
                       <input class="btn btn-primary" type="submit" name="changedefbuildbtn" value="Установить как основную">

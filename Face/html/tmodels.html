@@ -1,9 +1,10 @@
 <!doctype html>
-<html>
+<html lang="ru">
 
 <head>
     <title>Модели</title>
     <meta charset="utf-8">
+    
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" href="Face\img\t-kom-ico.svg">
 
@@ -72,7 +73,7 @@
             </thead>
             <tbody>
                 {{range .Tab}}
-                <tr>
+                <tr onclick="window.location.href='/works/tmodel?Id={{.Id}}'">
                     <td>
                         {{.Id}}
                     </td>
@@ -80,7 +81,7 @@
                         {{.Name}}
                     </td>
                     <td>
-                        {{.Build}}
+                       {{if eq .Build -1}} {{print "Не задан"}} {{else}} {{.Build}} {{end}} 
                     </td>
                 </tr>
                 {{end}}

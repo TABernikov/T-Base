@@ -1561,6 +1561,7 @@ func (a App) TakeDeviceByExcel(w http.ResponseWriter, r *http.Request, pr httpro
 	MakeAlertPage(w, 1, "Готово", "Готово", "Все "+strconv.Itoa(insertCount)+" устройств внесены", "Отличная работа", "Главная", "/works/prof")
 }
 
+// Создание новых материалов
 func (a App) CreateMat(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	if user.Acces != 2 {
 		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
@@ -1582,6 +1583,7 @@ func (a App) CreateMat(w http.ResponseWriter, r *http.Request, pr httprouter.Par
 	MakeAlertPage(w, 1, "Готово", "Готово", "Успешно", "Отличная работа", "Главная", "/works/prof")
 }
 
+// Приемка метериалов
 func (a App) TakeMat(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	if user.Acces != 2 {
 		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
@@ -1623,6 +1625,7 @@ func (a App) TakeMat(w http.ResponseWriter, r *http.Request, pr httprouter.Param
 	MakeAlertPage(w, 1, "Готово", "Готово", "Успешно", "Отличная работа", "Главная", "/works/prof")
 }
 
+// Создание сборки
 func (a App) MakeBuild(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	var build mytypes.Build
 	dModelstr := r.FormValue("DModel")
@@ -1679,6 +1682,7 @@ func (a App) MakeBuild(w http.ResponseWriter, r *http.Request, pr httprouter.Par
 	MakeAlertPage(w, 1, "Успешно", "Успешно", "Сборка создана", "не забудьте что сборку нужно указывать в параметрах модели", "Главная", "/works/prof")
 }
 
+// изменить стандартную сборку для модели
 func (a App) ChangeDefBuild(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	tModel, err := strconv.Atoi(r.FormValue("TModel"))
 	if err != nil {
@@ -1696,8 +1700,7 @@ func (a App) ChangeDefBuild(w http.ResponseWriter, r *http.Request, pr httproute
 		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
 		return
 	}
-	MakeAlertPage(w, 1, "Готово", "Готово", "Успешно", "Отличная работа", "Главная", "/works/prof")
-
+	http.Redirect(w, r, "/works/tmodel?Id="+strconv.Itoa(tModel), http.StatusSeeOther)
 }
 
 //////////////////////

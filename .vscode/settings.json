@@ -1,19 +1,6 @@
 {
     "sqltools.connections": [
         {
-            "mysqlOptions": {
-                "authProtocol": "default",
-                "enableSsl": "Disabled"
-            },
-            "previewLimit": 50,
-            "server": "localhost",
-            "port": 3306,
-            "driver": "MySQL",
-            "name": "T-Base",
-            "database": "t-base",
-            "username": "Admin"
-        },
-        {
             "previewLimit": 50,
             "server": "localhost",
             "port": 5432,
@@ -23,5 +10,6 @@
             "username": "postgres",
             "password": "Superkim61"
         }
-    ]
+    ],
+    "codeium.enableSearch": true
 }
