@@ -261,7 +261,6 @@ func (base Base) TakeCleanDeviceByRequest(ctx context.Context, request string) (
 	qq := `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder", comment FROM "cleanSns" `
 
 	rows, err := base.Db.Query(ctx, qq+request)
-	fmt.Println(qq + request)
 	if err != nil {
 		return devices, err
 	}
@@ -965,7 +964,7 @@ func (base Base) AddCommentToSns(ctx context.Context, id int, text string, user 
 	text = "[" + user.Name + " " + time + ": " + text + "]     "
 
 	qq := `UPDATE public.snscomment
-			SET comment= comment || $2
+			SET comment= $2 || comment
 			WHERE "snsId" = $1;`
 
 	res, err := base.Db.Exec(ctx, qq, id, text)
@@ -1030,7 +1029,6 @@ func (base Base) InsertDivice(ctx context.Context, devices ...mytypes.DeviceRaw)
 		insertCount += int(res.RowsAffected())
 	}
 	return insertCount, nil
-
 }
 
 func (base Base) ChangeMAC(ctx context.Context, sn, mac string) (int, error) {
@@ -1262,6 +1260,19 @@ func (base Base) TakeMatsById(ctx context.Context, Ids ...int) ([]mytypes.Mat, e
 			if err != nil {
 				return mats, err
 			}
+			mat.Places = nil
+			rows, err := base.Db.Query(ctx, `SELECT place FROM public.matplaces WHERE mat = $1`, mat.Id)
+			if err != nil {
+				return mats, err
+			}
+			for rows.Next() {
+				var place int
+				err := rows.Scan(&place)
+				if err != nil {
+					return mats, err
+				}
+				mat.Places = append(mat.Places, place)
+			}
 			mats = append(mats, mat)
 		}
 	} else {
@@ -1340,6 +1351,7 @@ func (base Base) TakeAmoutMatsBy1C(ctx context.Context, names1c ...string) ([]my
 	return mats, nil
 }
 
+// Добавить новую модель материала
 func (base Base) InsertMat(ctx context.Context, name string, matType int) error {
 	qq := `INSERT INTO public."matsName" (name, type) VALUES ($1, $2)`
 
@@ -1347,7 +1359,8 @@ func (base Base) InsertMat(ctx context.Context, name string, matType int) error 
 	return err
 }
 
-func (base Base) AddMat(ctx context.Context, name string, name1c string, price int, amout int) error {
+// Добавить новый материал (приемка)
+func (base Base) AddMat(ctx context.Context, name string, name1c string, price int, amout int, place int) error {
 	var nameId int
 	qq := `SELECT "matNameId" FROM public."matsName" WHERE "name" = $1;`
 	err := base.Db.QueryRow(ctx, qq, name).Scan(&nameId)
@@ -1355,7 +1368,7 @@ func (base Base) AddMat(ctx context.Context, name string, name1c string, price i
 		return err
 	}
 
-	qq = `UPDATE public.mats SET amout=amout + $4 WHERE name = $1 AND "1CName" = $2 AND prise = $3;`
+	qq = `UPDATE public.mats SET amout=amout + $4 WHERE name = $1 AND "1CName" = $2 AND price = $3;`
 	res, err := base.Db.Exec(ctx, qq, nameId, name1c, price, amout)
 	done := int(res.RowsAffected())
 	if err != nil {
@@ -1363,7 +1376,7 @@ func (base Base) AddMat(ctx context.Context, name string, name1c string, price i
 	}
 	if done != 1 {
 		if done == 0 {
-			qq := `INSERT INTO public.mats( "1CName", amout, name, prise) VALUES ($1, $2, $3, $4);`
+			qq := `INSERT INTO public.mats( "1CName", amout, name, price) VALUES ($1, $2, $3, $4);`
 			res, err = base.Db.Exec(ctx, qq, name1c, amout, nameId, price)
 			if err != nil {
 				return err
@@ -1378,7 +1391,28 @@ func (base Base) AddMat(ctx context.Context, name string, name1c string, price i
 
 	}
 
-	return err
+	var matId int
+	qq = `SELECT "matId" FROM public.mats WHERE name = $1 AND "1CName" = $2 AND price = $3;`
+	err = base.Db.QueryRow(ctx, qq, nameId, name1c, price).Scan(&matId)
+	if err != nil {
+		return err
+	}
+
+	err = base.SetMatPlace(ctx, matId, place)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (base Base) SetMatPlace(ctx context.Context, matId int, place int) error {
+	qq := `INSERT INTO public.matplaces(mat, place) VALUES ($1, $2);`
+	_, err := base.Db.Exec(ctx, qq, matId, place)
+	if err != nil && err.Error() != `ОШИБКА: повторяющееся значение ключа нарушает ограничение уникальности "matplaces_mat_place_key" (SQLSTATE 23505)` {
+		return err
+	}
+	return nil
 }
 
 ////////////

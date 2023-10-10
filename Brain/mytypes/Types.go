@@ -169,6 +169,7 @@ type Mat struct {
 	InWork int
 	Price  int
 	Type   string
+	Places []int
 }
 
 type BuildListElement struct {

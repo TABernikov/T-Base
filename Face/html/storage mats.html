@@ -68,55 +68,62 @@
               <a class="nav-link" id="toMats1C" href="/works/storage/matsby1c" type="button">1С</a>
           </div>
         </nav>
-
-        <table class="table table-bordered table-hover table-striped">
-            <thead>
-                <tr>
-                  <th scope="col">
-                      ID
-                  </th>
-                  <th scope="col">
-                      Наименование
-                  </th>
-                  <th scope="col">
-                      1C
-                  </th>
-                  <th scope="col">
-                    Цена
-                  </th>
-                  <th scope="col">
-                    Кол-во
-                  </th>
-                  <th scope="col">
-                    Тип
-                  </th>
-                </tr>
-            </thead>
-            <tbody>
-                {{range .Mats}}
-                <tr>
-                    <td>
-                      {{.Id}}
-                    </td>
-                    <td>
-                      {{.Name}}
-                    </td>
-                    <td>
-                      {{.Name1C}}
-                    </td>
-                    <td>
-                      {{.Price}}
-                    </td>
-                    <td>
-                      {{.Amout}}
-                    </td>
-                    <td>
-                      {{.Type}}
-                    </td>
-                </tr>
-                {{end}}
-            </tbody>
-        </table>
+        <div style="overflow-y:scroll;">
+          <table class="table table-bordered table-hover table-striped">
+              <thead>
+                  <tr>
+                    <th scope="col">
+                        ID
+                    </th>
+                    <th scope="col">
+                        Наименование
+                    </th>
+                    <th scope="col">
+                        1C
+                    </th>
+                    <th scope="col">
+                      Цена
+                    </th>
+                    <th scope="col">
+                      Кол-во
+                    </th>
+                    <th scope="col">
+                      Места хранения
+                    </th>
+                    <th scope="col">
+                      Тип
+                    </th>
+                  </tr>
+              </thead>
+              <tbody>
+                  {{range .Mats}}
+                  <tr>
+                      <td>
+                        {{.Id}}
+                      </td>
+                      <td>
+                        {{.Name}}
+                      </td>
+                      <td>
+                        {{.Name1C}}
+                      </td>
+                      <td>
+                        {{.Price}}
+                      </td>
+                      <td>
+                        {{.Amout}} ({{.InWork}})
+                      </td>
+                      <td>
+                        {{range .Places}} {{.}}, {{end}}
+                      </td>
+                      <td>
+                        {{.Type}}
+                      </td>
+                  </tr>
+                  {{end}}
+              </tbody>
+          </table>
+        </div>
 
       </div>
         <script src="Face/html/js/bootstrap.bundle.js"></script>

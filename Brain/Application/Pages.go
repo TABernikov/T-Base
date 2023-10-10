@@ -1593,6 +1593,7 @@ func (a App) TakeMat(w http.ResponseWriter, r *http.Request, pr httprouter.Param
 	name := r.FormValue("Name")
 	name1c := r.FormValue("Name1C")
 	amout, err := strconv.Atoi(r.FormValue("Amout"))
+
 	if err != nil {
 		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка получения", err.Error(), "Главная", "/works/prof")
 		return
@@ -1611,8 +1612,13 @@ func (a App) TakeMat(w http.ResponseWriter, r *http.Request, pr httprouter.Param
 		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Цена не может быть отрицательной", "Это называется списание", "Главная", "/works/prof")
 		return
 	}
+	place, err := strconv.Atoi(r.FormValue("Place"))
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная получения места", err.Error(), "Главная", "/works/prof")
+		return
+	}
 
-	err = a.Db.AddMat(a.ctx, name, name1c, price, amout)
+	err = a.Db.AddMat(a.ctx, name, name1c, price, amout, place)
 	if err != nil {
 		if err.Error() == "критическая ошибка" {
 			MakeAlertPage(w, 5, "Ошибка", "КРИТИЧЕСКАЯ ОШИБКА !!!", "ОБРАТИТЕСЬ К АДМИНЕСТРАТОРУ ДЛЯ ВНЕСЕНИЯ ИСПРАВЛЕНИЙ", err.Error(), "Главная", "/works/prof")
