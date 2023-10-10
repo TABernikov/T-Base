@@ -465,7 +465,7 @@ func (base Base) TakeCleanDeviceEvent(ctx context.Context, deviceId int) ([]myty
 	var eventTime time.Time
 
 	qq := ` SELECT
-    tmp."deviceId",
+    tmp."logId",
     "eventTypesNames"."eventName" AS "eventType",
     tmp."eventText",
     tmp."eventTime",
@@ -961,6 +961,9 @@ func (base Base) ChangeNumPlace(ctx context.Context, old, new int) error {
 
 func (base Base) AddCommentToSns(ctx context.Context, id int, text string, user mytypes.User) error {
 
+	time := time.Now().Format("02.01.2006 15:04")
+	text = "[" + user.Name + " " + time + ": " + text + "]     "
+
 	qq := `UPDATE public.snscomment
 			SET comment= comment || $2
 			WHERE "snsId" = $1;`
@@ -1007,6 +1010,27 @@ func (base Base) InsetDeviceByModel(ctx context.Context, DModel int, Name string
 		insertCount += int(res.RowsAffected())
 	}
 	return insertCount, SnErr, lastErr
+}
+
+func (base Base) InsertDivice(ctx context.Context, devices ...mytypes.DeviceRaw) (int, error) {
+	if len(devices) == 0 {
+		return 0, fmt.Errorf("не введены серийные номера")
+	}
+	insertCount := 0
+
+	qq := `INSERT INTO public.sns(
+		sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder")
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16);`
+
+	for _, a := range devices {
+		res, err := base.Db.Exec(ctx, qq, a.Sn, a.Mac, a.DModel, a.Rev, a.TModel, a.Name, a.Condition, a.CondDate, a.Order, a.Place, a.Shiped, a.ShipedDate, a.ShippedDest, a.TakenDate, a.TakenDoc, a.TakenOrder)
+		if err != nil {
+			continue
+		}
+		insertCount += int(res.RowsAffected())
+	}
+	return insertCount, nil
+
 }
 
 func (base Base) ChangeMAC(ctx context.Context, sn, mac string) (int, error) {
@@ -1075,6 +1099,61 @@ func (base Base) ReturnToStorage(ctx context.Context, sn ...string) int {
 		counter++
 	}
 	return counter
+}
+
+func (base Base) AddDeviceEventById(ctx context.Context, evntType int, eventText string, userId int, InId ...int) int {
+	if len(InId) == 0 {
+		return 0
+	}
+
+	qq := `INSERT INTO public."deviceLog"(
+	"deviceId", "eventType", "eventText", "user")
+	VALUES ($1, $2, $3, $4);`
+
+	var count int
+	for _, id := range InId {
+		_, err := base.Db.Exec(ctx, qq, id, evntType, eventText, userId)
+		if err == nil {
+			count++
+		}
+	}
+
+	return count
+}
+
+func (base Base) AddDeviceEventBySn(ctx context.Context, evntType int, eventText string, userId int, InSn ...string) int {
+	if len(InSn) == 0 {
+		return 0
+	}
+
+	qq := `SELECT "snsId"
+	FROM public.sns
+	WHERE `
+
+	for i, sn := range InSn {
+		if i == 0 {
+			qq += `sn = '` + sn + `'`
+		} else {
+			qq += ` OR sn = '` + sn + `'`
+		}
+	}
+
+	rows, err := base.Db.Query(ctx, qq)
+	if err != nil {
+		return 0
+	}
+
+	var ids []int
+	var id int
+	for rows.Next() {
+		err := rows.Scan(&id)
+		if err != nil {
+			return 0
+		}
+		ids = append(ids, id)
+	}
+
+	return base.AddDeviceEventById(ctx, evntType, eventText, userId, ids...)
 }
 
 ///////////////////////////////
@@ -1161,6 +1240,395 @@ func (base Base) SetPromDate(ctx context.Context, order int, date time.Time) err
 		return fmt.Errorf("no row edits")
 	}
 	return err
+}
+
+///////////////
+// Материалы //
+///////////////
+
+func (base Base) TakeMatsById(ctx context.Context, Ids ...int) ([]mytypes.Mat, error) {
+
+	var mat mytypes.Mat
+	var mats []mytypes.Mat
+	if len(Ids) == 0 {
+		qq := `SELECT "matId", name, "1CName", amout, "inWork", type, price FROM public."cleanMats" ORDER BY "name";`
+		rows, err := base.Db.Query(ctx, qq)
+		if err != nil {
+			return mats, err
+		}
+
+		for rows.Next() {
+			err := rows.Scan(&mat.Id, &mat.Name, &mat.Name1C, &mat.Amout, &mat.InWork, &mat.Type, &mat.Price)
+			if err != nil {
+				return mats, err
+			}
+			mats = append(mats, mat)
+		}
+	} else {
+		qq := `SELECT "matId", name, "1CName", amout, "inWork", type, price FROM public."cleanMats" WHERE "matId" = $1 ORDER BY "name"`
+
+		for _, a := range Ids {
+			err := base.Db.QueryRow(ctx, qq, a).Scan(&mat.Id, &mat.Name, &mat.Name1C, &mat.Amout, &mat.InWork, &mat.Type, &mat.Price)
+			if err != nil {
+				return mats, err
+			}
+			mats = append(mats, mat)
+		}
+	}
+	return mats, nil
+}
+
+func (base Base) TakeAmoutMatsByName(ctx context.Context, names ...string) ([]mytypes.Mat, error) {
+	var mat mytypes.Mat
+	var mats []mytypes.Mat
+	if len(names) == 0 {
+		qq := `SELECT name, sum FROM "matsByName" ORDER BY name`
+		rows, err := base.Db.Query(ctx, qq)
+		if err != nil {
+			return mats, err
+		}
+
+		for rows.Next() {
+			err := rows.Scan(&mat.Name, &mat.Amout)
+			if err != nil {
+				return mats, err
+			}
+			mats = append(mats, mat)
+		}
+	} else {
+		qq := `SELECT name, sum FROM "matsByName" WHERE "name" = $1 ORDER BY "name"`
+
+		for _, a := range names {
+			err := base.Db.QueryRow(ctx, qq, a).Scan(&mat.Name, &mat.Amout)
+			if err != nil {
+				return mats, err
+			}
+			mats = append(mats, mat)
+		}
+	}
+	return mats, nil
+}
+
+func (base Base) TakeAmoutMatsBy1C(ctx context.Context, names1c ...string) ([]mytypes.Mat, error) {
+	var mat mytypes.Mat
+	var mats []mytypes.Mat
+	if len(names1c) == 0 {
+		qq := `SELECT "1CName", sum FROM "matsBy1C" ORDER BY "1CName"`
+		rows, err := base.Db.Query(ctx, qq)
+		if err != nil {
+			return mats, err
+		}
+
+		for rows.Next() {
+			err := rows.Scan(&mat.Name1C, &mat.Amout)
+			if err != nil {
+				return mats, err
+			}
+			mats = append(mats, mat)
+		}
+	} else {
+		qq := `SELECT "1CName", sum FROM "matsBy1C" WHERE "1CName" = $1 ORDER BY "1CName"`
+
+		for _, a := range names1c {
+			err := base.Db.QueryRow(ctx, qq, a).Scan(&mat.Name1C, &mat.Amout)
+			if err != nil {
+				return mats, err
+			}
+			mats = append(mats, mat)
+		}
+	}
+	return mats, nil
+}
+
+func (base Base) InsertMat(ctx context.Context, name string, matType int) error {
+	qq := `INSERT INTO public."matsName" (name, type) VALUES ($1, $2)`
+
+	_, err := base.Db.Exec(ctx, qq, name, matType)
+	return err
+}
+
+func (base Base) AddMat(ctx context.Context, name string, name1c string, price int, amout int) error {
+	var nameId int
+	qq := `SELECT "matNameId" FROM public."matsName" WHERE "name" = $1;`
+	err := base.Db.QueryRow(ctx, qq, name).Scan(&nameId)
+	if err != nil {
+		return err
+	}
+
+	qq = `UPDATE public.mats SET amout=amout + $4 WHERE name = $1 AND "1CName" = $2 AND prise = $3;`
+	res, err := base.Db.Exec(ctx, qq, nameId, name1c, price, amout)
+	done := int(res.RowsAffected())
+	if err != nil {
+		return err
+	}
+	if done != 1 {
+		if done == 0 {
+			qq := `INSERT INTO public.mats( "1CName", amout, name, prise) VALUES ($1, $2, $3, $4);`
+			res, err = base.Db.Exec(ctx, qq, name1c, amout, nameId, price)
+			if err != nil {
+				return err
+			}
+			done = int(res.RowsAffected())
+			if done != 1 {
+				return fmt.Errorf("критическая ошибка")
+			}
+		} else {
+			return fmt.Errorf("критическая ошибка")
+		}
+
+	}
+
+	return err
+}
+
+////////////
+// Сборки //
+////////////
+
+func (base Base) InsertBuild(ctx context.Context, builds ...mytypes.Build) (int, error) {
+	qq := `INSERT INTO public.builds("buildId", "dModel", "tModel") VALUES ($1, $2, $3);`
+	counter := 0
+	for _, build := range builds {
+
+		var id int
+		err := base.Db.QueryRow(ctx, `SELECT "buildId" FROM builds ORDER BY "buildId" DESC`).Scan(&id)
+		if err != nil {
+			if err.Error() != "no rows in result set" {
+				return counter, err
+			}
+			id = 0
+		}
+		id++
+
+		_, err = base.Db.Exec(ctx, qq, id, build.DModel, build.TModel)
+		if err != nil {
+			return counter, err
+		}
+
+		for _, a := range build.BuildList {
+			_, err := base.Db.Exec(ctx, `INSERT INTO public."buildMatList"("billdId", "mat", amout) VALUES ($1, $2, $3);`, id, a.MatId, a.Amout)
+			if err != nil {
+				return counter, err
+			}
+		}
+		counter++
+	}
+
+	return counter, nil
+}
+
+func (base Base) TakeBuildByTModel(ctx context.Context, TModels ...int) ([]mytypes.Build, error) {
+	var Builds []mytypes.Build
+	if len(TModels) > 0 {
+		qq := `SELECT "buildId", "dModel", "tModel" FROM public.builds WHERE "tModel" = $1;`
+		for _, a := range TModels {
+
+			var build mytypes.Build
+
+			err := base.Db.QueryRow(ctx, qq, a).Scan(&build.Id, &build.DModel, &build.TModel)
+			if err != nil {
+				return Builds, err
+			}
+
+			qq = `SELECT "mat", amout FROM public."buildMatList" WHERE "billdId" = $1;`
+			rows, err := base.Db.Query(ctx, qq, build.Id)
+			if err != nil {
+				return Builds, err
+			}
+
+			var buildlist []mytypes.BuildListElement
+			var buildElement mytypes.BuildListElement
+			for rows.Next() {
+				err := rows.Scan(&buildElement.MatId, &buildElement.Amout)
+				if err != nil {
+					return Builds, err
+				}
+				buildlist = append(buildlist, buildElement)
+			}
+			build.BuildList = buildlist
+			Builds = append(Builds, build)
+		}
+
+	} else {
+
+		qq := `SELECT "buildId", "dModel", "tModel" FROM public.builds;`
+
+		var build mytypes.Build
+		rows, err := base.Db.Query(ctx, qq)
+		if err != nil {
+			return Builds, err
+		}
+
+		for rows.Next() {
+			err := rows.Scan(&build.Id, &build.DModel, &build.TModel)
+			if err != nil {
+				return Builds, err
+			}
+
+			qq = `SELECT amout, mat FROM public."buildMatList" WHERE "billdId" = $1;`
+
+			rows, err := base.Db.Query(ctx, qq, build.Id)
+			if err != nil {
+				return Builds, err
+			}
+
+			var buildlist []mytypes.BuildListElement
+			var buildElement mytypes.BuildListElement
+			for rows.Next() {
+				err := rows.Scan(&buildElement.Amout, &buildElement.MatId)
+				if err != nil {
+					return Builds, err
+				}
+				buildlist = append(buildlist, buildElement)
+			}
+			build.BuildList = buildlist
+			Builds = append(Builds, build)
+		}
+	}
+	return Builds, nil
+}
+
+//func (base Base) TakeBuildByDModel(ctx context.Context, DModels ...string)
+
+func (base Base) TakeCleanBuildByTModel(ctx context.Context, TModels ...int) ([]mytypes.BuildClean, error) {
+	var Builds []mytypes.BuildClean
+	if len(TModels) > 0 {
+		qq := ` SELECT builds."buildId",
+					"tModels"."tModelsName" AS "tModel",
+					"dModels"."dModelName" AS "dModel"
+	  			FROM builds
+		 			LEFT JOIN "tModels" ON builds."tModel" = "tModels"."tModelsId"
+		 			LEFT JOIN "dModels" ON builds."dModel" = "dModels"."dModelsId"
+				WHERE builds."tModel" = $1;`
+		for _, a := range TModels {
+
+			var build mytypes.BuildClean
+
+			rows, err := base.Db.Query(ctx, qq, a)
+			if err != nil {
+				if err.Error() == "no rows in result set" {
+					continue
+				}
+				return Builds, err
+			}
+
+			for rows.Next() {
+
+				err := rows.Scan(&build.Id, &build.TModel, &build.DModel)
+				if err != nil {
+					return Builds, err
+				}
+
+				qq = `SELECT "mat", amout FROM public."cleanBuildMatList" WHERE "billdId" = $1;`
+				rows, err := base.Db.Query(ctx, qq, build.Id)
+				if err != nil {
+					if err.Error() == "no rows in result set" {
+						continue
+					}
+					return Builds, err
+				}
+
+				var buildlist []mytypes.BuildListElementClean
+				var buildElement mytypes.BuildListElementClean
+				for rows.Next() {
+					err := rows.Scan(&buildElement.Mat, &buildElement.Amout)
+					if err != nil {
+						return Builds, err
+					}
+					buildlist = append(buildlist, buildElement)
+				}
+				build.BuildList = buildlist
+				Builds = append(Builds, build)
+			}
+
+		}
+
+	} else if len(TModels) == 0 {
+
+		qq := `SELECT "buildId", "dModel", "tModel" FROM public."cleanBuilds";`
+
+		var build mytypes.BuildClean
+		rows, err := base.Db.Query(ctx, qq)
+		if err != nil {
+			return Builds, err
+		}
+
+		for rows.Next() {
+			err := rows.Scan(&build.Id, &build.DModel, &build.TModel)
+			if err != nil {
+				return Builds, err
+			}
+
+			qq = `SELECT amout, mat FROM public."cleanBuildMatList" WHERE "billdId" = $1;`
+
+			rows, err := base.Db.Query(ctx, qq, build.Id)
+			if err != nil {
+				return Builds, err
+			}
+
+			var buildlist []mytypes.BuildListElementClean
+			var buildElement mytypes.BuildListElementClean
+			for rows.Next() {
+				err := rows.Scan(&buildElement.Amout, &buildElement.Mat)
+				if err != nil {
+					return Builds, err
+				}
+				buildlist = append(buildlist, buildElement)
+			}
+			build.BuildList = buildlist
+			Builds = append(Builds, build)
+		}
+	}
+	return Builds, nil
+}
+
+//func (base Base) TakeCleanBuildByDModel(ctx context.Context, DModels ...string)
+
+////////////
+// Модели //
+////////////
+
+func (base Base) TakeTModelsById(ctx context.Context, Ids ...int) ([]mytypes.TModel, error) {
+	var TModels []mytypes.TModel
+	var TModel mytypes.TModel
+
+	if len(Ids) == 0 {
+		qq := `SELECT "tModelsId", "tModelsName", build FROM public."tModels" ORDER BY "tModelsName";`
+
+		rows, err := base.Db.Query(ctx, qq)
+		if err != nil {
+			return nil, err
+		}
+		for rows.Next() {
+			err := rows.Scan(&TModel.Id, &TModel.Name, &TModel.Build)
+			if err != nil {
+				return TModels, err
+			}
+			TModels = append(TModels, TModel)
+		}
+
+	} else {
+		qq := `SELECT "tModelsId", "tModelsName", build FROM public."tModels" WHERE "tModelsId" = $1 ORDER BY "tModelsName";`
+
+		for _, a := range Ids {
+			err := base.Db.QueryRow(ctx, qq, a).Scan(&TModel.Id, &TModel.Name, &TModel.Build)
+			if err != nil {
+				return TModels, err
+			}
+			TModels = append(TModels, TModel)
+		}
+	}
+	return TModels, nil
+}
+
+func (base Base) ChangeDefBuild(ctx context.Context, tModelId int, newBuild int) error {
+	qq := `UPDATE public."tModels" SET "build" = $1 WHERE "tModelsId" = $2;`
+
+	_, err := base.Db.Exec(ctx, qq, newBuild, tModelId)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 ////////////////////

@@ -5,8 +5,11 @@ import (
 	"T-Base/Brain/Storage"
 	"T-Base/Brain/mytypes"
 	"context"
+	"io"
+	"mime/multipart"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strconv"
 	"time"
 
@@ -67,6 +70,17 @@ func (a App) Routs(r *httprouter.Router) {
 	r.GET("/works/returntostorage", a.authtorized(a.ReturnToStoragePage))
 	r.GET("/works/setpromdate", a.authtorized(a.SetPromDatePage))
 	r.GET("/works/changepass", a.authtorized(a.ChangePassPage))
+	r.GET("/works/addcommentbysn", a.authtorized(a.AddCommentToSnsBySnPage))
+	r.GET("/works/takedevicebyxlsx", a.authtorized(a.TakeDeviceByExcelPage))
+	r.GET("/works/createmat", a.authtorized(a.CreateMatPage))
+	r.GET("/works/takemat", a.authtorized(a.TakeMatPage))
+	r.GET("/works/storage/mats", a.authtorized(a.StorageMatsPage))
+	r.GET("/works/storage/matsbyname", a.authtorized(a.StorageMatsByNamePage))
+	r.GET("/works/storage/matsby1c", a.authtorized(a.StorageMatsBy1CPage))
+	r.GET("/works/makebuild", a.authtorized(a.CreateBuildPage))
+	r.GET("/works/buildlist", a.authtorized(a.BuildsPage))
+	r.GET("/works/tmodels", a.authtorized(a.TModelsPage))
+	r.GET("/works/tmodel", a.authtorized(a.TModelPage))
 
 	r.POST("/works/tmc", a.authtorized(a.TMCPage))
 	r.POST("/works/orders", a.authtorized(a.OrderPage))
@@ -87,6 +101,12 @@ func (a App) Routs(r *httprouter.Router) {
 	r.POST("/works/returntostorage", a.authtorized(a.ReturnToStorage))
 	r.POST("/works/setpromdate", a.authtorized(a.SetPromDate))
 	r.POST("/works/changepass", a.authtorized(a.ChangePass))
+	r.POST("/works/addcommentbysn", a.authtorized(a.AddCommentToSnsBySn))
+	r.POST("/works/takedevicebyxlsx", a.authtorized(a.TakeDeviceByExcel))
+	r.POST("/works/createmat", a.authtorized(a.CreateMat))
+	r.POST("/works/takemat", a.authtorized(a.TakeMat))
+	r.POST("/works/makebuild", a.authtorized(a.MakeBuild))
+	r.POST("/works/changedefbuild", a.authtorized(a.ChangeDefBuild))
 
 	r.GET("/works/tmcexcell", a.authtorized(a.TMCExcell))
 	r.POST("/works/tmcexcell", a.authtorized(a.TMCExcell))
@@ -183,6 +203,12 @@ func GetSnfromCleanDevices(devices ...mytypes.DeviceClean) string {
 	return SnString
 }
 
+func sendTMPFile(w http.ResponseWriter, r *http.Request, path, name string) error {
+	err := sendFile(w, r, path, name)
+	os.Remove(path)
+	return err
+}
+
 func sendFile(w http.ResponseWriter, r *http.Request, path, name string) error {
 	f, err := os.Open(path)
 	if err != nil {
@@ -197,6 +223,36 @@ func sendFile(w http.ResponseWriter, r *http.Request, path, name string) error {
 	http.ServeContent(w, r, "test", fi.ModTime(), f)
 
 	f.Close()
-	os.Remove(path)
 	return nil
+}
+
+func takeFile(src multipart.File, hdr *multipart.FileHeader, user mytypes.User) (*os.File, string, error) {
+	f, err := os.OpenFile(filepath.Join("Files/Uploaded", user.Login+"_"+time.Now().Format("02-01-06_15-04-05_")+hdr.Filename), os.O_CREATE, 0666)
+	if err != nil {
+		return nil, "", err
+	}
+	defer f.Close()
+	io.Copy(f, src)
+
+	return f, hdr.Filename, nil
+}
+
+func SendSW(w http.ResponseWriter, r *http.Request) {
+	data, err := os.ReadFile("Face/service-worker.js")
+	if err != nil {
+		http.Error(w, "Couldn't read file", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/javascript; charset=utf-8")
+	w.Write(data)
+}
+
+func SendManifest(w http.ResponseWriter, r *http.Request) {
+	data, err := os.ReadFile("Face/manifest.json")
+	if err != nil {
+		http.Error(w, "Couldn't read file", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.Write(data)
 }

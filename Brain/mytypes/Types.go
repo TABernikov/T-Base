@@ -160,3 +160,43 @@ type OrderStatusClean struct {
 	Done     int
 	Shipped  int
 }
+
+type Mat struct {
+	Id     int
+	Name   string
+	Name1C string
+	Amout  int
+	InWork int
+	Price  int
+	Type   string
+}
+
+type BuildListElement struct {
+	MatId int
+	Amout int
+}
+
+type Build struct {
+	Id        int
+	DModel    int
+	TModel    int
+	BuildList []BuildListElement
+}
+
+type BuildListElementClean struct {
+	Mat   string
+	Amout int
+}
+
+type BuildClean struct {
+	Id        int
+	DModel    string
+	TModel    string
+	BuildList []BuildListElementClean
+}
+
+type TModel struct {
+	Id    int
+	Name  string
+	Build int
+}

@@ -16,7 +16,9 @@ import (
 )
 
 /////////////////////
+
 // Обработчики GET //
+
 /////////////////////
 
 // Стартовая страница
@@ -582,61 +584,109 @@ func (a App) OrderMiniPage(w http.ResponseWriter, r *http.Request, pr httprouter
 
 // Страница передачи в производство
 func (a App) ToWorkPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 2 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
 	MakeImputPage(w, "/works/towork", "Передать в производство", "Введите серийные номера для передачи", "Передать")
 }
 
 // Страница назначения резерва
 func (a App) SetOrderPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 2 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
 	MakeDobleImputPage(w, "/works/setorder", "Назначить заказ/резерв", "Введите серийные номера:", "Номер заказа", "number", "Назначить заказ")
 }
 
 // Страница установки места
 func (a App) SetPlacePage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 2 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
 	MakeDobleImputPage(w, "/works/setplace", "Установить место", "Введите серийные номера:", "Номер места", "number", "Установить место")
 }
 
 // Страница приемки демо
 func (a App) TakeDemoPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 2 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
 	MakeImputPage(w, "", "Приемка демо", "Введите серийные номера", "Принять")
 }
 
 // Страница отгрузки
 func (a App) ToShipPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 2 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
 	MakeDobleImputPage(w, "", "Отгрузка", "Введите серийные номера", "Место отгрузки", "text", "Отгрузить")
 }
 
 // Страница изменения номера паллета
 func (a App) ChangeNumPlacePage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 2 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
 	MakeDobleImputTypePage(w, "/works/cangeplacenum", "Установить номер места", "Введите старый номер:", "number", "Введите новый номер", "number", "Изменить")
 }
 
 // Страница приемки помодельно
 func (a App) TakeDeviceByModelPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 2 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
 	a.MakeTakeDeviceByModelPage(w)
 }
 
 // Страница создания заказа
 func (a App) CreateOrderPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 3 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
 	MakeCreateOrderPage(w)
 }
 
 // Страница изменения мак адреса устройства
 func (a App) ChangeMACPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 1 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
 	MakeImputPage(w, "", "Изменить маки", "Введите последовательно серийный номер и мак для каждого устройства", "Изменить")
 }
 
 // Страница выпуска устройств с производства
 func (a App) ReleaseProductionPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 1 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
 	MakeImputPage(w, "", "Выпуск с производства", "Введите серийные номера", "Выпуск")
 }
 
 // Страница возврата не собраных устройств на производство
 func (a App) ReturnToStoragePage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 1 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
 	MakeImputPage(w, "", "Вернуть на склад", "Введите серийные номера через пробез или с новой стрроки", "Вернуть")
 }
 
 // Страница установки обещаной даты выхода заказа с производства
 func (a App) SetPromDatePage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 1 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
 	MakeDobleImputTypePage(w, "", "Задать дату", "Введите ID заказа "+r.FormValue("Order"), "number", "Введите дату готовности", "date", "Задать дату")
 }
 
@@ -645,8 +695,97 @@ func (a App) ChangePassPage(w http.ResponseWriter, r *http.Request, pr httproute
 	MakeChangePassPage(w, "", "", "", "")
 }
 
+func (a App) AddCommentToSnsBySnPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	MakeDobleImputPage(w, "/works/addcommentbysn", "Дополнить комментарии", "Серийные номера", "Коментарий", "text", "Добавить коментарий")
+}
+
+func (a App) TakeDeviceByExcelPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 2 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
+	MakeImputTypePage(w, "", "Приемка файлом", "file", "Выберете файл", "Отправить")
+}
+
+func (a App) CreateMatPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 2 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
+	MakeCreateMatPage(w)
+}
+
+func (a App) TakeMatPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 2 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
+
+	a.MakeTakeMatPage(w)
+}
+
+func (a App) StorageMatsPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	a.MakeStorageMatsPage(w)
+}
+
+func (a App) StorageMatsByNamePage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	a.MakeStorageMatsByNamePage(w)
+}
+
+func (a App) StorageMatsBy1CPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	a.MakeStorageMatsBy1CPage(w)
+}
+
+func (a App) CreateBuildPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	a.MakeCreateBuildPage(w)
+}
+
+func (a App) BuildsPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+
+	Builds, err := a.Db.TakeCleanBuildByTModel(a.ctx)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения сборок", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	a.MakeBuildsPage(w, Builds)
+}
+
+func (a App) TModelsPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	models, err := a.Db.TakeTModelsById(a.ctx)
+
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения моделей", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	MakeTModelsPage(w, models)
+}
+
+func (a App) TModelPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	id, err := strconv.Atoi(r.FormValue("Id"))
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка преобразования ID", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	model, err := a.Db.TakeTModelsById(a.ctx, id)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения модели", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	builds, err := a.Db.TakeCleanBuildByTModel(a.ctx, id)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения сборок", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	MakeTModelPage(w, model[0], builds)
+}
+
 //////////////////////
+
 // Обработчики POST //
+
 //////////////////////
 
 // Обработчик авторизации
@@ -675,6 +814,11 @@ func (a App) Login(w http.ResponseWriter, r *http.Request, pr httprouter.Params)
 
 // передача в работу
 func (a App) ToWork(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 2 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
+
 	snString := r.FormValue("in")
 	Sns := strings.Fields(snString)
 	if len(Sns) == 0 {
@@ -683,6 +827,10 @@ func (a App) ToWork(w http.ResponseWriter, r *http.Request, pr httprouter.Params
 	}
 
 	count, err := a.Db.SnToWork(a.ctx, Sns...)
+	logCount := a.Db.AddDeviceEventBySn(a.ctx, 2, "Передано в работу", user.UserId, Sns...)
+	if logCount != count {
+		fmt.Println("Ошибка записи логов")
+	}
 	if err != nil {
 		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
 		return
@@ -702,6 +850,11 @@ func (a App) ToWork(w http.ResponseWriter, r *http.Request, pr httprouter.Params
 
 // установка заказа
 func (a App) SetOrder(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 2 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
+
 	snString := r.FormValue("in1")
 	Sns := strings.Fields(snString)
 	if len(Sns) == 0 {
@@ -716,6 +869,11 @@ func (a App) SetOrder(w http.ResponseWriter, r *http.Request, pr httprouter.Para
 	}
 
 	count, err := a.Db.SnSetOrder(a.ctx, order, Sns...)
+	logCount := a.Db.AddDeviceEventBySn(a.ctx, 3, "Установлен заказ "+strconv.Itoa(order), user.UserId, Sns...)
+	if logCount != count {
+		fmt.Println("Ошибка записи логов")
+	}
+
 	if err != nil {
 		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
 		return
@@ -735,6 +893,11 @@ func (a App) SetOrder(w http.ResponseWriter, r *http.Request, pr httprouter.Para
 
 // установка места
 func (a App) SetPlace(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 2 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
+
 	snString := r.FormValue("in1")
 	Sns := strings.Fields(snString)
 	if len(Sns) == 0 {
@@ -749,6 +912,10 @@ func (a App) SetPlace(w http.ResponseWriter, r *http.Request, pr httprouter.Para
 	}
 
 	count, err := a.Db.SnSetPlace(a.ctx, place, Sns...)
+	logCount := a.Db.AddDeviceEventBySn(a.ctx, 6, "Установлено место "+strconv.Itoa(place), user.UserId, Sns...)
+	if logCount != count {
+		fmt.Println("Ошибка записи логов")
+	}
 	if err != nil {
 		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
 		return
@@ -768,6 +935,11 @@ func (a App) SetPlace(w http.ResponseWriter, r *http.Request, pr httprouter.Para
 
 // приемка демо
 func (a App) TakeDemo(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 2 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
+
 	snString := r.FormValue("in")
 	Sns := strings.Fields(snString)
 	if len(Sns) == 0 {
@@ -776,6 +948,10 @@ func (a App) TakeDemo(w http.ResponseWriter, r *http.Request, pr httprouter.Para
 	}
 
 	count, err := a.Db.SnTakeDemo(a.ctx, Sns...)
+	logCount := a.Db.AddDeviceEventBySn(a.ctx, 1, "Принято демо", user.UserId, Sns...)
+	if logCount != count {
+		fmt.Println("Ошибка записи логов")
+	}
 	if err != nil {
 		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
 		return
@@ -795,6 +971,11 @@ func (a App) TakeDemo(w http.ResponseWriter, r *http.Request, pr httprouter.Para
 
 // отгрузка
 func (a App) ToShip(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 2 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
+
 	snString := r.FormValue("in1")
 	Sns := strings.Fields(snString)
 	if len(Sns) == 0 {
@@ -803,6 +984,10 @@ func (a App) ToShip(w http.ResponseWriter, r *http.Request, pr httprouter.Params
 	}
 
 	count, err := a.Db.SnToShip(a.ctx, r.FormValue("in2"), Sns...)
+	logCount := a.Db.AddDeviceEventBySn(a.ctx, 5, "Отгрузка "+r.FormValue("in2"), user.UserId, Sns...)
+	if logCount != count {
+		fmt.Println("Ошибка записи логов")
+	}
 	if err != nil {
 		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
 		return
@@ -822,6 +1007,11 @@ func (a App) ToShip(w http.ResponseWriter, r *http.Request, pr httprouter.Params
 
 // изменение номера паллета
 func (a App) ChangeNumPlace(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 2 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
+
 	old, err := strconv.Atoi(r.FormValue("in1"))
 	if err != nil {
 		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
@@ -843,7 +1033,7 @@ func (a App) ChangeNumPlace(w http.ResponseWriter, r *http.Request, pr httproute
 	MakeAlertPage(w, 1, "Готово", "Измененно", "Номер паллета успешно изменен", "Старый номер "+strconv.Itoa(old)+" ->	Новый "+strconv.Itoa(new), "Главная", "/works/prof")
 }
 
-// добавить комментарий по серийным номерам
+// добавить комментарий по Id
 func (a App) AddCommentToSns(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	id, err := strconv.Atoi(r.FormValue("Id"))
 	if err != nil {
@@ -868,8 +1058,47 @@ func (a App) AddCommentToSns(w http.ResponseWriter, r *http.Request, pr httprout
 	a.DeviceMiniPage(w, r, pr, user)
 }
 
+// Добавить комментарий по серийным номерам
+func (a App) AddCommentToSnsBySn(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	snString := r.FormValue("in1")
+	Sns := strings.Fields(snString)
+	if len(Sns) == 0 {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Не ввседены серийные номера", "", "Главная", "/works/prof")
+		return
+	}
+
+	text := r.FormValue("in2")
+
+	devices, err := a.Db.TakeDeviceBySn(a.ctx, Sns...)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка поиска устройств", "", "Главная", "/works/prof")
+	}
+	var count int
+	for _, device := range devices {
+		if a.Db.AddCommentToSns(a.ctx, device.Id, text, user) == nil {
+			count++
+		}
+	}
+
+	if count == 0 {
+		MakeAlertPage(w, 5, "Предупреждение", "Не назначено", "Устройствам не было назначен коментарий", "Внесено "+strconv.Itoa(len(Sns))+" серийных номеров	Назначено "+strconv.Itoa(count)+"  серийных номеров", "Главная", "/works/prof")
+		return
+	} else if len(Sns)-count == 0 {
+		MakeAlertPage(w, 1, "Готово", "Назначено", "Всем устройствам было назначен коментарий", "Внесено "+strconv.Itoa(len(Sns))+" серийных номеров	Назначено "+strconv.Itoa(count)+"  серийных номеров", "Главная", "/works/prof")
+		return
+	} else if len(Sns)-count > 0 {
+		MakeAlertPage(w, 2, "Готово", "Частично", "Части устройств не было назначен коментарий", "Внесено "+strconv.Itoa(len(Sns))+" серийных номеров	Назначено "+strconv.Itoa(count)+"  серийных номеров", "Главная", "/works/prof")
+		return
+	}
+	MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденая ошибка", "", "Главная", "/works/prof")
+}
+
 // приемка по модельно
 func (a App) TakeDeviceByModel(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 2 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
 
 	var DModel int
 	DModelIn := r.FormValue("DModel")
@@ -904,6 +1133,7 @@ func (a App) TakeDeviceByModel(w http.ResponseWriter, r *http.Request, pr httpro
 	}
 
 	i, SnErr, err := a.Db.InsetDeviceByModel(a.ctx, DModel, Name, TModel, Rev, Place, Doc, Order, Sns...)
+
 	if err != nil {
 		errString := ""
 		for _, a := range SnErr {
@@ -917,6 +1147,10 @@ func (a App) TakeDeviceByModel(w http.ResponseWriter, r *http.Request, pr httpro
 
 // создание заказа
 func (a App) CreateOrder(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 3 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
 	Id1C, err := strconv.Atoi(r.FormValue("1C"))
 	if err != nil {
 		MakeAlertPage(w, 5, "Ошибка", "Номер 1С не число", "Номер 1С не число", err.Error(), "Главная", "/works/prof")
@@ -954,6 +1188,10 @@ func (a App) CreateOrder(w http.ResponseWriter, r *http.Request, pr httprouter.P
 
 // удаление заказа
 func (a App) DelOrder(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 3 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
 
 	id, err := strconv.Atoi(r.FormValue("Id"))
 	if err != nil {
@@ -982,6 +1220,10 @@ func (a App) DelOrder(w http.ResponseWriter, r *http.Request, pr httprouter.Para
 
 // изменить № 1С у заказа
 func (a App) Change1CNumOrder(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 3 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
 	id, err := strconv.Atoi(r.FormValue("Id"))
 	if err != nil {
 		MakeAlertPage(w, 5, "Ошибка", "Не существующий Id заказа", "Не существующее число", err.Error(), "Главная", "/works/prof")
@@ -1015,6 +1257,10 @@ func (a App) Change1CNumOrder(w http.ResponseWriter, r *http.Request, pr httprou
 
 // изменение состава заказа (Страница)
 func (a App) CreateOrderListPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 3 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
 
 	id, err := strconv.Atoi(r.FormValue("Id"))
 	if err != nil {
@@ -1107,6 +1353,11 @@ func (a App) CreateOrderListPage(w http.ResponseWriter, r *http.Request, pr http
 
 // Изменение мак адреса устройства
 func (a App) ChangeMAC(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 1 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
+
 	in := strings.Fields(r.FormValue("in"))
 	if len(in)%2 == 1 {
 		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Серийников больше чем маков", "(или наоборот)", "Главная", "/works/prof")
@@ -1115,6 +1366,10 @@ func (a App) ChangeMAC(w http.ResponseWriter, r *http.Request, pr httprouter.Par
 	var count int
 	for i := 0; i < len(in); i = i + 2 {
 		_, err := a.Db.ChangeMAC(a.ctx, in[i], in[i+1])
+		logCount := a.Db.AddDeviceEventBySn(a.ctx, 6, "Установлен mac "+in[i+1], user.UserId, in[i])
+		if logCount != 1 {
+			fmt.Println("Ошибка записи логов")
+		}
 		if err != nil {
 			MakeAlertPage(w, 2, "Ошибка", "Частично", "Изменнено только часть MAC", "Изменены "+strconv.Itoa(count)+" устройств, до "+in[i], "Главная", "/works/prof")
 		}
@@ -1125,6 +1380,11 @@ func (a App) ChangeMAC(w http.ResponseWriter, r *http.Request, pr httprouter.Par
 
 // Выпуск устройств с производства
 func (a App) ReleaseProduction(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 1 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
+
 	in := strings.Fields(r.FormValue("in"))
 
 	if len(in) == 0 {
@@ -1133,6 +1393,10 @@ func (a App) ReleaseProduction(w http.ResponseWriter, r *http.Request, pr httpro
 	}
 
 	counter := a.Db.ReleaseProduction(a.ctx, in...)
+	logCount := a.Db.AddDeviceEventBySn(a.ctx, 4, "Преобразование", user.UserId, in...)
+	if logCount != counter {
+		fmt.Println("Ошибка записи логов")
+	}
 	if counter == 0 {
 		MakeAlertPage(w, 5, "Предупреждение", "Не передано", "Устройства не перобразованы", "Внесено "+strconv.Itoa(len(in))+" серийных номеров	Преобразовано "+strconv.Itoa(counter)+"  серийных номеров", "Главная", "/works/prof")
 		return
@@ -1148,6 +1412,11 @@ func (a App) ReleaseProduction(w http.ResponseWriter, r *http.Request, pr httpro
 
 // Вернуть не собраные устройства на склад
 func (a App) ReturnToStorage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 1 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
+
 	in := strings.Fields(r.FormValue("in"))
 
 	if len(in) == 0 {
@@ -1156,6 +1425,11 @@ func (a App) ReturnToStorage(w http.ResponseWriter, r *http.Request, pr httprout
 	}
 
 	counter := a.Db.ReturnToStorage(a.ctx, in...)
+	logCount := a.Db.AddDeviceEventBySn(a.ctx, 9, "Возврат", user.UserId, in...)
+	if logCount != counter {
+		fmt.Println("Ошибка записи логов")
+	}
+
 	if counter == 0 {
 		MakeAlertPage(w, 5, "Предупреждение", "Не передано", "Устройства не переданы", "Внесено "+strconv.Itoa(len(in))+" серийных номеров	Преобразовано "+strconv.Itoa(counter)+"  серийных номеров", "Главная", "/works/prof")
 		return
@@ -1171,6 +1445,11 @@ func (a App) ReturnToStorage(w http.ResponseWriter, r *http.Request, pr httprout
 
 // Установить обещаную дату производства заказа
 func (a App) SetPromDate(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 1 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
+
 	order, err := strconv.Atoi(r.FormValue("in1"))
 	if err != nil {
 		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
@@ -1226,8 +1505,208 @@ func (a App) ChangePass(w http.ResponseWriter, r *http.Request, pr httprouter.Pa
 	MakeAlertPage(w, 1, "Успешно", "Успешно", "Изменено ", "", "Главная", "/works/prof")
 }
 
+func (a App) TakeDeviceByExcel(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 2 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
+
+	src, hdr, err := r.FormFile("in")
+	if err != nil {
+		if err.Error() == "http: no such file" {
+			sendFile(w, r, "Files/Templ/Приемка файлом шаблон.xlsx", "Приемка файлом шаблон.xlsx")
+			return
+		}
+
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка получения", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	defer src.Close()
+
+	f, name, err := takeFile(src, hdr, user)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка записи", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	f.Close()
+
+	devices, err, litleErr := Filer.ReadNewDevice(f.Name(), *a.Db)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка чтения", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	insertCount, err := a.Db.InsertDivice(a.ctx, devices...)
+	if litleErr {
+		err := sendFile(w, r, f.Name(), name)
+		if err != nil {
+			fmt.Fprintln(w, err)
+		}
+	}
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка внесения", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	if insertCount == 0 {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Устройства небыли приняты", err.Error(), "Главная", "/works/prof")
+		return
+	} else if insertCount < len(devices) {
+		MakeAlertPage(w, 2, "Готово", "Частично", "Часть устройств не было принято", "Внесено "+strconv.Itoa(insertCount), "Главная", "/works/prof")
+		return
+	} else if insertCount > len(devices) {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	MakeAlertPage(w, 1, "Готово", "Готово", "Все "+strconv.Itoa(insertCount)+" устройств внесены", "Отличная работа", "Главная", "/works/prof")
+}
+
+// Создание новых материалов
+func (a App) CreateMat(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 2 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
+
+	name := r.FormValue("Name")
+	matType, err := strconv.Atoi(r.FormValue("Type"))
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка получения", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	err = a.Db.InsertMat(a.ctx, name, matType)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка внесения", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	MakeAlertPage(w, 1, "Готово", "Готово", "Успешно", "Отличная работа", "Главная", "/works/prof")
+}
+
+// Приемка метериалов
+func (a App) TakeMat(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 2 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
+
+	name := r.FormValue("Name")
+	name1c := r.FormValue("Name1C")
+	amout, err := strconv.Atoi(r.FormValue("Amout"))
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка получения", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	if amout < 0 {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Нельзя принять отрицательное число материала", "Это называется списание", "Главная", "/works/prof")
+		return
+	}
+
+	price, err := strconv.Atoi(r.FormValue("Price"))
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка получения", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	if price < 0 {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Цена не может быть отрицательной", "Это называется списание", "Главная", "/works/prof")
+		return
+	}
+
+	err = a.Db.AddMat(a.ctx, name, name1c, price, amout)
+	if err != nil {
+		if err.Error() == "критическая ошибка" {
+			MakeAlertPage(w, 5, "Ошибка", "КРИТИЧЕСКАЯ ОШИБКА !!!", "ОБРАТИТЕСЬ К АДМИНЕСТРАТОРУ ДЛЯ ВНЕСЕНИЯ ИСПРАВЛЕНИЙ", err.Error(), "Главная", "/works/prof")
+		} else {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка внесения", err.Error(), "Главная", "/works/prof")
+			return
+		}
+	}
+
+	MakeAlertPage(w, 1, "Готово", "Готово", "Успешно", "Отличная работа", "Главная", "/works/prof")
+}
+
+// Создание сборки
+func (a App) MakeBuild(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	var build mytypes.Build
+	dModelstr := r.FormValue("DModel")
+	tModelstr := r.FormValue("TModel")
+
+	err := a.Db.Db.QueryRow(a.ctx, `SELECT "dModelsId" FROM public."dModels" WHERE "dModelName" = $1`, dModelstr).Scan(&build.DModel)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", "", "Главная", "/works/prof")
+		return
+	}
+
+	err = a.Db.Db.QueryRow(a.ctx, `SELECT "tModelsId" FROM public."tModels" WHERE "tModelsName" = $1`, tModelstr).Scan(&build.TModel)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", "", "Главная", "/works/prof")
+		return
+	}
+
+	type buildPoint struct {
+		Id    string
+		Amout string
+	}
+
+	buildPoints := []buildPoint{{Id: "case", Amout: "caseAmout"}, {Id: "stiker", Amout: "stikerAmout"}, {Id: "box", Amout: "boxAmout"}, {Id: "boxholder", Amout: "boxholderAmout"}, {Id: "another1", Amout: "another1Amout"}, {Id: "another2", Amout: "another2Amout"}, {Id: "another3", Amout: "another3Amout"}}
+
+	for _, point := range buildPoints {
+		tmp := r.FormValue(point.Id)
+
+		elId, err := strconv.Atoi(tmp)
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка 1", "", "Главная", "/works/prof")
+			return
+		}
+		tmp = r.FormValue(point.Amout)
+
+		if tmp == "" {
+			continue
+		}
+		elAmout, err := strconv.Atoi(tmp)
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка 2", "", "Главная", "/works/prof")
+			return
+		}
+		if elId != -1 && elAmout > 0 {
+			element := mytypes.BuildListElement{MatId: elId, Amout: elAmout}
+			build.BuildList = append(build.BuildList, element)
+		}
+	}
+
+	count, err := a.Db.InsertBuild(a.ctx, build)
+	if count != 1 || err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка заведения", strconv.Itoa(count)+err.Error(), "Главная", "/works/prof")
+	}
+
+	MakeAlertPage(w, 1, "Успешно", "Успешно", "Сборка создана", "не забудьте что сборку нужно указывать в параметрах модели", "Главная", "/works/prof")
+}
+
+// изменить стандартную сборку для модели
+func (a App) ChangeDefBuild(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	tModel, err := strconv.Atoi(r.FormValue("TModel"))
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	newBuild, err := strconv.Atoi(r.FormValue("NewBuild"))
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	err = a.Db.ChangeDefBuild(a.ctx, tModel, newBuild)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	http.Redirect(w, r, "/works/tmodel?Id="+strconv.Itoa(tModel), http.StatusSeeOther)
+}
+
 //////////////////////
+
 // Отправка отчетов //
+
 //////////////////////
 
 // Тестовый файл
@@ -1243,7 +1722,7 @@ func (a App) TestFile(w http.ResponseWriter, r *http.Request, pr httprouter.Para
 		fmt.Println(err)
 	}
 
-	err = sendFile(w, r, path, name)
+	err = sendTMPFile(w, r, path, name)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -1545,7 +2024,7 @@ func (a App) TMCExcell(w http.ResponseWriter, r *http.Request, pr httprouter.Par
 		fmt.Println(err)
 	}
 
-	err = sendFile(w, r, path, name)
+	err = sendTMPFile(w, r, path, name)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -1591,7 +2070,7 @@ func (a App) OrdersExcell(w http.ResponseWriter, r *http.Request, pr httprouter.
 		fmt.Println(err)
 	}
 
-	err = sendFile(w, r, path, name)
+	err = sendTMPFile(w, r, path, name)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -1625,14 +2104,16 @@ func (a App) OrdersShortExcell(w http.ResponseWriter, r *http.Request, pr httpro
 		fmt.Println(err)
 	}
 
-	err = sendFile(w, r, path, name)
+	err = sendTMPFile(w, r, path, name)
 	if err != nil {
 		fmt.Println(err)
 	}
 }
 
 //////////////////////////
+
 // Конструкторы страниц //
+
 //////////////////////////
 
 func MakeTMCPage(w http.ResponseWriter, devices []mytypes.DeviceClean, lable string, excellLink string) {
@@ -1814,9 +2295,9 @@ func MakeImputTypePage(w http.ResponseWriter, postPath, title, typein, imputText
 		Type      string
 	}
 
-	tmp := imputPage{title, typein, imputText, btnText, postPath}
+	tmp := imputPage{title, imputText, btnText, postPath, typein}
 
-	t := template.Must(template.ParseFiles("Face/html/insert.html"))
+	t := template.Must(template.ParseFiles("Face/html/insert file.html"))
 	t.Execute(w, tmp)
 }
 
@@ -2060,11 +2541,15 @@ func (a App) MakeUserPage(w http.ResponseWriter, user mytypes.User) {
 		block.Btns = append(block.Btns, btn)
 		btn = Buton{`<i class="icon-search"></i>Поиск по Sn`, "/works/snsearch"}
 		block.Btns = append(block.Btns, btn)
+		btn = Buton{`<i class="icon-pencil"></i>Коментарий по Sn`, "/works/addcommentbysn"}
+		block.Btns = append(block.Btns, btn)
 		Blocks = append(Blocks, block)
 
 		block = Block{}
 		block.Title = "Приемка"
 		btn = Buton{`<i class="icon-plus"></i>Приемка по моделям`, "/works/takedevicebymodel"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{`<i class="icon-file-excel"></i>Приемка файлом`, "/works/takedevicebyxlsx"}
 		block.Btns = append(block.Btns, btn)
 		btn = Buton{`<i class="icon-forward"></i>Приемка демо`, "/works/takedemo"}
 		block.Btns = append(block.Btns, btn)
@@ -2091,6 +2576,22 @@ func (a App) MakeUserPage(w http.ResponseWriter, user mytypes.User) {
 		block = Block{}
 		block.Title = "Отгрузки"
 		btn = Buton{`<i class="icon-truck"></i>Отгрузка`, "/works/toship"}
+		block.Btns = append(block.Btns, btn)
+		Blocks = append(Blocks, block)
+
+		block = Block{}
+		block.Title = "Материалы"
+		btn = Buton{`Склад материалов`, "/works/storage/mats"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{`Сборки`, "/works/buildlist"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{`Добавить сборку`, "/works/makebuild"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{`Добавить материал`, "/works/createmat"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{`Принять материалы`, "/works/takemat"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{`Модели`, "/works/tmodels"}
 		block.Btns = append(block.Btns, btn)
 		Blocks = append(Blocks, block)
 
@@ -2136,5 +2637,261 @@ func MakeChangePassPage(w http.ResponseWriter, ans string, p1, p2, p3 string) {
 	}
 	tmp := page{ans, p1, p2, p3}
 	t := template.Must(template.ParseFiles("Face/html/ChangePass.html"))
+	t.Execute(w, tmp)
+}
+
+func MakeCreateMatPage(w http.ResponseWriter) {
+	var page bool
+	t := template.Must(template.ParseFiles("Face/html/CreateMat.html"))
+	t.Execute(w, page)
+}
+
+func (a App) MakeTakeMatPage(w http.ResponseWriter) {
+	type TakeForm struct {
+		NameList   []string
+		NameList1C []string
+	}
+	var NameList []string
+	var NameList1C []string
+	var Name string
+
+	rows, err := a.Db.Db.Query(a.ctx, `SELECT "name" FROM public."matsName" GROUP BY name ORDER BY name;`)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	for rows.Next() {
+		err := rows.Scan(&Name)
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		NameList = append(NameList, Name)
+	}
+
+	rows, err = a.Db.Db.Query(a.ctx, `SELECT "1CName" FROM public."mats" GROUP BY "1CName" ORDER BY "1CName";`)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	for rows.Next() {
+		err := rows.Scan(&Name)
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		NameList1C = append(NameList1C, Name)
+	}
+
+	tmp := TakeForm{NameList, NameList1C}
+	t := template.Must(template.ParseFiles("Face/html/TakeMat.html"))
+	t.Execute(w, tmp)
+}
+
+func (a App) MakeStorageMatsPage(w http.ResponseWriter) {
+	Mats, err := a.Db.TakeMatsById(a.ctx)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	type storagePage struct {
+		Lable string
+		Mats  []mytypes.Mat
+	}
+	table := storagePage{"Материалы", Mats}
+
+	t := template.Must(template.ParseFiles("Face/html/storage mats.html"))
+	t.Execute(w, table)
+}
+
+func (a App) MakeStorageMatsByNamePage(w http.ResponseWriter) {
+	Mats, err := a.Db.TakeAmoutMatsByName(a.ctx)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	type storagePage struct {
+		Lable string
+		Mats  []mytypes.Mat
+	}
+	table := storagePage{"Материалы", Mats}
+
+	t := template.Must(template.ParseFiles("Face/html/storage matsbyname.html"))
+	t.Execute(w, table)
+}
+
+func (a App) MakeStorageMatsBy1CPage(w http.ResponseWriter) {
+	Mats, err := a.Db.TakeAmoutMatsBy1C(a.ctx)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	type storagePage struct {
+		Lable string
+		Mats  []mytypes.Mat
+	}
+	table := storagePage{"Материалы", Mats}
+
+	t := template.Must(template.ParseFiles("Face/html/storage matsby1c.html"))
+	t.Execute(w, table)
+}
+
+func (a App) MakeCreateBuildPage(w http.ResponseWriter) {
+	type SelectList struct {
+		Id   int
+		Name string
+	}
+	type TakeForm struct {
+		ModelListT    []string
+		ModelListD    []string
+		CaseList      []SelectList
+		StikerList    []SelectList
+		BoxList       []SelectList
+		BoxholderList []SelectList
+		AnotherList   []SelectList
+	}
+	var ModelListT []string
+	var ModelListD []string
+	var CaseList []SelectList
+	var StikerList []SelectList
+	var BoxList []SelectList
+	var BoxholderList []SelectList
+	var AnotherList []SelectList
+	var Name string
+	var choise SelectList
+
+	rows, err := a.Db.Db.Query(a.ctx, `SELECT "tModelsName" FROM "tModels" ORDER BY "tModelsName"`)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	for rows.Next() {
+		err := rows.Scan(&Name)
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		ModelListT = append(ModelListT, Name)
+	}
+
+	rows, err = a.Db.Db.Query(a.ctx, `SELECT "dModelName" FROM "dModels" ORDER BY "dModelName"`)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	for rows.Next() {
+		err := rows.Scan(&Name)
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		ModelListD = append(ModelListD, Name)
+	}
+
+	rows, err = a.Db.Db.Query(a.ctx, `SELECT "matNameId", name FROM public."matsName" WHERE type = '1'`)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	for rows.Next() {
+		err := rows.Scan(&choise.Id, &choise.Name)
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		CaseList = append(CaseList, choise)
+	}
+
+	rows, err = a.Db.Db.Query(a.ctx, `SELECT "matNameId", name FROM public."matsName" WHERE type = '2'`)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	for rows.Next() {
+		err := rows.Scan(&choise.Id, &choise.Name)
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		StikerList = append(StikerList, choise)
+	}
+
+	rows, err = a.Db.Db.Query(a.ctx, `SELECT "matNameId", name FROM public."matsName" WHERE type = '3'`)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	for rows.Next() {
+		err := rows.Scan(&choise.Id, &choise.Name)
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		BoxList = append(BoxList, choise)
+	}
+
+	rows, err = a.Db.Db.Query(a.ctx, `SELECT "matNameId", name FROM public."matsName" WHERE type = '4'`)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	for rows.Next() {
+		err := rows.Scan(&choise.Id, &choise.Name)
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		BoxholderList = append(BoxholderList, choise)
+	}
+
+	rows, err = a.Db.Db.Query(a.ctx, `SELECT "matNameId", name FROM public."matsName" WHERE type = '7'`)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	for rows.Next() {
+		err := rows.Scan(&choise.Id, &choise.Name)
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		AnotherList = append(AnotherList, choise)
+	}
+
+	tmp := TakeForm{ModelListT, ModelListD, CaseList, StikerList, BoxList, BoxholderList, AnotherList}
+	t := template.Must(template.ParseFiles("Face/html/MakeBuild.html"))
+	t.Execute(w, tmp)
+}
+
+func (a App) MakeBuildsPage(w http.ResponseWriter, builds []mytypes.BuildClean) {
+	type BPage struct {
+		Builds []mytypes.BuildClean
+	}
+
+	table := BPage{Builds: builds}
+	t := template.Must(template.ParseFiles("Face/html/builds.html"))
+	t.Execute(w, table)
+}
+
+func MakeTModelsPage(w http.ResponseWriter, TModels []mytypes.TModel) {
+	type TModelPage struct {
+		Tab []mytypes.TModel
+	}
+	table := TModelPage{Tab: TModels}
+
+	t := template.Must(template.ParseFiles("Face/html/tmodels.html"))
+	t.Execute(w, table)
+}
+
+func MakeTModelPage(w http.ResponseWriter, TModel mytypes.TModel, builds []mytypes.BuildClean) {
+	type Page struct {
+		Model  mytypes.TModel
+		Builds []mytypes.BuildClean
+	}
+
+	tmp := Page{Model: TModel, Builds: builds}
+	t := template.Must(template.ParseFiles("Face/html/tmodel.html"))
 	t.Execute(w, tmp)
 }

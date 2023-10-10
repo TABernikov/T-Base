@@ -1,5 +1,5 @@
 <!doctype html>
-<html>
+<html lang="ru">
 
 <head>
     <title>{{.Lable}}</title>
@@ -17,7 +17,7 @@
   <nav class="navbar navbar-expand-lg sticky-top navbar-light bg-light" aria-label="Fifth navbar example">
     <div class="container-fluid">
       
-          <a class="navbar-brand" href="#">
+          <a class="navbar-brand" href="/works/prof">
             <img src="Face\img\t-kom-logo.svg" width="100" height="50" alt="" loading="lazy">
           </a>
 
@@ -117,26 +117,26 @@
                     <tbody>
                     {{range .Tab}}
                     
-                    <tr class="{{if(eq .Shiped "true" )}} {{print "table-secondary"}} {{else if(eq .Condition "Собрано" )}} {{print "table-success"}} {{else if(eq .Condition "В работе" )}} {{print "table-primary"}}     {{else if(eq .Condition "Не собрано")}} {{print "table-warning"}} {{end}}">
-                        <th scope="row" onclick="document.o.location= '/works/device/mini?Id={{.Id}}'" style="display: flexbox;"> &nbsp;{{.Id}} <a class="btn btn-sm {{if(eq .Shiped "true" )}} {{print "btn-secondary"}} {{else if(eq .Condition "Собрано" )}} {{print "btn-success"}} {{else if(eq .Condition "В работе" )}} {{print "btn-primary"}}     {{else if(eq .Condition "Не собрано")}} {{print "btn-warning"}} {{end}}" role="button" href="/works/device/mini?Id={{.Id}}" style="width: 100%; " >Открыть</a> </th>
+                    <tr onclick="document.o.location= '/works/device/mini?Id={{.Id}}'"  class="{{if(eq .Shiped "true" )}} {{print "table-secondary"}} {{else if(eq .Condition "Собрано" )}} {{print "table-success"}} {{else if(eq .Condition "В работе" )}} {{print "table-primary"}}     {{else if(eq .Condition "Не собрано")}} {{print "table-warning"}} {{end}}">
+                        <th scope="row" style="display: flexbox;"> &nbsp;{{.Id}} <a class="btn btn-sm {{if(eq .Shiped "true" )}} {{print "btn-secondary"}} {{else if(eq .Condition "Собрано" )}} {{print "btn-success"}} {{else if(eq .Condition "В работе" )}} {{print "btn-primary"}}     {{else if(eq .Condition "Не собрано")}} {{print "btn-warning"}} {{end}}" role="button" href="/works/device/mini?Id={{.Id}}" style="width: 100%; " >Открыть</a> </th>
                         
-                        <td onclick="document.o.location= '/works/device/mini?Id={{.Id}}'" >{{.Sn}}</td>
-                        <td onclick="document.o.location= '/works/device/mini?Id={{.Id}}'" >{{.Mac}}</td>
-                        <td onclick="document.o.location= '/works/device/mini?Id={{.Id}}'" >{{.DModel}}</td>
-                        <td onclick="document.o.location= '/works/device/mini?Id={{.Id}}'" >{{.Rev}}</td>
-                        <td onclick="document.o.location= '/works/device/mini?Id={{.Id}}'" >{{.TModel}}</td>
-                        <td onclick="document.o.location= '/works/device/mini?Id={{.Id}}'" >{{.Name}}</td>
-                        <td onclick="document.o.location= '/works/device/mini?Id={{.Id}}'" >{{.Condition}}</td>
-                        <td onclick="document.o.location= '/works/device/mini?Id={{.Id}}'" >{{.CondDate}}</td>
-                        <td onclick="document.o.location= '/works/device/mini?Id={{.Id}}'" >{{.Order}} <a class="btn btn-sm {{if(eq .Shiped "true" )}} {{print "btn-secondary"}} {{else if(eq .Condition "Собрано" )}} {{print "btn-success"}} {{else if(eq .Condition "В работе" )}} {{print "btn-primary"}}     {{else if(eq .Condition "Не собрано")}} {{print "btn-warning"}} {{end}}" role="button" href="/works/order/mini?Id={{.Order}}" style="width: 100%; ">Открыть</a></td>
-                        <td onclick="document.o.location= '/works/device/mini?Id={{.Id}}'" >{{.Place}}</td>
-                        <td onclick="document.o.location= '/works/device/mini?Id={{.Id}}'" >{{.Shiped}}</td>
-                        <td onclick="document.o.location= '/works/device/mini?Id={{.Id}}'" >{{.ShipedDate}}</td>
-                        <td onclick="document.o.location= '/works/device/mini?Id={{.Id}}'" >{{.ShippedDest}}</td>
-                        <td onclick="document.o.location= '/works/device/mini?Id={{.Id}}'" >{{.TakenDate}}</td>
-                        <td onclick="document.o.location= '/works/device/mini?Id={{.Id}}'" >{{.TakenDoc}}</td>
-                        <td onclick="document.o.location= '/works/device/mini?Id={{.Id}}'" >{{.TakenOrder}}</td>
-                        <td class="text-nowrap" onclick="document.o.location= '/works/device/mini?Id={{.Id}}'" >{{.Comment}}</td>
+                        <td>{{.Sn}}</td>
+                        <td>{{.Mac}}</td>
+                        <td>{{.DModel}}</td>
+                        <td>{{.Rev}}</td>
+                        <td>{{.TModel}}</td>
+                        <td>{{.Name}}</td>
+                        <td>{{.Condition}}</td>
+                        <td>{{.CondDate}}</td>
+                        <td>{{.Order}} <a class="btn btn-sm {{if(eq .Shiped "true" )}} {{print "btn-secondary"}} {{else if(eq .Condition "Собрано" )}} {{print "btn-success"}} {{else if(eq .Condition "В работе" )}} {{print "btn-primary"}}     {{else if(eq .Condition "Не собрано")}} {{print "btn-warning"}} {{end}}" role="button" href="/works/order/mini?Id={{.Order}}" style="width: 100%; ">Открыть</a></td>
+                        <td>{{.Place}}</td>
+                        <td>{{.Shiped}}</td>
+                        <td>{{.ShipedDate}}</td>
+                        <td>{{.ShippedDest}}</td>
+                        <td>{{.TakenDate}}</td>
+                        <td>{{.TakenDoc}}</td>
+                        <td>{{.TakenOrder}}</td>
+                        <td class="text-nowrap" >{{.Comment}}</td>
                         
                     </tr>
                     
