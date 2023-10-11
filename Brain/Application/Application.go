@@ -100,6 +100,7 @@ func (a App) Routs(r *httprouter.Router) {
 	r.POST("/works/change1cnumorder", a.authtorized(a.Change1CNumOrder))
 	r.POST("/works/createorderlist", a.authtorized(a.CreateOrderListPage))
 	r.POST("/works/changemac", a.authtorized(a.ChangeMAC))
+	r.POST("/works/releaseproductionacept", a.authtorized(a.BuildAceptPage))
 	r.POST("/works/releaseproduction", a.authtorized(a.ReleaseProduction))
 	r.POST("/works/returntostorage", a.authtorized(a.ReturnToStorage))
 	r.POST("/works/setpromdate", a.authtorized(a.SetPromDate))

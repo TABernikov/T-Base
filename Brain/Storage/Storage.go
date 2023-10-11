@@ -1057,42 +1057,57 @@ func (base Base) ChangeMAC(ctx context.Context, sn, mac string) (int, error) {
 	return int(res.RowsAffected()), err
 }
 
-func (base Base) ReleaseProduction(ctx context.Context, sn ...string) int {
-	var counter int
-	var err error
-
-	for _, a := range sn {
-		qq := `SELECT "tModelsName"
-		FROM public.sns INNER JOIN public."tModels" on "tModels"."tModelsId" = sns.tmodel
-		WHERE sns.sn = $1`
-		var name string
-		err = base.Db.QueryRow(ctx, qq, a).Scan(&name)
-		if err != nil {
-
-			continue
-		}
-
-		qq = `UPDATE public.sns
-		SET  name = $2, condition = 1, "condDate" = CURRENT_DATE
-		WHERE sn = $1;`
-		_, err = base.Db.Exec(ctx, qq, a, name)
-		if err != nil {
-
-			continue
-		}
-		qq = `UPDATE public.sns
-		SET  "order" = 1
-		WHERE sn=$1 AND "order" = 2;`
-
-		_, err = base.Db.Exec(ctx, qq, a)
-		if err != nil {
-
-			continue
-		}
-		counter++
+func (base Base) ReleaseProduction(ctx context.Context, sn string) (int, error) {
+	devices, err := base.TakeDeviceBySn(ctx, sn)
+	if err != nil {
+		return -1, err
+	}
+	device := devices[0]
+	if device.Condition == 1 {
+		return -1, fmt.Errorf("девайс уже собран")
 	}
 
-	return counter
+	var buildId int
+	err = base.Db.QueryRow(ctx, `Select build FROM public."dModels" WHERE "dModelsId" = $1`, device.DModel).Scan(&buildId)
+	if err != nil {
+		return -1, err
+	}
+	build, err := base.TakeBuildById(ctx, buildId)
+	if err != nil {
+		return -1, err
+	}
+
+	for _, buildElement := range build.BuildList {
+		var matId int
+		err = base.Db.QueryRow(ctx, `SELECT "matId" FROM public.mats WHERE name = $1 AND "inWork" > 0`, buildElement.MatId).Scan(&matId)
+		if err != nil {
+			return -1, err
+		}
+		_, err = base.Db.Exec(ctx, `UPDATE public.mats SET amout= amout - 1, "inWork"= "inWork" - 1 WHERE "matId" = $1`, matId)
+		if err != nil {
+			return -1, err
+		}
+	}
+
+	var order int
+	if device.Order == 2 {
+		order = 1
+	} else {
+		order = device.Order
+	}
+	var newName string
+
+	err = base.Db.QueryRow(ctx, `SELECT "tModelsName" FROM public."tModels" WHERE "tModelsId" = $1`, build.TModel).Scan(&newName)
+	if err != nil {
+		return -1, err
+	}
+
+	_, err = base.Db.Exec(ctx, `UPDATE public.sns SET condition = 1, "condDate" = $1, "order" = $2, name = $3 Where sn = $4`, time.Now(), order, newName, sn)
+	if err != nil {
+		return -1, err
+	}
+
+	return build.Id, nil
 }
 
 func (base Base) ReturnToStorage(ctx context.Context, sn ...string) int {
@@ -1553,6 +1568,80 @@ func (base Base) InsertBuild(ctx context.Context, builds ...mytypes.Build) (int,
 	}
 
 	return counter, nil
+}
+
+func (base Base) TakeBuildById(ctx context.Context, id int) (mytypes.Build, error) {
+	var Build mytypes.Build
+	qq := `SELECT "buildId", "dModel", "tModel" FROM public.builds WHERE "buildId" = $1;`
+	err := base.Db.QueryRow(ctx, qq, id).Scan(&Build.Id, &Build.DModel, &Build.TModel)
+	if err != nil {
+		return Build, err
+	}
+
+	qq = `SELECT "mat", amout FROM public."buildMatList" WHERE "billdId" = $1;`
+	rows, err := base.Db.Query(ctx, qq, Build.Id)
+	if err != nil {
+		return Build, err
+	}
+
+	var buildlist []mytypes.BuildListElement
+	var buildElement mytypes.BuildListElement
+	for rows.Next() {
+		err := rows.Scan(&buildElement.MatId, &buildElement.Amout)
+		if err != nil {
+			return Build, err
+		}
+		buildlist = append(buildlist, buildElement)
+	}
+	Build.BuildList = buildlist
+
+	return Build, nil
+}
+
+func (base Base) TakeCleanBuildById(ctx context.Context, id int) (mytypes.BuildClean, error) {
+	qq := ` SELECT builds."buildId",
+		"tModels"."tModelsName" AS "tModel",
+		"dModels"."dModelName" AS "dModel"
+	FROM builds
+		LEFT JOIN "tModels" ON builds."tModel" = "tModels"."tModelsId"
+		LEFT JOIN "dModels" ON builds."dModel" = "dModels"."dModelsId"
+	WHERE builds."buildId" = $1;`
+	var build mytypes.BuildClean
+
+	rows, err := base.Db.Query(ctx, qq, id)
+	if err != nil {
+		return build, err
+	}
+
+	for rows.Next() {
+
+		err := rows.Scan(&build.Id, &build.TModel, &build.DModel)
+		if err != nil {
+			return build, err
+		}
+
+		qq = `SELECT "mat", amout FROM public."cleanBuildMatList" WHERE "billdId" = $1;`
+		rows, err := base.Db.Query(ctx, qq, build.Id)
+		if err != nil {
+			if err.Error() == "no rows in result set" {
+				continue
+			}
+			return build, err
+		}
+
+		var buildlist []mytypes.BuildListElementClean
+		var buildElement mytypes.BuildListElementClean
+		for rows.Next() {
+			err := rows.Scan(&buildElement.Mat, &buildElement.Amout)
+			if err != nil {
+				return build, err
+			}
+			buildlist = append(buildlist, buildElement)
+		}
+		build.BuildList = buildlist
+	}
+	return build, nil
+
 }
 
 func (base Base) TakeBuildByTModel(ctx context.Context, TModels ...int) ([]mytypes.Build, error) {

@@ -206,3 +206,36 @@ type DModel struct {
 	Name  string
 	Build int
 }
+
+func CountByDModel(devices ...DeviceRaw) (counter map[int]int) {
+	counter = make(map[int]int)
+	for _, device := range devices {
+		if _, ok := counter[device.DModel]; !ok {
+			counter[device.DModel] = 1
+		} else {
+			counter[device.DModel]++
+		}
+	}
+	return
+}
+
+func CountbyTModel(devices ...DeviceRaw) (counter map[int]int) {
+	counter = make(map[int]int)
+	for _, device := range devices {
+		if _, ok := counter[device.TModel]; !ok {
+			counter[device.TModel] = 1
+		} else {
+			counter[device.TModel]++
+		}
+	}
+	return
+}
+
+func ChekInWork(devices ...DeviceRaw) bool {
+	for _, device := range devices {
+		if device.Condition != 3 {
+			return true
+		}
+	}
+	return false
+}

@@ -669,7 +669,7 @@ func (a App) ReleaseProductionPage(w http.ResponseWriter, r *http.Request, pr ht
 		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
 		return
 	}
-	MakeImputPage(w, "", "Выпуск с производства", "Введите серийные номера", "Выпуск")
+	MakeImputPage(w, "/works/releaseproductionacept", "Выпуск с производства", "Введите серийные номера", "Выпуск")
 }
 
 // Страница возврата не собраных устройств на производство
@@ -816,6 +816,91 @@ func (a App) DModelPage(w http.ResponseWriter, r *http.Request, pr httprouter.Pa
 
 func (a App) StorageMatsInWorkPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	a.MakeStorageMatsInWorkPage(w)
+}
+
+func (a App) BuildAceptPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	inSn := strings.Fields(r.FormValue("in"))
+
+	if len(inSn) == 0 {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "не ввседены серийные номера", "", "Главная", "/works/prof")
+		return
+	}
+
+	devices, err := a.Db.TakeDeviceBySn(a.ctx, inSn...)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка поиска устройств", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	if len(devices) == 0 {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Устройства не найдены", "", "Главная", "/works/prof")
+		return
+	}
+
+	if mytypes.ChekInWork(devices...) {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Часть устройств не было передано в работу", "", "Главная", "/works/prof")
+		return
+	}
+
+	dmodeCount := mytypes.CountByDModel(devices...)
+
+	var buildsClean []mytypes.BuildClean
+	var buildsRaw []mytypes.Build
+	for model, count := range dmodeCount {
+		var buildId int
+		err := a.Db.Db.QueryRow(a.ctx, `Select build FROM public."dModels" WHERE "dModelsId" = $1`, model).Scan(&buildId)
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения номера сборки", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		buildClean, err := a.Db.TakeCleanBuildById(a.ctx, buildId)
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения сборки", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		for i := range buildClean.BuildList {
+			buildClean.BuildList[i].Amout = buildClean.BuildList[i].Amout * count
+		}
+		buildRaw, err := a.Db.TakeBuildById(a.ctx, buildId)
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения сборки", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		for i := range buildRaw.BuildList {
+			buildRaw.BuildList[i].Amout = buildRaw.BuildList[i].Amout * count
+		}
+		buildsRaw = append(buildsRaw, buildRaw)
+		buildsClean = append(buildsClean, buildClean)
+	}
+
+	matInWork := make(map[int]int)
+	rows, err := a.Db.Db.Query(a.ctx, `SELECT name, SUM("inWork") FROM public.mats GROUP BY name`)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка поиска материалов", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	for rows.Next() {
+		var name int
+		var inWork int
+		err := rows.Scan(&name, &inWork)
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка поиска материалов", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		matInWork[name] = inWork
+	}
+
+	for _, build := range buildsRaw {
+		for _, element := range build.BuildList {
+			matInWork[element.MatId] = matInWork[element.MatId] - element.Amout
+			if matInWork[element.MatId] < 0 {
+				MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Недостаточно материалов", "", "Главная", "/works/prof")
+				return
+			}
+		}
+	}
+
+	MakeBuildAceptPage(w, buildsClean, inSn...)
 }
 
 //////////////////////
@@ -1421,29 +1506,31 @@ func (a App) ReleaseProduction(w http.ResponseWriter, r *http.Request, pr httpro
 		return
 	}
 
-	in := strings.Fields(r.FormValue("in"))
+	in := strings.Fields(r.FormValue("inSn"))
 
 	if len(in) == 0 {
-		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Не ввседены серийные номера", "", "Главная", "/works/prof")
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Не внесены серийные номера", "", "Главная", "/works/prof")
 		return
 	}
 
-	counter := a.Db.ReleaseProduction(a.ctx, in...)
-	logCount := a.Db.AddDeviceEventBySn(a.ctx, 4, "Преобразование", user.UserId, in...)
-	if logCount != counter {
-		fmt.Println("Ошибка записи логов")
+	var counter int
+	var logCount int
+	for _, sn := range in {
+		build, err := a.Db.ReleaseProduction(a.ctx, sn)
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Не удалось выпустить устройство с производства", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		counter++
+
+		log := a.Db.AddDeviceEventBySn(a.ctx, 4, "Преобразование со сборкой "+strconv.Itoa(build), user.UserId, sn)
+		if log != 1 {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка записи логов", "", "Главная", "/works/prof")
+		}
+		logCount++
 	}
-	if counter == 0 {
-		MakeAlertPage(w, 5, "Предупреждение", "Не передано", "Устройства не перобразованы", "Внесено "+strconv.Itoa(len(in))+" серийных номеров	Преобразовано "+strconv.Itoa(counter)+"  серийных номеров", "Главная", "/works/prof")
-		return
-	} else if len(in)-counter == 0 {
-		MakeAlertPage(w, 1, "Готово", "Преобразованно", "Все устройства преобразованы", "Внесено "+strconv.Itoa(len(in))+" серийных номеров	Преобразовано "+strconv.Itoa(counter)+"  серийных номеров", "Главная", "/works/prof")
-		return
-	} else if len(in)-counter > 0 {
-		MakeAlertPage(w, 2, "Готово", "Частично", "Часть устройств не преобразована", "Внесено "+strconv.Itoa(len(in))+" серийных номеров	Преобразовано "+strconv.Itoa(counter)+"  серийных номеров", "Главная", "/works/prof")
-		return
-	}
-	MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", "", "Главная", "/works/prof")
+
+	MakeAlertPage(w, 1, "Успешно", "Успешно", "Преобразовано "+strconv.Itoa(counter)+" устройств", "", "Главная", "/works/prof")
 }
 
 // Вернуть не собраные устройства на склад
@@ -3018,7 +3105,13 @@ func MakeDModelPage(w http.ResponseWriter, DModel mytypes.DModel, builds []mytyp
 	t.Execute(w, tmp)
 }
 
-func MakeBuildAceptPage(w http.ResponseWriter, builds []mytypes.BuildClean) {
-	t := template.Must(template.ParseFiles("Face/html/build_acept.html"))
-	t.Execute(w, nil)
+func MakeBuildAceptPage(w http.ResponseWriter, builds []mytypes.BuildClean, inSn ...string) {
+	type BPage struct {
+		Builds []mytypes.BuildClean
+		InSn   []string
+	}
+
+	table := BPage{Builds: builds, InSn: inSn}
+	t := template.Must(template.ParseFiles("Face/html/builds_acept.html"))
+	t.Execute(w, table)
 }
