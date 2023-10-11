@@ -197,6 +197,11 @@ type BuildClean struct {
 }
 
 type TModel struct {
+	Id   int
+	Name string
+}
+
+type DModel struct {
 	Id    int
 	Name  string
 	Build int

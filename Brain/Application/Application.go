@@ -81,6 +81,8 @@ func (a App) Routs(r *httprouter.Router) {
 	r.GET("/works/buildlist", a.authtorized(a.BuildsPage))
 	r.GET("/works/tmodels", a.authtorized(a.TModelsPage))
 	r.GET("/works/tmodel", a.authtorized(a.TModelPage))
+	r.GET("/works/dmodels", a.authtorized(a.DModelsPage))
+	r.GET("/works/dmodel", a.authtorized(a.DModelPage))
 	r.GET("/works/matsinwork", a.authtorized(a.StorageMatsInWorkPage))
 
 	r.POST("/works/tmc", a.authtorized(a.TMCPage))

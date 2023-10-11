@@ -747,7 +747,7 @@ func (a App) BuildsPage(w http.ResponseWriter, r *http.Request, pr httprouter.Pa
 		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения сборок", err.Error(), "Главная", "/works/prof")
 		return
 	}
-	a.MakeBuildsPage(w, Builds)
+	MakeBuildsPage(w, Builds)
 }
 
 func (a App) TModelsPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
@@ -758,6 +758,16 @@ func (a App) TModelsPage(w http.ResponseWriter, r *http.Request, pr httprouter.P
 		return
 	}
 	MakeTModelsPage(w, models)
+}
+
+func (a App) DModelsPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	models, err := a.Db.TakeDModelsById(a.ctx)
+
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения моделей", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	MakeDModelsPage(w, models)
 }
 
 func (a App) TModelPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
@@ -780,6 +790,28 @@ func (a App) TModelPage(w http.ResponseWriter, r *http.Request, pr httprouter.Pa
 	}
 
 	MakeTModelPage(w, model[0], builds)
+}
+
+func (a App) DModelPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	id, err := strconv.Atoi(r.FormValue("Id"))
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка преобразования ID", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	model, err := a.Db.TakeDModelsById(a.ctx, id)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения модели", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	builds, err := a.Db.TakeCleanBuildByDModel(a.ctx, id)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения сборок", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	MakeDModelPage(w, model[0], builds)
 }
 
 func (a App) StorageMatsInWorkPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
@@ -1694,7 +1726,7 @@ func (a App) MakeBuild(w http.ResponseWriter, r *http.Request, pr httprouter.Par
 
 // изменить стандартную сборку для модели
 func (a App) ChangeDefBuild(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
-	tModel, err := strconv.Atoi(r.FormValue("TModel"))
+	dModel, err := strconv.Atoi(r.FormValue("DModel"))
 	if err != nil {
 		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
 		return
@@ -1705,12 +1737,12 @@ func (a App) ChangeDefBuild(w http.ResponseWriter, r *http.Request, pr httproute
 		return
 	}
 
-	err = a.Db.ChangeDefBuild(a.ctx, tModel, newBuild)
+	err = a.Db.ChangeDefBuild(a.ctx, dModel, newBuild)
 	if err != nil {
 		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
 		return
 	}
-	http.Redirect(w, r, "/works/tmodel?Id="+strconv.Itoa(tModel), http.StatusSeeOther)
+	http.Redirect(w, r, "/works/dmodel?Id="+strconv.Itoa(dModel), http.StatusSeeOther)
 }
 
 func (a App) MatToWork(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
@@ -2644,6 +2676,8 @@ func (a App) MakeUserPage(w http.ResponseWriter, user mytypes.User) {
 		block.Btns = append(block.Btns, btn)
 		btn = Buton{`Модели`, "/works/tmodels"}
 		block.Btns = append(block.Btns, btn)
+		btn = Buton{`D Модели`, "/works/dmodels"}
+		block.Btns = append(block.Btns, btn)
 		btn = Buton{`Материалы в работе`, "/works/matsinwork"}
 		block.Btns = append(block.Btns, btn)
 		Blocks = append(Blocks, block)
@@ -2918,7 +2952,7 @@ func (a App) MakeCreateBuildPage(w http.ResponseWriter) {
 	t.Execute(w, tmp)
 }
 
-func (a App) MakeBuildsPage(w http.ResponseWriter, builds []mytypes.BuildClean) {
+func MakeBuildsPage(w http.ResponseWriter, builds []mytypes.BuildClean) {
 	type BPage struct {
 		Builds []mytypes.BuildClean
 	}
@@ -2929,10 +2963,10 @@ func (a App) MakeBuildsPage(w http.ResponseWriter, builds []mytypes.BuildClean) 
 }
 
 func MakeTModelsPage(w http.ResponseWriter, TModels []mytypes.TModel) {
-	type TModelPage struct {
+	type TModelsPage struct {
 		Tab []mytypes.TModel
 	}
-	table := TModelPage{Tab: TModels}
+	table := TModelsPage{Tab: TModels}
 
 	t := template.Must(template.ParseFiles("Face/html/tmodels.html"))
 	t.Execute(w, table)
@@ -2963,5 +2997,28 @@ func (a App) MakeStorageMatsInWorkPage(w http.ResponseWriter) {
 
 	t := template.Must(template.ParseFiles("Face/html/storage matsinwork.html"))
 	t.Execute(w, table)
+}
 
+func MakeDModelsPage(w http.ResponseWriter, DModels []mytypes.DModel) {
+	type DModelsPage struct {
+		Tab []mytypes.DModel
+	}
+	table := DModelsPage{Tab: DModels}
+	t := template.Must(template.ParseFiles("Face/html/dmodels.html"))
+	t.Execute(w, table)
+}
+
+func MakeDModelPage(w http.ResponseWriter, DModel mytypes.DModel, builds []mytypes.BuildClean) {
+	type Page struct {
+		Model  mytypes.DModel
+		Builds []mytypes.BuildClean
+	}
+	tmp := Page{Model: DModel, Builds: builds}
+	t := template.Must(template.ParseFiles("Face/html/dmodel.html"))
+	t.Execute(w, tmp)
+}
+
+func MakeBuildAceptPage(w http.ResponseWriter, builds []mytypes.BuildClean) {
+	t := template.Must(template.ParseFiles("Face/html/build_acept.html"))
+	t.Execute(w, nil)
 }
