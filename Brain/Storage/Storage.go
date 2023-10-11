@@ -481,7 +481,7 @@ func (base Base) TakeCleanDeviceEvent(ctx context.Context, deviceId int) ([]myty
 	FROM public."deviceLog" WHERE "deviceId" = $1) tmp
      LEFT JOIN "eventTypesNames" ON "eventTypesNames"."NamesId" = tmp."eventType"
      LEFT JOIN users ON users.userid = tmp."user"
-	 ORDER BY "logId"`
+	 ORDER BY "eventTime" DESC;`
 
 	rows, err := base.Db.Query(ctx, qq, deviceId)
 	if err != nil {
