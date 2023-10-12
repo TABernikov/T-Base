@@ -1,4 +1,4 @@
-module github.com/TABernikov/T-Base
+module T-Base
 
 go 1.20
 
