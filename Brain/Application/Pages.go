@@ -2528,7 +2528,7 @@ func MakeDobleImputPage(w http.ResponseWriter, postPath, title, imputText1, impu
 
 	tmp := imputPage{title, imputText1, imputText2, type2, btnText, postPath}
 
-	t := template.Must(template.ParseFiles("Face/html/dobleinsert.html"))
+	t := template.Must(template.ParseFiles("Face/ddIn.html"))
 	t.Execute(w, tmp)
 }
 
