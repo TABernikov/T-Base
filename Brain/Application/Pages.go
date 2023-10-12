@@ -2467,7 +2467,7 @@ func MakeImputTypePage(w http.ResponseWriter, postPath, title, typein, imputText
 
 	tmp := imputPage{title, imputText, btnText, postPath, typein}
 
-	t := template.Must(template.ParseFiles("Face/html/insert file.html"))
+	t := template.Must(template.ParseFiles("Face/html/insert_file.html"))
 	t.Execute(w, tmp)
 }
 
@@ -2876,7 +2876,7 @@ func (a App) MakeStorageMatsPage(w http.ResponseWriter) {
 	}
 	table := storagePage{"Материалы", Mats}
 
-	t := template.Must(template.ParseFiles("Face/html/storage mats.html"))
+	t := template.Must(template.ParseFiles("Face/html/storage_mats.html"))
 	t.Execute(w, table)
 }
 
@@ -2892,7 +2892,7 @@ func (a App) MakeStorageMatsByNamePage(w http.ResponseWriter) {
 	}
 	table := storagePage{"Материалы", Mats}
 
-	t := template.Must(template.ParseFiles("Face/html/storage matsbyname.html"))
+	t := template.Must(template.ParseFiles("Face/html/storage_matsbyname.html"))
 	t.Execute(w, table)
 }
 
@@ -2908,7 +2908,7 @@ func (a App) MakeStorageMatsBy1CPage(w http.ResponseWriter) {
 	}
 	table := storagePage{"Материалы", Mats}
 
-	t := template.Must(template.ParseFiles("Face/html/storage matsby1c.html"))
+	t := template.Must(template.ParseFiles("Face/html/storage_matsby1c.html"))
 	t.Execute(w, table)
 }
 
@@ -3082,7 +3082,7 @@ func (a App) MakeStorageMatsInWorkPage(w http.ResponseWriter) {
 	}
 	table := storagePage{"Материалы", Mats}
 
-	t := template.Must(template.ParseFiles("Face/html/storage matsinwork.html"))
+	t := template.Must(template.ParseFiles("Face/html/storage_matsinwork.html"))
 	t.Execute(w, table)
 }
 

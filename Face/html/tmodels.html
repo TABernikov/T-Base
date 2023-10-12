@@ -66,9 +66,6 @@
                   <th scope="col">
                     Модель
                   </th>
-                  <th scope="col">
-                    ID сборки
-                  </th>
                 </tr>
             </thead>
             <tbody>
@@ -79,9 +76,6 @@
                     </td>
                     <td>
                         {{.Name}}
-                    </td>
-                    <td>
-                       {{if eq .Build -1}} {{print "Не задан"}} {{else}} {{.Build}} {{end}} 
                     </td>
                 </tr>
                 {{end}}
