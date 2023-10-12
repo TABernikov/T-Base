@@ -695,10 +695,12 @@ func (a App) ChangePassPage(w http.ResponseWriter, r *http.Request, pr httproute
 	MakeChangePassPage(w, "", "", "", "")
 }
 
+// Страница добавления комментария по серийным номерам
 func (a App) AddCommentToSnsBySnPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	MakeDobleImputPage(w, "/works/addcommentbysn", "Дополнить комментарии", "Серийные номера", "Коментарий", "text", "Добавить коментарий")
 }
 
+// Страница приемка файлом
 func (a App) TakeDeviceByExcelPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	if user.Acces != 2 {
 		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
@@ -707,6 +709,7 @@ func (a App) TakeDeviceByExcelPage(w http.ResponseWriter, r *http.Request, pr ht
 	MakeImputTypePage(w, "", "Приемка файлом", "file", "Выберете файл", "Отправить")
 }
 
+// Страница добавления материала
 func (a App) CreateMatPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	if user.Acces != 2 {
 		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
@@ -715,6 +718,7 @@ func (a App) CreateMatPage(w http.ResponseWriter, r *http.Request, pr httprouter
 	MakeCreateMatPage(w)
 }
 
+// Страница приемки материала
 func (a App) TakeMatPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	if user.Acces != 2 {
 		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
@@ -724,22 +728,31 @@ func (a App) TakeMatPage(w http.ResponseWriter, r *http.Request, pr httprouter.P
 	a.MakeTakeMatPage(w)
 }
 
+// Страница склада материалов
 func (a App) StorageMatsPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	a.MakeStorageMatsPage(w)
 }
 
+// Страница склада материалов по имени
 func (a App) StorageMatsByNamePage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	a.MakeStorageMatsByNamePage(w)
 }
 
+// Страница склада материалов по 1С
 func (a App) StorageMatsBy1CPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	a.MakeStorageMatsBy1CPage(w)
 }
 
+// Страница создания сборки
 func (a App) CreateBuildPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 1 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
 	a.MakeCreateBuildPage(w)
 }
 
+// Страница сборок
 func (a App) BuildsPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 
 	Builds, err := a.Db.TakeCleanBuildByTModel(a.ctx)
@@ -750,6 +763,7 @@ func (a App) BuildsPage(w http.ResponseWriter, r *http.Request, pr httprouter.Pa
 	MakeBuildsPage(w, Builds)
 }
 
+// Страница моделей Т-КОМ
 func (a App) TModelsPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	models, err := a.Db.TakeTModelsById(a.ctx)
 
@@ -760,6 +774,7 @@ func (a App) TModelsPage(w http.ResponseWriter, r *http.Request, pr httprouter.P
 	MakeTModelsPage(w, models)
 }
 
+// Страница моделей поставщиков
 func (a App) DModelsPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	models, err := a.Db.TakeDModelsById(a.ctx)
 
@@ -770,6 +785,7 @@ func (a App) DModelsPage(w http.ResponseWriter, r *http.Request, pr httprouter.P
 	MakeDModelsPage(w, models)
 }
 
+// Страница модели Т-КОМ
 func (a App) TModelPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	id, err := strconv.Atoi(r.FormValue("Id"))
 	if err != nil {
@@ -792,6 +808,7 @@ func (a App) TModelPage(w http.ResponseWriter, r *http.Request, pr httprouter.Pa
 	MakeTModelPage(w, model[0], builds)
 }
 
+// Страница модели поставщика
 func (a App) DModelPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	id, err := strconv.Atoi(r.FormValue("Id"))
 	if err != nil {
@@ -814,11 +831,18 @@ func (a App) DModelPage(w http.ResponseWriter, r *http.Request, pr httprouter.Pa
 	MakeDModelPage(w, model[0], builds)
 }
 
+// Страница списка материалов в работе
 func (a App) StorageMatsInWorkPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	a.MakeStorageMatsInWorkPage(w)
 }
 
+// Страница подтверждения сборок
 func (a App) BuildAceptPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 1 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
+
 	inSn := strings.Fields(r.FormValue("in"))
 
 	if len(inSn) == 0 {
@@ -1756,6 +1780,11 @@ func (a App) TakeMat(w http.ResponseWriter, r *http.Request, pr httprouter.Param
 
 // Создание сборки
 func (a App) MakeBuild(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 1 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
+
 	var build mytypes.Build
 	dModelstr := r.FormValue("DModel")
 	tModelstr := r.FormValue("TModel")
@@ -1813,6 +1842,11 @@ func (a App) MakeBuild(w http.ResponseWriter, r *http.Request, pr httprouter.Par
 
 // изменить стандартную сборку для модели
 func (a App) ChangeDefBuild(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 1 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
+
 	dModel, err := strconv.Atoi(r.FormValue("DModel"))
 	if err != nil {
 		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
@@ -1833,6 +1867,11 @@ func (a App) ChangeDefBuild(w http.ResponseWriter, r *http.Request, pr httproute
 }
 
 func (a App) MatToWork(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 2 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
+
 	matId, err := strconv.Atoi(r.FormValue("toworkid"))
 	if err != nil {
 		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
@@ -1853,6 +1892,11 @@ func (a App) MatToWork(w http.ResponseWriter, r *http.Request, pr httprouter.Par
 }
 
 func (a App) MatFromWork(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 1 {
+		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
+
 	matId, err := strconv.Atoi(r.FormValue("toworkid"))
 	if err != nil {
 		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
@@ -2668,6 +2712,21 @@ func (a App) MakeUserPage(w http.ResponseWriter, user mytypes.User) {
 		block.Btns = append(block.Btns, btn)
 		btn = Buton{`<i class="icon-search"></i>Поиск по Sn`, "/works/snsearch"}
 		block.Btns = append(block.Btns, btn)
+		btn = Buton{`Склад материалов`, "/works/storage/mats"}
+		block.Btns = append(block.Btns, btn)
+
+		Blocks = append(Blocks, block)
+
+		block = Block{}
+		block.Title = "Сборки"
+		btn = Buton{`Сборки`, "/works/buildlist"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{`Добавить сборку`, "/works/makebuild"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{`Модели T-KOM`, "/works/tmodels"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{`Модели поставщиков`, "/works/dmodels"}
+		block.Btns = append(block.Btns, btn)
 		Blocks = append(Blocks, block)
 
 		block = Block{}
@@ -2698,6 +2757,8 @@ func (a App) MakeUserPage(w http.ResponseWriter, user mytypes.User) {
 		block.Btns = append(block.Btns, btn)
 		btn = Buton{`<i class="icon-home-1"></i>Модели в работе`, "/works/storage/models?Search=1&Condition=3"}
 		block.Btns = append(block.Btns, btn)
+		btn = Buton{`Материалы в работе`, "/works/matsinwork"}
+		block.Btns = append(block.Btns, btn)
 		Blocks = append(Blocks, block)
 
 	case 2:
@@ -2713,6 +2774,8 @@ func (a App) MakeUserPage(w http.ResponseWriter, user mytypes.User) {
 		block.Btns = append(block.Btns, btn)
 		btn = Buton{`<i class="icon-pencil"></i>Коментарий по Sn`, "/works/addcommentbysn"}
 		block.Btns = append(block.Btns, btn)
+		btn = Buton{`Склад материалов`, "/works/storage/mats"}
+		block.Btns = append(block.Btns, btn)
 		Blocks = append(Blocks, block)
 
 		block = Block{}
@@ -2722,6 +2785,8 @@ func (a App) MakeUserPage(w http.ResponseWriter, user mytypes.User) {
 		btn = Buton{`<i class="icon-file-excel"></i>Приемка файлом`, "/works/takedevicebyxlsx"}
 		block.Btns = append(block.Btns, btn)
 		btn = Buton{`<i class="icon-forward"></i>Приемка демо`, "/works/takedemo"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{`Принять материалы`, "/works/takemat"}
 		block.Btns = append(block.Btns, btn)
 		Blocks = append(Blocks, block)
 
@@ -2750,22 +2815,18 @@ func (a App) MakeUserPage(w http.ResponseWriter, user mytypes.User) {
 		Blocks = append(Blocks, block)
 
 		block = Block{}
-		block.Title = "Материалы"
-		btn = Buton{`Склад материалов`, "/works/storage/mats"}
-		block.Btns = append(block.Btns, btn)
+		block.Title = "Сборки"
 		btn = Buton{`Сборки`, "/works/buildlist"}
 		block.Btns = append(block.Btns, btn)
-		btn = Buton{`Добавить сборку`, "/works/makebuild"}
+		btn = Buton{`Модели T-KOM`, "/works/tmodels"}
 		block.Btns = append(block.Btns, btn)
+		btn = Buton{`Модели поставщиков`, "/works/dmodels"}
+		block.Btns = append(block.Btns, btn)
+		Blocks = append(Blocks, block)
+
+		block = Block{}
+		block.Title = "Управление материалами"
 		btn = Buton{`Добавить материал`, "/works/createmat"}
-		block.Btns = append(block.Btns, btn)
-		btn = Buton{`Принять материалы`, "/works/takemat"}
-		block.Btns = append(block.Btns, btn)
-		btn = Buton{`Модели`, "/works/tmodels"}
-		block.Btns = append(block.Btns, btn)
-		btn = Buton{`D Модели`, "/works/dmodels"}
-		block.Btns = append(block.Btns, btn)
-		btn = Buton{`Материалы в работе`, "/works/matsinwork"}
 		block.Btns = append(block.Btns, btn)
 		Blocks = append(Blocks, block)
 
