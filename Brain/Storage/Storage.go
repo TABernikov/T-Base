@@ -1057,36 +1057,39 @@ func (base Base) ChangeMAC(ctx context.Context, sn, mac string) (int, error) {
 	return int(res.RowsAffected()), err
 }
 
-func (base Base) ReleaseProduction(ctx context.Context, sn string) (int, error) {
+func (base Base) ReleaseProduction(ctx context.Context, sn string) (int, map[int]int, error) {
 	devices, err := base.TakeDeviceBySn(ctx, sn)
 	if err != nil {
-		return -1, err
+		return -1, nil, err
 	}
 	device := devices[0]
 	if device.Condition == 1 {
-		return -1, fmt.Errorf("девайс уже собран")
+		return -1, nil, fmt.Errorf("девайс уже собран")
 	}
 
 	var buildId int
 	err = base.Db.QueryRow(ctx, `Select build FROM public."dModels" WHERE "dModelsId" = $1`, device.DModel).Scan(&buildId)
 	if err != nil {
-		return -1, err
+		return -1, nil, err
 	}
 	build, err := base.TakeBuildById(ctx, buildId)
 	if err != nil {
-		return -1, err
+		return -1, nil, err
 	}
 
+	matList := make(map[int]int)
 	for _, buildElement := range build.BuildList {
 		var matId int
 		err = base.Db.QueryRow(ctx, `SELECT "matId" FROM public.mats WHERE name = $1 AND "inWork" > 0`, buildElement.MatId).Scan(&matId)
 		if err != nil {
-			return -1, err
+			return -1, nil, err
 		}
-		_, err = base.Db.Exec(ctx, `UPDATE public.mats SET amout= amout - 1, "inWork"= "inWork" - 1 WHERE "matId" = $1`, matId)
+		_, err = base.Db.Exec(ctx, `UPDATE public.mats SET amout= amout - $2, "inWork"= "inWork" - $2 WHERE "matId" = $1`, matId, buildElement.Amout)
 		if err != nil {
-			return -1, err
+			return -1, nil, err
 		}
+		matList[matId] += buildElement.Amout
+
 	}
 
 	var order int
@@ -1099,15 +1102,15 @@ func (base Base) ReleaseProduction(ctx context.Context, sn string) (int, error) 
 
 	err = base.Db.QueryRow(ctx, `SELECT "tModelsName" FROM public."tModels" WHERE "tModelsId" = $1`, build.TModel).Scan(&newName)
 	if err != nil {
-		return -1, err
+		return -1, nil, err
 	}
 
 	_, err = base.Db.Exec(ctx, `UPDATE public.sns SET condition = 1, "condDate" = $1, "order" = $2, name = $3 Where sn = $4`, time.Now(), order, newName, sn)
 	if err != nil {
-		return -1, err
+		return -1, nil, err
 	}
 
-	return build.Id, nil
+	return build.Id, matList, nil
 }
 
 func (base Base) ReturnToStorage(ctx context.Context, sn ...string) int {
@@ -1530,6 +1533,10 @@ func (base Base) RemuveMatFromWork(ctx context.Context, matId int, toWork int) e
 		return err
 	}
 	return nil
+}
+
+func (base Base) AddMatLog(ctx context.Context, matId int, amout int, eventType int, eventText string, userId int) {
+	qq := ``
 }
 
 ////////////

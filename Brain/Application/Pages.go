@@ -1539,8 +1539,9 @@ func (a App) ReleaseProduction(w http.ResponseWriter, r *http.Request, pr httpro
 
 	var counter int
 	var logCount int
+	matList := make(map[int]int)
 	for _, sn := range in {
-		build, err := a.Db.ReleaseProduction(a.ctx, sn)
+		build, matToProdus, err := a.Db.ReleaseProduction(a.ctx, sn)
 		if err != nil {
 			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Не удалось выпустить устройство с производства", err.Error(), "Главная", "/works/prof")
 			return
@@ -1552,6 +1553,10 @@ func (a App) ReleaseProduction(w http.ResponseWriter, r *http.Request, pr httpro
 			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка записи логов", "", "Главная", "/works/prof")
 		}
 		logCount++
+
+		for i, a := range matToProdus {
+			matList[i] += a
+		}
 	}
 
 	MakeAlertPage(w, 1, "Успешно", "Успешно", "Преобразовано "+strconv.Itoa(counter)+" устройств", "", "Главная", "/works/prof")
@@ -1866,6 +1871,7 @@ func (a App) ChangeDefBuild(w http.ResponseWriter, r *http.Request, pr httproute
 	http.Redirect(w, r, "/works/dmodel?Id="+strconv.Itoa(dModel), http.StatusSeeOther)
 }
 
+// передать материал в работу
 func (a App) MatToWork(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	if user.Acces != 2 {
 		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
@@ -1891,6 +1897,7 @@ func (a App) MatToWork(w http.ResponseWriter, r *http.Request, pr httprouter.Par
 	http.Redirect(w, r, "/works/storage/mats", http.StatusSeeOther)
 }
 
+// передать материал из работы
 func (a App) MatFromWork(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	if user.Acces != 1 {
 		MakeAlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
