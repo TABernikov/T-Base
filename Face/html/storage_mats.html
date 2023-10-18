@@ -143,6 +143,7 @@
                       <button type="submit" class="btn btn-primary" onclick="">Передать</button>
                     </div>
                   </form>
+                  <a onclick="openEvents()" class="btn btn-primary">События</a>
                 </div>
               </div>
             </div>
@@ -158,6 +159,10 @@
           document.getElementById('toworkid').value = value2;
           var myModal = new bootstrap.Modal(document.getElementById('myModal'));
           myModal.show();
+        }
+
+        function openEvents() {
+          window.location.href = "/works/matevents?Id=" + document.getElementById('toworkid').value + "&Name=" + document.getElementById('toworkname').textContent.slice(9);
         }
       </script>
 

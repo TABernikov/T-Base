@@ -172,6 +172,26 @@ type Mat struct {
 	Places []int
 }
 
+type MatEvent struct {
+	LogId     int
+	MatId     int
+	EventType int
+	EventText string
+	EventTime time.Time
+	User      int
+	Amout     int
+}
+
+type MatEventClean struct {
+	LogId     int
+	MatId     int
+	EventType string
+	EventText string
+	EventTime string
+	User      string
+	Amout     int
+}
+
 type BuildListElement struct {
 	MatId int
 	Amout int

@@ -1062,6 +1062,9 @@ func (base Base) ReleaseProduction(ctx context.Context, sn string) (int, map[int
 	if err != nil {
 		return -1, nil, err
 	}
+	if len(devices) == 0 {
+		return -1, nil, fmt.Errorf("не девайс")
+	}
 	device := devices[0]
 	if device.Condition == 1 {
 		return -1, nil, fmt.Errorf("девайс уже собран")
@@ -1535,8 +1538,67 @@ func (base Base) RemuveMatFromWork(ctx context.Context, matId int, toWork int) e
 	return nil
 }
 
-func (base Base) AddMatLog(ctx context.Context, matId int, amout int, eventType int, eventText string, userId int) {
-	qq := ``
+func (base Base) AddMatLog(ctx context.Context, matId int, amout int, eventType int, eventText string, userId int) error {
+	qq := `INSERT INTO public."matLog" ("matId", "eventType", "eventText", "eventTime", "user", amout) VALUES ($1, $2, $3, $4, $5, $6);`
+	_, err := base.Db.Exec(ctx, qq, matId, eventType, eventText, time.Now(), userId, amout)
+	return err
+}
+
+func (base Base) TakeMatLog(ctx context.Context, matId int) ([]mytypes.MatEvent, error) {
+	var matEvent mytypes.MatEvent
+	var matEvents []mytypes.MatEvent
+	qq := `SELECT id, "matId", "eventType", "eventText", "eventTime", user, amout FROM public."matLog" WHERE "matId" = $1 ORDER BY "eventTime";`
+	rows, err := base.Db.Query(ctx, qq, matId)
+	if err != nil {
+		return matEvents, err
+	}
+	for rows.Next() {
+		err := rows.Scan(&matEvent.LogId, &matEvent.MatId, &matEvent.EventType, &matEvent.EventText, &matEvent.EventTime, &matEvent.User, &matEvent.Amout)
+		if err != nil {
+			return matEvents, err
+		}
+		matEvents = append(matEvents, matEvent)
+	}
+	return matEvents, nil
+}
+
+func (base Base) TakeCleanMatLog(ctx context.Context, matId ...int) ([]mytypes.MatEventClean, error) {
+	var matEvent mytypes.MatEventClean
+	var matEvents []mytypes.MatEventClean
+	if len(matId) == 0 {
+		qq := `SELECT id, "matId", "eventType", "eventText", "eventTime", "user", amout FROM public."CleanMatLog" ORDER BY "eventTime";`
+		rows, err := base.Db.Query(ctx, qq)
+		if err != nil {
+			return matEvents, err
+		}
+		for rows.Next() {
+			var evtime time.Time
+			err := rows.Scan(&matEvent.LogId, &matEvent.MatId, &matEvent.EventType, &matEvent.EventText, &evtime, &matEvent.User, &matEvent.Amout)
+			if err != nil {
+				return matEvents, err
+			}
+			matEvent.EventTime = evtime.Format("02.01.2006 15:04:05")
+			matEvents = append(matEvents, matEvent)
+		}
+	} else {
+		qq := `SELECT id, "matId", "eventType", "eventText", "eventTime", "user", amout FROM public."CleanMatLog" WHERE "matId" = $1 ORDER BY "eventTime";`
+		for _, id := range matId {
+			rows, err := base.Db.Query(ctx, qq, id)
+			if err != nil {
+				return matEvents, err
+			}
+			for rows.Next() {
+				var evtime time.Time
+				err := rows.Scan(&matEvent.LogId, &matEvent.MatId, &matEvent.EventType, &matEvent.EventText, &evtime, &matEvent.User, &matEvent.Amout)
+				if err != nil {
+					return matEvents, err
+				}
+				matEvent.EventTime = evtime.Format("02.01.2006 15:04:05")
+				matEvents = append(matEvents, matEvent)
+			}
+		}
+	}
+	return matEvents, nil
 }
 
 ////////////

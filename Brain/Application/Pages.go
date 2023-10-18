@@ -927,6 +927,32 @@ func (a App) BuildAceptPage(w http.ResponseWriter, r *http.Request, pr httproute
 	MakeBuildAceptPage(w, buildsClean, inSn...)
 }
 
+func (a App) MatEventPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if r.FormValue("Id") != "" {
+		id, err := strconv.Atoi(r.FormValue("Id"))
+		name := r.FormValue("Name")
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка преобразования ID", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		events, err := a.Db.TakeCleanMatLog(a.ctx, id)
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения событий", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		MakeMatEventPage(w, events, name)
+	} else {
+		name := r.FormValue("Name")
+		events, err := a.Db.TakeCleanMatLog(a.ctx)
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения событий", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		MakeMatEventPage(w, events, name)
+	}
+
+}
+
 //////////////////////
 
 // Обработчики POST //
@@ -1543,12 +1569,15 @@ func (a App) ReleaseProduction(w http.ResponseWriter, r *http.Request, pr httpro
 	for _, sn := range in {
 		build, matToProdus, err := a.Db.ReleaseProduction(a.ctx, sn)
 		if err != nil {
+			if err.Error() == "не девайс" {
+				continue
+			}
 			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Не удалось выпустить устройство с производства", err.Error(), "Главная", "/works/prof")
 			return
 		}
 		counter++
 
-		log := a.Db.AddDeviceEventBySn(a.ctx, 4, "Преобразование со сборкой "+strconv.Itoa(build), user.UserId, sn)
+		log := a.Db.AddDeviceEventBySn(a.ctx, 4, "Списание для сборки "+strconv.Itoa(build), user.UserId, sn)
 		if log != 1 {
 			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка записи логов", "", "Главная", "/works/prof")
 		}
@@ -1556,6 +1585,12 @@ func (a App) ReleaseProduction(w http.ResponseWriter, r *http.Request, pr httpro
 
 		for i, a := range matToProdus {
 			matList[i] += a
+		}
+	}
+	for matId, amout := range matList {
+		err := a.Db.AddMatLog(a.ctx, matId, amout, 4, "Преобразование со сборкой", user.UserId)
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка записи логов материала", "", "Главная", "/works/prof")
 		}
 	}
 
@@ -3181,5 +3216,16 @@ func MakeBuildAceptPage(w http.ResponseWriter, builds []mytypes.BuildClean, inSn
 
 	table := BPage{Builds: builds, InSn: inSn}
 	t := template.Must(template.ParseFiles("Face/html/builds_acept.html"))
+	t.Execute(w, table)
+}
+
+func MakeMatEventPage(w http.ResponseWriter, events []mytypes.MatEventClean, lable string) {
+	type storagePage struct {
+		Lable string
+		Tab   []mytypes.MatEventClean
+	}
+	table := storagePage{lable, events}
+
+	t := template.Must(template.ParseFiles("Face/html/mateventpage.html"))
 	t.Execute(w, table)
 }
