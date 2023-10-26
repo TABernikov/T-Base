@@ -8,8 +8,8 @@
     <link rel="icon" href="Face\img\t-kom-ico.svg">
 
     <link href="Face/html/css/bootstrap.min.css" rel="stylesheet">
-    <link href="Face/html/css/fontello.css" rel="stylesheet">
     <link href="Face/html/css/style.css" rel="stylesheet">
+    <link href="Face/html/css/bootstrap-icons.css" rel="stylesheet">
 
 </head>
 <body>
@@ -54,7 +54,7 @@
                         </form>
                         {{end}}
                         <form  class="p-1" id="changepromdate" name="changepromdate" action="/works/ordersexcell" target="_parent" method="post">   
-                                <button class="btn btn-outline-success btn-sm" type="submit"  ><i class="icon-file-excel" ></i></button>
+                                <button class="btn btn-outline-success btn-sm" type="submit"  ><i class="bi-file-earmark-excel" ></i></button>
                                 <input type="hidden" name="in" value="{{.Order.OrderId}}"/>
                                 <input type="hidden" name="Search" value="Raw"/>
                         </form>

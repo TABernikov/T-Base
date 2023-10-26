@@ -8,8 +8,8 @@
     <link rel="icon" href="Face\img\t-kom-ico.svg">
 
     <link href="Face/html/css/bootstrap.min.css" rel="stylesheet">
-    <link href="Face/html/css/fontello.css" rel="stylesheet">
     <link href="Face/html/css/style.css" rel="stylesheet">
+    <link href="Face/html/css/bootstrap-icons.css" rel="stylesheet">
 
 </head>
 <body>
@@ -49,7 +49,7 @@
               </form>
               &nbsp;
              
-              <a class="btn btn-outline-primary " href="/works/tmcadvancesearch" style="width: auto;">Сложный поиск в ТМЦ</a>
+              <a class="btn btn-outline-primary " href="/works/tmcadvancesearch" style="width: auto;">Сложный поиск в ТМЦ <i class="bi bi-search"></i></a>
                 
               
             </ul>
@@ -82,8 +82,9 @@
                 <table class="table table-hover table-striped"style = "table-layout: fixed;" >
                   <col span="18" style="width: 150px;">
                     <thead>
-                     {{.Lable}} <button class="d.inline btn btn-outline-primary btn-sm"name="copybtn" onclick="myFunction()"><i class="icon-docs" ></i></button>
-                     &nbsp;<a class="d.inline btn btn-outline-success btn-sm"name="copybtn" href="/works/tmcexcell{{.ExcellLink}}"><i class="icon-file-excel" ></i></a>
+                     {{.Lable}} <button class="d.inline btn btn-outline-primary btn-sm"name="copybtn" onclick="myFunction()"><i class="bi-copy" ></i></button>
+                     &nbsp;<a class="d.inline btn btn-outline-success btn-sm"name="copybtn" href="/works/tmcexcell{{.ExcellLink}}"><i class="bi-file-earmark-excel" ></i></a>
+                     &nbsp;<a class="d.inline btn btn-outline-primary btn-sm " href="/works/tmcadvancesearch" style="width: auto;"><i class="bi bi-filter-circle"></i> Фильтр/Поиск <i class="bi bi-search"></i></a>
                         <tr>
                             <th scope="col" id = "12344">Id</th>
                             

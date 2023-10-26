@@ -730,7 +730,7 @@ func (a App) TakeMatPage(w http.ResponseWriter, r *http.Request, pr httprouter.P
 
 // Страница склада материалов
 func (a App) StorageMatsPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
-	a.MakeStorageMatsPage(w)
+	a.MakeStorageMatsPage(w, user)
 }
 
 // Страница склада материалов по имени
@@ -950,7 +950,10 @@ func (a App) MatEventPage(w http.ResponseWriter, r *http.Request, pr httprouter.
 		}
 		MakeMatEventPage(w, events, name)
 	}
+}
 
+func (a App) CalendearPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	MakeCalendarPage(w)
 }
 
 //////////////////////
@@ -2746,24 +2749,24 @@ func (a App) MakeUserPage(w http.ResponseWriter, user mytypes.User) {
 	case 1:
 		block = Block{}
 		block.Title = "Склад"
-		btn = Buton{`<i class="icon-table"></i>ТМЦ`, "/works/tmc"}
+		btn = Buton{`<i class="bi bi-table"></i> ТМЦ`, "/works/tmc"}
 		block.Btns = append(block.Btns, btn)
-		btn = Buton{`<i class="icon-search"></i>Поиск в ТМЦ`, "/works/tmcadvancesearch"}
+		btn = Buton{`<i class="bi bi-search"></i> Поиск в ТМЦ`, "/works/tmcadvancesearch"}
 		block.Btns = append(block.Btns, btn)
-		btn = Buton{`<i class="icon-home-1"></i>Склад`, "/works/storage/orders"}
+		btn = Buton{`<i class="bi bi-house-fill"></i> Склад`, "/works/storage/orders"}
 		block.Btns = append(block.Btns, btn)
-		btn = Buton{`<i class="icon-search"></i>Поиск по Sn`, "/works/snsearch"}
+		btn = Buton{`<i class="bi bi-search"></i> Поиск по Sn`, "/works/snsearch"}
 		block.Btns = append(block.Btns, btn)
-		btn = Buton{`Склад материалов`, "/works/storage/mats"}
+		btn = Buton{`<i class="bi bi-house-fill-cutout"></i> Склад материалов`, "/works/storage/mats"}
 		block.Btns = append(block.Btns, btn)
 
 		Blocks = append(Blocks, block)
 
 		block = Block{}
 		block.Title = "Сборки"
-		btn = Buton{`Сборки`, "/works/buildlist"}
+		btn = Buton{`<i class="bi bi-tools"></i> Сборки`, "/works/buildlist"}
 		block.Btns = append(block.Btns, btn)
-		btn = Buton{`Добавить сборку`, "/works/makebuild"}
+		btn = Buton{`<i class="bi bi-plus-lg"></i> Добавить сборку`, "/works/makebuild"}
 		block.Btns = append(block.Btns, btn)
 		btn = Buton{`Модели T-KOM`, "/works/tmodels"}
 		block.Btns = append(block.Btns, btn)
@@ -2773,31 +2776,31 @@ func (a App) MakeUserPage(w http.ResponseWriter, user mytypes.User) {
 
 		block = Block{}
 		block.Title = "Маки"
-		btn = Buton{`<i class="icon-cog"></i>Изменить MAC адрес`, "/works/changemac"}
+		btn = Buton{`<i class="bi bi-gear-fill"></i> Изменить MAC адрес`, "/works/changemac"}
 		block.Btns = append(block.Btns, btn)
 		Blocks = append(Blocks, block)
 
 		block = Block{}
 		block.Title = "Выпуск"
-		btn = Buton{`<i class="icon-industry"></i>Выпуск с производства`, "/works/releaseproduction"}
+		btn = Buton{`<i class="bi bi-hammer"></i> Выпуск с производства`, "/works/releaseproduction"}
 		block.Btns = append(block.Btns, btn)
-		btn = Buton{`<i class="icon-reply"></i>Вернуть на склад`, "/works/returntostorage"}
+		btn = Buton{`<i class="bi bi-reply-fill"></i> Вернуть на склад`, "/works/returntostorage"}
 		block.Btns = append(block.Btns, btn)
 		Blocks = append(Blocks, block)
 
 		block = Block{}
 		block.Title = "Заказы"
-		btn = Buton{`<i class="icon-briefcase"></i>Заказы`, "/works/orders"}
+		btn = Buton{`<i class="bi bi-briefcase-fill"></i> Заказы`, "/works/orders"}
 		block.Btns = append(block.Btns, btn)
-		btn = Buton{`<i class="icon-calendar-plus-o"></i>Задать срок`, "/works/setpromdate"}
+		btn = Buton{`<i class="bi bi-calendar-plus-fill"></i> Задать срок`, "/works/setpromdate"}
 		block.Btns = append(block.Btns, btn)
 		Blocks = append(Blocks, block)
 
 		block = Block{}
 		block.Title = "В работе"
-		btn = Buton{`<i class="icon-table"></i>SN в работе`, "/works/tmc?Search=1&Condition=В работе"}
+		btn = Buton{`<i class="bi bi-table"></i> SN в работе`, "/works/tmc?Search=1&Condition=В работе"}
 		block.Btns = append(block.Btns, btn)
-		btn = Buton{`<i class="icon-home-1"></i>Модели в работе`, "/works/storage/models?Search=1&Condition=3"}
+		btn = Buton{`<i class="bi bi-house-fill"></i> Модели в работе`, "/works/storage/models?Search=1&Condition=3"}
 		block.Btns = append(block.Btns, btn)
 		btn = Buton{`Материалы в работе`, "/works/matsinwork"}
 		block.Btns = append(block.Btns, btn)
@@ -2806,59 +2809,59 @@ func (a App) MakeUserPage(w http.ResponseWriter, user mytypes.User) {
 	case 2:
 		block = Block{}
 		block.Title = "Склад"
-		btn = Buton{`<i class="icon-table"></i>ТМЦ`, "/works/tmc"}
+		btn = Buton{`<i class="bi bi-table"></i> ТМЦ`, "/works/tmc"}
 		block.Btns = append(block.Btns, btn)
-		btn = Buton{`<i class="icon-search"></i>Поиск в ТМЦ`, "/works/tmcadvancesearch"}
+		btn = Buton{`<i class="bi bi-search"></i> Поиск в ТМЦ`, "/works/tmcadvancesearch"}
 		block.Btns = append(block.Btns, btn)
-		btn = Buton{`<i class="icon-home-1"></i>Склад`, "/works/storage/orders"}
+		btn = Buton{`<i class="bi bi-house-fill"></i> Склад`, "/works/storage/orders"}
 		block.Btns = append(block.Btns, btn)
-		btn = Buton{`<i class="icon-search"></i>Поиск по Sn`, "/works/snsearch"}
+		btn = Buton{`<i class="bi bi-search"></i> Поиск по Sn`, "/works/snsearch"}
 		block.Btns = append(block.Btns, btn)
-		btn = Buton{`<i class="icon-pencil"></i>Коментарий по Sn`, "/works/addcommentbysn"}
+		btn = Buton{`<i class="bi bi-pencil-fill"></i> Коментарий по Sn`, "/works/addcommentbysn"}
 		block.Btns = append(block.Btns, btn)
-		btn = Buton{`Склад материалов`, "/works/storage/mats"}
+		btn = Buton{`<i class="bi bi-house-fill-cutout"></i> Склад материалов`, "/works/storage/mats"}
 		block.Btns = append(block.Btns, btn)
 		Blocks = append(Blocks, block)
 
 		block = Block{}
 		block.Title = "Приемка"
-		btn = Buton{`<i class="icon-plus"></i>Приемка по моделям`, "/works/takedevicebymodel"}
+		btn = Buton{`<i class="bi bi-plus-lg"></i> Приемка по моделям`, "/works/takedevicebymodel"}
 		block.Btns = append(block.Btns, btn)
-		btn = Buton{`<i class="icon-file-excel"></i>Приемка файлом`, "/works/takedevicebyxlsx"}
+		btn = Buton{`<i class="bi bi-filetype-xls"></i> Приемка файлом`, "/works/takedevicebyxlsx"}
 		block.Btns = append(block.Btns, btn)
-		btn = Buton{`<i class="icon-forward"></i>Приемка демо`, "/works/takedemo"}
+		btn = Buton{`<i class="bi bi-reply-fill"></i> Приемка демо`, "/works/takedemo"}
 		block.Btns = append(block.Btns, btn)
-		btn = Buton{`Принять материалы`, "/works/takemat"}
+		btn = Buton{`<i class="bi bi-plus-lg"></i> Принять материалы`, "/works/takemat"}
 		block.Btns = append(block.Btns, btn)
 		Blocks = append(Blocks, block)
 
 		block = Block{}
 		block.Title = "Складская логистика"
-		btn = Buton{`<i class="icon-industry"></i>Передать в производство`, "/works/towork"}
+		btn = Buton{`<i class="bi bi-hammer"></i> Передать в производство`, "/works/towork"}
 		block.Btns = append(block.Btns, btn)
-		btn = Buton{`<i class="icon-down-big"></i>Установить место`, "/works/setplace"}
+		btn = Buton{`<i class="bi bi-box-arrow-in-down"></i> Установить место`, "/works/setplace"}
 		block.Btns = append(block.Btns, btn)
-		btn = Buton{`<i class="icon-cog"></i>Изменить № паллета`, "/works/cangeplacenum"}
+		btn = Buton{`<i class="bi bi-box-arrow-right"></i> Изменить № паллета`, "/works/cangeplacenum"}
 		block.Btns = append(block.Btns, btn)
 		Blocks = append(Blocks, block)
 
 		block = Block{}
 		block.Title = "Заказы"
-		btn = Buton{`<i class="icon-briefcase"></i>Заказы`, "/works/orders"}
+		btn = Buton{`<i class="bi bi-briefcase-fill"></i> Заказы`, "/works/orders"}
 		block.Btns = append(block.Btns, btn)
-		btn = Buton{`<i class="icon-tag"></i>Назначить заказ/резерв`, "/works/setorder"}
+		btn = Buton{`<i class="bi bi-tag-fill"></i> Назначить заказ/резерв`, "/works/setorder"}
 		block.Btns = append(block.Btns, btn)
 		Blocks = append(Blocks, block)
 
 		block = Block{}
 		block.Title = "Отгрузки"
-		btn = Buton{`<i class="icon-truck"></i>Отгрузка`, "/works/toship"}
+		btn = Buton{`<i class="bi bi-truck"></i> Отгрузка`, "/works/toship"}
 		block.Btns = append(block.Btns, btn)
 		Blocks = append(Blocks, block)
 
 		block = Block{}
 		block.Title = "Сборки"
-		btn = Buton{`Сборки`, "/works/buildlist"}
+		btn = Buton{`<i class="bi bi-tools"></i> Сборки`, "/works/buildlist"}
 		block.Btns = append(block.Btns, btn)
 		btn = Buton{`Модели T-KOM`, "/works/tmodels"}
 		block.Btns = append(block.Btns, btn)
@@ -2868,28 +2871,28 @@ func (a App) MakeUserPage(w http.ResponseWriter, user mytypes.User) {
 
 		block = Block{}
 		block.Title = "Управление материалами"
-		btn = Buton{`Добавить материал`, "/works/createmat"}
+		btn = Buton{`<i class="bi bi-file-earmark-plus-fill"></i> Добавить материал`, "/works/createmat"}
 		block.Btns = append(block.Btns, btn)
 		Blocks = append(Blocks, block)
 
 	case 3:
 		block = Block{}
 		block.Title = "Заказы"
-		btn = Buton{`<i class="icon-plus"></i>Создать заказ`, "/works/createorder"}
+		btn = Buton{`<i class="bi bi-file-earmark-plus-fill"></i> Создать заказ`, "/works/createorder"}
 		block.Btns = append(block.Btns, btn)
-		btn = Buton{`<i class="icon-handshake-o"></i> Мои заказы`, "/works/orders"}
+		btn = Buton{`<i class="bi bi-clipboard2-fill"></i> Мои заказы`, "/works/orders"}
 		block.Btns = append(block.Btns, btn)
-		btn = Buton{`<i class="icon-briefcase"></i>Все заказы`, "/works/orders"}
+		btn = Buton{`<i class="bi bi-briefcase-fill"></i> Все заказы`, "/works/orders"}
 		block.Btns = append(block.Btns, btn)
 		Blocks = append(Blocks, block)
 
 		block = Block{}
 		block.Title = "Склад"
-		btn = Buton{`<i class="icon-table"></i>ТМЦ`, "/works/tmc"}
+		btn = Buton{`<i class="bi bi-table"></i> ТМЦ`, "/works/tmc"}
 		block.Btns = append(block.Btns, btn)
-		btn = Buton{`<i class="icon-search"></i>Поиск в ТМЦ`, "/works/tmcadvancesearch"}
+		btn = Buton{`<i class="bi bi-search"></i> Поиск в ТМЦ`, "/works/tmcadvancesearch"}
 		block.Btns = append(block.Btns, btn)
-		btn = Buton{`<i class="icon-home-1"></i>Склад`, "/works/storage/orders"}
+		btn = Buton{`<i class="bi bi-house-fill"></i> Склад`, "/works/storage/orders"}
 		block.Btns = append(block.Btns, btn)
 		Blocks = append(Blocks, block)
 	default:
@@ -2967,7 +2970,7 @@ func (a App) MakeTakeMatPage(w http.ResponseWriter) {
 	t.Execute(w, tmp)
 }
 
-func (a App) MakeStorageMatsPage(w http.ResponseWriter) {
+func (a App) MakeStorageMatsPage(w http.ResponseWriter, user mytypes.User) {
 	Mats, err := a.Db.TakeMatsById(a.ctx)
 	if err != nil {
 		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
@@ -2976,8 +2979,9 @@ func (a App) MakeStorageMatsPage(w http.ResponseWriter) {
 	type storagePage struct {
 		Lable string
 		Mats  []mytypes.Mat
+		User  mytypes.User
 	}
-	table := storagePage{"Материалы", Mats}
+	table := storagePage{"Материалы", Mats, user}
 
 	t := template.Must(template.ParseFiles("Face/html/storage_mats.html"))
 	t.Execute(w, table)
@@ -3228,4 +3232,9 @@ func MakeMatEventPage(w http.ResponseWriter, events []mytypes.MatEventClean, lab
 
 	t := template.Must(template.ParseFiles("Face/html/mateventpage.html"))
 	t.Execute(w, table)
+}
+
+func MakeCalendarPage(w http.ResponseWriter) {
+	t := template.Must(template.ParseFiles("Face/html/calendar.html"))
+	t.Execute(w, 1)
 }
