@@ -227,6 +227,27 @@ type DModel struct {
 	Build int
 }
 
+type Task struct {
+	Id          int
+	Name        string
+	Autor       int
+	Description string
+	Color       string
+	Priority    int
+	DateStart   time.Time
+	DateEnd     time.Time
+	Complete    bool
+	WorkList    []TaskWorkList
+}
+
+type TaskWorkList struct {
+	Id     int
+	TModel int
+	Amout  int
+	Done   int
+	Date   time.Time
+}
+
 func CountByDModel(devices ...DeviceRaw) (counter map[int]int) {
 	counter = make(map[int]int)
 	for _, device := range devices {

@@ -50,7 +50,7 @@
           </div>
   
         </div>
-      </nav>
+    </nav>
 
     <div class="container-fluid" >
       <table class="table table-striped">
@@ -59,8 +59,7 @@
                   <th scope="col">#</th>
                   <th scope="col">Модель</th>
                   <th scope="col">Кол-во</th>
-                  <th scope="col">Тип сервиса</th>
-                  <th scope="col">Дата активации сервиса</th>
+
               </tr>
           </thead>
           <tbody>
@@ -74,10 +73,8 @@
                       <button type="submit" class="btn btn-sm btn-info " ><i class="bi-pencil">{{.Id}}</i></button>
                   </form>
                   </td>
-                  <td>{{.Model}}</td>
+                  <td>{{.TModel}}</td>
                   <td>{{.Amout}}</td>
-                  <td>{{.ServType}}</td>
-                  <td>{{.ServActDate}}</td> 
               </tr>
               {{end}}
           </tbody>
@@ -95,7 +92,6 @@
       <form id="in-form" name="in-form" action="" method="post">
         <div class="row">
           <div class="col" style="min-width: 200px;">
-            
             <label for="TModel" class="form-label">Модель</label>
             <div class=" input-group mb-1">
               {{if(eq .ListId -1 )}} <span class="input-group-text"><i class="bi-plus-lg"></i></span> <input type="hidden" name="ListId" value="-1" />
@@ -119,44 +115,6 @@
               </select>
               <input type="number" class="form-control" placeholder=",шт" name="Amout" id="Amout" value="{{.RedElement.Amout}}">
             </div>
-           
-            
-          </div>
-          <div class="col mb-1" style="min-width: 200px;"  >
-            
-            <label for="Serv" class="form-label">Гарантия</label>
-            
-            <div class=" input-group mb-1">
-              <select class="form-select" name="Serv">
-                {{if(eq .ListId -1 )}}
-                  <option selected value="1">Стандарт</option>
-                  <option value="2">РГ-1</option>
-                  <option value="3">РГ-2</option>
-                  <option value="4">РГ-3</option>
-                  <option value="5">РГ-4</option>
-                  <option value="6">СП-1</option>
-                  <option value="7">СП-2</option>
-                  <option value="8">СП-3</option>
-                  <option value="9">СП-4</option>
-                {{else}}
-                  <option {{if(eq $.RedElement.ServType 1 )}}{{ print "selected" }} {{end}} value="1">Стандарт</option>
-                  <option {{if(eq $.RedElement.ServType 2 )}}{{ print "selected" }} {{end}} value="2">РГ-1</option>
-                  <option {{if(eq $.RedElement.ServType 3 )}}{{ print "selected" }} {{end}} value="3">РГ-2</option>
-                  <option {{if(eq $.RedElement.ServType 4 )}}{{ print "selected" }} {{end}} value="4">РГ-3</option>
-                  <option {{if(eq $.RedElement.ServType 5 )}}{{ print "selected" }} {{end}} value="5">РГ-4</option>
-                  <option {{if(eq $.RedElement.ServType 6 )}}{{ print "selected" }} {{end}} value="6">СП-1</option>
-                  <option {{if(eq $.RedElement.ServType 7 )}}{{ print "selected" }} {{end}} value="7">СП-2</option>
-                  <option {{if(eq $.RedElement.ServType 8 )}}{{ print "selected" }} {{end}} value="8">СП-3</option>
-                  <option {{if(eq $.RedElement.ServType 9 )}}{{ print "selected" }} {{end}} value="9">СП-4</option>
-                {{end}}
-              </select>
-              {{if(eq .ListId -1 )}}
-                <input type="date" class="form-control" placeholder="Дата" name="ServActDate" id="ServActDate" value="">
-              {{else}}
-             
-              <input type="date" class="form-control" placeholder="Дата" name="ServActDate" id="ServActDate" value="{{.RedElement.ServActDate}}">
-              {{end}}
-              </div>
           </div>
         </div>
         

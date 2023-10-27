@@ -86,6 +86,7 @@ func (a App) Routs(r *httprouter.Router) {
 	r.GET("/works/matsinwork", a.authtorized(a.StorageMatsInWorkPage))
 	r.GET("/works/matevents", a.authtorized(a.MatEventPage))
 	r.GET("/works/cal", a.authtorized(a.CalendearPage))
+	r.GET("/works/createtask", a.authtorized(a.CreateTaskPage))
 
 	r.POST("/works/tmc", a.authtorized(a.TMCPage))
 	r.POST("/works/orders", a.authtorized(a.OrderPage))
@@ -115,6 +116,7 @@ func (a App) Routs(r *httprouter.Router) {
 	r.POST("/works/changedefbuild", a.authtorized(a.ChangeDefBuild))
 	r.POST("/works/mattowork", a.authtorized(a.MatToWork))
 	r.POST("/works/matfromwork", a.authtorized(a.MatFromWork))
+	r.POST("/works/createtask", a.authtorized(a.CreateTask))
 
 	r.GET("/works/tmcexcell", a.authtorized(a.TMCExcell))
 	r.POST("/works/tmcexcell", a.authtorized(a.TMCExcell))

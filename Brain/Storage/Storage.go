@@ -2121,6 +2121,105 @@ func (base Base) ChangeDefBuild(ctx context.Context, dModelId int, newBuild int)
 	return nil
 }
 
+////////////
+
+// Задачи //
+
+////////////
+
+func (base Base) TakeTasksById(ctx context.Context, Ids ...int) ([]mytypes.Task, error) {
+	var Tasks []mytypes.Task
+	var Task mytypes.Task
+
+	if len(Ids) == 0 {
+		qq := `SELECT id, name, description, cololor, priority, datestart, dateend, complete, autor FROM public.tasks ORDER BY dateend;`
+
+		rows, err := base.Db.Query(ctx, qq)
+		if err != nil {
+			return nil, err
+		}
+
+		for rows.Next() {
+			err := rows.Scan(&Task.Id, &Task.Name, &Task.Description, &Task.Color, &Task.Priority, &Task.DateStart, &Task.DateEnd, &Task.Complete, &Task.Autor)
+			if err != nil {
+				return Tasks, err
+			}
+			var TaskWorkList []mytypes.TaskWorkList
+			var TaskWork mytypes.TaskWorkList
+			qqq := `SELECT  id, tmodel, amout, done, datechange FROM public."taskWorkList" WHERE "taskId" = $1;`
+			taskrows, err := base.Db.Query(ctx, qqq, Task.Id)
+			if err != nil {
+				return Tasks, err
+			}
+
+			for taskrows.Next() {
+				err := taskrows.Scan(&TaskWork.Id, &TaskWork.TModel, &TaskWork.Amout, &TaskWork.Done, &TaskWork.Date)
+				if err != nil {
+					return Tasks, err
+				}
+				TaskWorkList = append(TaskWorkList, TaskWork)
+			}
+
+			Task.WorkList = TaskWorkList
+
+			Tasks = append(Tasks, Task)
+		}
+
+	} else {
+		qq := `SSELECT id, name, description, cololor, priority, datestart, dateend, complete, autor FROM public.tasks WHERE id = $1 ORDER BY dateend;`
+
+		for _, id := range Ids {
+			err := base.Db.QueryRow(ctx, qq, id).Scan(&Task.Id, &Task.Name, &Task.Description, &Task.Color, &Task.Priority, &Task.DateStart, &Task.DateEnd, &Task.Complete, &Task.Autor)
+			if err != nil {
+				return Tasks, err
+			}
+
+			var TaskWorkList []mytypes.TaskWorkList
+			var TaskWork mytypes.TaskWorkList
+			qqq := `SELECT  id, tmodel, amout, done, datechange FROM public."taskWorkList" WHERE "taskId" = $1;`
+			taskrows, err := base.Db.Query(ctx, qqq, Task.Id)
+			if err != nil {
+				return Tasks, err
+			}
+
+			for taskrows.Next() {
+				err := taskrows.Scan(&TaskWork.Id, &TaskWork.TModel, &TaskWork.Amout, &TaskWork.Done, &TaskWork.Date)
+				if err != nil {
+					return Tasks, err
+				}
+				TaskWorkList = append(TaskWorkList, TaskWork)
+			}
+
+			Task.WorkList = TaskWorkList
+			Tasks = append(Tasks, Task)
+		}
+	}
+
+	return Tasks, nil
+}
+
+func (base Base) InsertTask(ctx context.Context, task mytypes.Task) error {
+	qq := `INSERT INTO public.tasks(
+	name, description, cololor, priority, datestart, dateend, complete, autor)
+	VALUES ( $1, $2, $3, $4, $5, $6, $7, $8);`
+
+	_, err := base.Db.Exec(ctx, qq, task.Name, task.Description, task.Color, task.Priority, task.DateStart, task.DateEnd, task.Complete, task.Autor)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (base Base) InsretTaskWorkList(ctx context.Context, taskId int, taskWorkList mytypes.TaskWorkList) error {
+	qq := `INSERT INTO public."taskWorkList" ("taskId", tmodel, amout, done) VALUES ($1, $2, $3, $4);`
+	_, err := base.Db.Exec(ctx, qq, taskId, taskWorkList.TModel, taskWorkList.Amout, taskWorkList.Done)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 ////////////////////
 
 // Другие функции //
