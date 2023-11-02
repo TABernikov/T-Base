@@ -15,30 +15,6 @@
     <script src='Face\html\js\cal.ru.js'></script>
     <style>
 
-      html, body {
-        overflow: hidden; /* don't do scrollbars */
-        font-family: Arial, Helvetica Neue, Helvetica, sans-serif;
-        font-size: 14px;
-      }
-    
-      #calendar-container {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-      }
-    
-      .fc-header-toolbar {
-        /*
-        the calendar will be butting up against the edges,
-        but let's scoot in the header's buttons
-        */
-        padding-top: 7em;
-        padding-left: 1em;
-        padding-right: 1em;
-      }
-    
     </style>
     <script>
 
@@ -56,52 +32,30 @@
               day: 'День',
               year: 'Год'
             },
-            height: '100%',
+            
             expandRows: true,
-            slotMinTime: '08:00',
-            slotMaxTime: '20:00',
+            height: 'auto',
             headerToolbar: {
               left: 'prev,next today',
               center: 'title',
-              right: 'dayGridMonth,multiMonthYear,listWeek,listMonth'
+              right: 'dayGridMonth,multiMonthYear'
             },
             initialView: 'dayGridMonth',
-            initialDate: '2023-01-12',
             selectable: true,
             nowIndicator: true,
-            dayMaxEvents: true, // allow "more" link when too many events
+             
             events: [
+              {{range .}}
               {
-                description: 'description for All Day Event',
-                title: 'All Day Event',
-                start: '2023-01-05',  
-                color: '#7b9c06'
+                title: '{{.Name}} #{{.Id}}',
+                url: "/works/task?Id={{.Id}}",
+                description: '{{.Description}}',
+                start: '{{.DateStart}}',
+                end: '{{.DateEnd}}',
+                color: '{{.Color}}'
               },
-              {
-                title: 'Long Event',
-                start: '2023-01-03',
-                end: '2023-01-10',
-              },
-              {
-                groupId: 999,
-                title: 'Repeating Event',
-                start: '2023-01-09'
-              },
-              {
-                groupId: 999,
-                title: 'Repeating Event',
-                start: '2023-01-16'
-              },
-              {
-                title: 'Conference',
-                start: '2023-01-11',
-                end: '2023-01-13'
-              },
-              {
-                title: 'Click for Google',
-                url: 'http://google.com/',
-                start: '2023-01-28'
-              }
+              {{end}}
+              
             ]
                 });
         
@@ -127,34 +81,39 @@
           <div class="navbar-collapse collapse" id="navbarsExample05">
   
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-              
+            
               <li class="nav-item">
-                <a class="nav-link active" href="/works/prof">Профиль</a>
+                <a class="nav-link active" href="/works/prof">Профиль <i style="color: rgb(80, 80, 80);" class="bi bi-person-circle"></i></a>
               </li>
               
               
               <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false">Таблицы</a>
                 <ul class="dropdown-menu">
-                  <li><a class="dropdown-item" href="/works/tmc">ТМЦ</a></li>
-                <li><a class="dropdown-item" href="/works/orders">Заказы</a></li>
-                <li><a class="dropdown-item" href="/works/storage">Склад</a></li>
+                  <li><a class="dropdown-item" href="/works/tmc">ТМЦ <i style="color: rgb(80, 80, 80);" class="bi bi-table"></i></a></li>
+                  <li><a class="dropdown-item" href="/works/orders">Заказы <i style="color: rgb(80, 80, 80);" class="bi bi-briefcase-fill"></i></a></li>
+                  <li><a class="dropdown-item" href="/works/storage">Склад <i style="color: rgb(80, 80, 80);" class="bi bi-house-fill"></i></a></li>
                 </ul>
               </li>
+              <a class="nav-link active" style="text-align: left;" href="/works/cal">Календарь задач <i class="bi bi-calendar-week"></i></a>
               <form id="logout" name="logout" action="/works/logout" method="post"> 
-                <input class="btn btn-outline-danger" type="submit" name="logoutBtn" value="Выйти">
+                <a href="/works/logout" class="btn btn-outline-danger" type="submit" name="logoutBtn" >Выйти <i class="bi bi-arrow-bar-right"></i></a>
               </form>
             </ul>
-  
+            <a class="btn btn-primary" href="/works/cal?look=List" role="button" > <i class="bi bi-list-ul"></i> Вид списка</a>
+
           </div>
   
         </div>
     </nav>
     
-    <div id='calendar-container'>
-      <div id='calendar'></div>
+    <div class="container-xxl">
+      <div class="row">
+        <div class="col">
+         <div id='calendar'></div>
+        </div>
+      </div>
     </div>
- 
     
 
     <script src="Face/html/js/bootstrap.bundle.js"></script>

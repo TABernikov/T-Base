@@ -2,7 +2,7 @@
 <html lang="ru">
 
 <head>
-    <title>{{.Title}}</title>
+    <title>Поиск в ТМЦ</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" href="Face\img\t-kom-ico.svg">
@@ -53,30 +53,45 @@
         </div>
       </nav>
 
-    <div class="container">
-    <form id="in-form" name="in-form" action="{{.PostPath}}" method="post" enctype="multipart/form-data">
-    <div class="container">
+    <div class="container-xl p-3">
+      <form id="in-form" name="in-form" action="" method="post">
+        <div class="row mb-3"><h1 class="display-5">Имя: {{.Name}}</h1></div>
+        <div class="row mb-3"><h4>Описание: {{.Description}}</h4></div>
         <div class="row">
-            <label for="in" class="form-label">{{.InputText}}</label>
-        </div>
-        <div class="row">    
-            
-            <div class="col-8">
-                <div class="mb-3">
-                    <input class="form-control" type="file" id="in" name="in" accept=".xlsx" ></input>
-                </div>
+          <div class="col mb-3" style="min-width: 350px;">
+            <label for="Customer" class="form-label">Приоритет</label>
+            <div class=" input-group mb-3">
+              <span class="input-group-text">!</span>
+              <input type="number" class="form-control" placeholder="число" name="Priority" id="Priority" value="{{.Priority}}">
             </div>
-            <div class="col-4">
-                <button type="submit" value="upload" class="btn btn-primary">{{.BtnText}}</button>
+            <label for="Req" class="form-label">Дата начала</label>
+            <div class=" input-group mb-3">
+              <span class="input-group-text">Start</span>
+              <input type="date" class="form-control" placeholder="Дата начала" name="Start" id="Start" value="{{.DateStart}}">
             </div>
+          </div>
+          <div class="col mb-3" style="min-width: 350px;">
+            <label for="Partner" class="form-label">Цвет</label>
+            <div class=" input-group mb-3">
+              <span class="input-group-text">C</span>
+              <input type="color" class="form-control form-control-color" name="Color" id="Color" value="{{.Color}}">
+            </div>
+            <label for="Distributor" class="form-label">Дата завершения</label>
+            <div class=" input-group mb-3">
+              <span class="input-group-text">End</span>
+              <input type="date" class="form-control" name="End" id="End" value="{{.DateEnd}}">
+            </div>
+          </div>
         </div>
-    
-    </div>
-    </form>
+          <input type="hidden" name="Id" value="{{.Id}}">
+          <button class="btn btn-primary" type="submit" style="width: 100%;">Подтвердить</button>
+      </form>
     </div>
 
     <script src="Face/html/js/bootstrap.bundle.js"></script>
+
 </body>
 
 
 </html>
+

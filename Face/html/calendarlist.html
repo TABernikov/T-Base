@@ -2,7 +2,7 @@
 <html lang="ru">
 
 <head>
-    <title>{{.Title}}</title>
+    <title>Календарь</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" href="Face\img\t-kom-ico.svg">
@@ -10,6 +10,59 @@
     <link href="Face/html/css/bootstrap.min.css" rel="stylesheet">
     <link href="Face/html/css/style.css" rel="stylesheet">
     <link href="Face/html/css/bootstrap-icons.css" rel="stylesheet">
+    <script src='Face\html\js\cal.index.global.min.js'></script>
+    <script src='Face\html\js\cal.biootstrap.index.global.min.js'></script>
+    <script src='Face\html\js\cal.ru.js'></script>
+    <style>
+
+    </style>
+    <script>
+
+        document.addEventListener('DOMContentLoaded', function () {
+          var calendarEl = document.getElementById('calendar');
+        
+          var calendar = new FullCalendar.Calendar(calendarEl, {
+            themeSystem: 'bootstrap5',
+            locale :'ru',
+            firstDay: 1,
+            buttonText:{
+              today: 'Сегодня',
+              month: 'Месяц',
+              week: 'Неделя',
+              day: 'День',
+              year: 'Год'
+            },
+            
+            expandRows: true,
+            height: 'auto',
+            headerToolbar: {
+              left: 'prev,next today',
+              center: 'title',
+              right: 'listWeek,listMonth'
+            },
+            initialView: 'listWeek',
+            selectable: true,
+            nowIndicator: true,
+             
+            events: [
+              {{range .}}
+              {
+                title: '{{.Name}} #{{.Id}}',
+                url: "/works/task?Id={{.Id}}",
+                description: '{{.Description}}',
+                start: '{{.DateStart}}',
+                end: '{{.DateEnd}}',
+                color: '{{.Color}}'
+              },
+              {{end}}
+              
+            ]
+                });
+        
+          calendar.render();
+        });
+        
+        </script>
 
 </head>
 <body>
@@ -47,33 +100,21 @@
                 <a href="/works/logout" class="btn btn-outline-danger" type="submit" name="logoutBtn" >Выйти <i class="bi bi-arrow-bar-right"></i></a>
               </form>
             </ul>
-  
+            <a class="btn btn-primary" href="/works/cal?look=Cal" role="button" > <i class="bi bi-calendar-week"></i> Вид календаря</a>
+
           </div>
   
         </div>
-      </nav>
-
-    <div class="container">
-    <form id="in-form" name="in-form" action="{{.PostPath}}" method="post" enctype="multipart/form-data">
-    <div class="container">
-        <div class="row">
-            <label for="in" class="form-label">{{.InputText}}</label>
-        </div>
-        <div class="row">    
-            
-            <div class="col-8">
-                <div class="mb-3">
-                    <input class="form-control" type="file" id="in" name="in" accept=".xlsx" ></input>
-                </div>
-            </div>
-            <div class="col-4">
-                <button type="submit" value="upload" class="btn btn-primary">{{.BtnText}}</button>
-            </div>
-        </div>
+    </nav>
     
+    <div class="container-xxl">
+      <div class="row">
+        <div class="col">
+         <div id='calendar'></div>
+        </div>
+      </div>
     </div>
-    </form>
-    </div>
+    
 
     <script src="Face/html/js/bootstrap.bundle.js"></script>
 </body>

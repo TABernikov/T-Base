@@ -28,22 +28,23 @@
           <div class="navbar-collapse collapse" id="navbarsExample05">
   
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-              
+            
               <li class="nav-item">
-                <a class="nav-link active" href="/works/prof">Профиль</a>
+                <a class="nav-link active" href="/works/prof">Профиль <i style="color: rgb(80, 80, 80);" class="bi bi-person-circle"></i></a>
               </li>
               
               
               <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false">Таблицы</a>
                 <ul class="dropdown-menu">
-                  <li><a class="dropdown-item" href="/works/tmc">ТМЦ</a></li>
-                <li><a class="dropdown-item" href="/works/orders">Заказы</a></li>
-                <li><a class="dropdown-item" href="/works/storage">Склад</a></li>
+                  <li><a class="dropdown-item" href="/works/tmc">ТМЦ <i style="color: rgb(80, 80, 80);" class="bi bi-table"></i></a></li>
+                  <li><a class="dropdown-item" href="/works/orders">Заказы <i style="color: rgb(80, 80, 80);" class="bi bi-briefcase-fill"></i></a></li>
+                  <li><a class="dropdown-item" href="/works/storage">Склад <i style="color: rgb(80, 80, 80);" class="bi bi-house-fill"></i></a></li>
                 </ul>
               </li>
+              <a class="nav-link active" style="text-align: left;" href="/works/cal">Календарь задач <i class="bi bi-calendar-week"></i></a>
               <form id="logout" name="logout" action="/works/logout" method="post"> 
-                <input class="btn btn-outline-danger" type="submit" name="logoutBtn" value="Выйти">
+                <a href="/works/logout" class="btn btn-outline-danger" type="submit" name="logoutBtn" >Выйти <i class="bi bi-arrow-bar-right"></i></a>
               </form>
             </ul>
   
@@ -56,32 +57,34 @@
       <table class="table table-striped">
           <thead>
               <tr>
-                  <th scope="col">#</th>
+                  <th scope="col">#{{.Task.Name}}</th>
                   <th scope="col">Модель</th>
                   <th scope="col">Кол-во</th>
+                  <th scope="col">Последнее изменение</th>
 
               </tr>
           </thead>
           <tbody>
-              {{range .List}}
+              {{range .Task.WorkList}}
               <tr>
                   <td>
-                    <form  class="p-1" id="changelist" name="changelist" action="/works/createorderlist" target="_parent" method="post">      
+                    <form  class="p-1" id="changelist" name="changelist" action="" target="_parent" method="post">      
                       <input type="hidden" name="Action" value="OpenRedact" />
-                      <input type="hidden" name="Id" value="{{.Order}}" />
+                      <input type="hidden" name="TaskId" value="{{$.Task.Id}}" />
                       <input type="hidden" name="ListId" value="{{.Id}}" />
                       <button type="submit" class="btn btn-sm btn-info " ><i class="bi-pencil">{{.Id}}</i></button>
                   </form>
                   </td>
                   <td>{{.TModel}}</td>
                   <td>{{.Amout}}</td>
+                  <td>{{.Date}}</td>
               </tr>
               {{end}}
           </tbody>
       </table>
-      <form  class="p-1" id="New" name="New" action="/works/createorderlist" target="_parent" method="post">      
+      <form  class="p-1" id="New" name="New" action="" target="_parent" method="post">      
         <input type="hidden" name="Action" value="Open" />
-        <input type="hidden" name="Id" value="{{.OrderId}}" />
+        <input type="hidden" name="TaskId" value="{{.Task.Id}}" />
         <button type="submit" class="btn btn-sm btn-info " ><i class="bi-plus-lg"></i></button>
       </form>
     </div>
@@ -94,11 +97,11 @@
           <div class="col" style="min-width: 200px;">
             <label for="TModel" class="form-label">Модель</label>
             <div class=" input-group mb-1">
-              {{if(eq .ListId -1 )}} <span class="input-group-text"><i class="bi-plus-lg"></i></span> <input type="hidden" name="ListId" value="-1" />
-              {{else}} <span class="input-group-text">{{.ListId}}</span> <input type="hidden" name="ListId" value="{{.ListId}}" /> {{end}}
+              {{if(eq .RedElement.Id -1 )}} <span class="input-group-text"><i class="bi-plus-lg"></i></span> <input type="hidden" name="ListId" value="-1" />
+              {{else}} <span class="input-group-text">{{.RedElement.Id}}</span> <input type="hidden" name="ListId" value="{{.RedElement.Id}}" /> {{end}}
               
               <select class="form-select" name="TModel">
-                {{if(eq .ListId -1 )}}
+                {{if(eq .RedElement.Id -1 )}}
 
                   <option selected value="">Не выбрано</option>
                   {{range .TModels}}
@@ -108,7 +111,7 @@
                 {{else}}
 
                   {{range .TModels}}
-                  <option {{if(eq $.RedElement.Model .Name )}}{{ print "selected" }} {{end}} value="{{.Id}}">{{.Name}}</option>
+                  <option {{if(eq $.RedElement.TModel .Name )}}{{ print "selected" }} {{end}} value="{{.Id}}">{{.Name}}</option>
                   {{end}}
 
                 {{end}}  
@@ -118,8 +121,8 @@
           </div>
         </div>
         
-        <input type="hidden" name="Id" value="{{.OrderId}}" />
-        {{if(eq .ListId -1 )}}
+        <input type="hidden" name="TaskId" value="{{.Task.Id}}" />
+        {{if(eq .RedElement.Id -1 )}}
           <input type="hidden" name="Action" value="Create" />
           <button class="btn btn-primary" type="submit" style="width: 100%;">Добавить</button>
         {{else}}

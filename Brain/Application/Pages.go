@@ -516,6 +516,7 @@ func (a App) OrderPage(w http.ResponseWriter, r *http.Request, pr httprouter.Par
 		orders, err = a.Db.TakeCleanOrderByReqest(a.ctx, `WHERE "isAct" = true`)
 		if err != nil {
 			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
 		}
 	} else if r.FormValue("Search") == "Anything" {
 		link = "?Search=Anything&in=" + r.FormValue("in")
@@ -953,11 +954,51 @@ func (a App) MatEventPage(w http.ResponseWriter, r *http.Request, pr httprouter.
 }
 
 func (a App) CalendearPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
-	MakeCalendarPage(w)
+	var tasks []mytypes.TaskJs
+	var err error
+	if user.Acces == 1 {
+		tasks, err = a.Db.TakeJsTaskByReqest(a.ctx, "ORDER BY dateend")
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+	}
+	if r.FormValue("look") == "List" {
+		a.MakeCalendarListPage(w, tasks)
+		return
+	} else if r.FormValue("look") == "Cal" {
+		a.MakeCalendarPage(w, tasks)
+		return
+	}
+	a.MakeCalendarPage(w, tasks)
 }
 
 func (a App) CreateTaskPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	MakeCreateTaskPage(w)
+}
+
+func (a App) TasksPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	tasks, err := a.Db.TakeCleanTasksById(a.ctx)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения задач", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	MakeTasksPage(w, tasks)
+}
+
+func (a App) ChangeTaskPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	taskId := r.FormValue("Id")
+	a.MakeChangeTaskPage(w, taskId)
+}
+
+func (a App) TaskPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	taskId, err := strconv.Atoi(r.FormValue("Id"))
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Не верно задано Id задачи", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	a.MakeTaskPage(w, taskId)
 }
 
 //////////////////////
@@ -1571,9 +1612,9 @@ func (a App) ReleaseProduction(w http.ResponseWriter, r *http.Request, pr httpro
 	}
 
 	var counter int
-	var logCount int
 	matList := make(map[int]int)
 	for _, sn := range in {
+		// Преобразование устройства
 		build, matToProdus, err := a.Db.ReleaseProduction(a.ctx, sn)
 		if err != nil {
 			if err.Error() == "не девайс" {
@@ -1584,18 +1625,19 @@ func (a App) ReleaseProduction(w http.ResponseWriter, r *http.Request, pr httpro
 		}
 		counter++
 
+		// Запись лога устройства
 		log := a.Db.AddDeviceEventBySn(a.ctx, 4, "Списание для сборки "+strconv.Itoa(build), user.UserId, sn)
 		if log != 1 {
 			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка записи логов", "", "Главная", "/works/prof")
 		}
-		logCount++
 
+		// Добавляем материалы для этого устройства в облий лист списаия
 		for i, a := range matToProdus {
 			matList[i] += a
 		}
 	}
 	for matId, amout := range matList {
-		err := a.Db.AddMatLog(a.ctx, matId, amout, 4, "Преобразование со сборкой", user.UserId)
+		err := a.Db.AddMatLog(a.ctx, matId, amout, 4, "Преобразование", user.UserId)
 		if err != nil {
 			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка записи логов материала", "", "Главная", "/works/prof")
 		}
@@ -1936,6 +1978,11 @@ func (a App) MatToWork(w http.ResponseWriter, r *http.Request, pr httprouter.Par
 		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка передачи материала", err.Error(), "Главная", "/works/prof")
 		return
 	}
+	err = a.Db.AddMatLog(a.ctx, matId, toWorkAmout, 2, "Предано в производство", user.UserId)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка записи логов", err.Error(), "Главная", "/works/prof")
+		return
+	}
 	http.Redirect(w, r, "/works/storage/mats", http.StatusSeeOther)
 }
 
@@ -1962,7 +2009,11 @@ func (a App) MatFromWork(w http.ResponseWriter, r *http.Request, pr httprouter.P
 		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка передачи материала", err.Error(), "Главная", "/works/prof")
 		return
 	}
-
+	err = a.Db.AddMatLog(a.ctx, matId, fromWorkAmout, 2, "Возвращено на склад", user.UserId)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка записи логов", err.Error(), "Главная", "/works/prof")
+		return
+	}
 	http.Redirect(w, r, "/works/matsinwork", http.StatusSeeOther)
 }
 
@@ -1996,8 +2047,100 @@ func (a App) CreateTask(w http.ResponseWriter, r *http.Request, pr httprouter.Pa
 		return
 	}
 
-	fmt.Println(task.Color)
-	MakeAlertPage(w, 1, "Успешно", "Успешно", "Задача создана", "", "Главная", "/works/prof")
+	http.Redirect(w, r, "/works/tasks", http.StatusSeeOther)
+}
+
+func (a App) CreateTaskListPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	TaskId, err := strconv.Atoi(r.FormValue("TaskId"))
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения номера задачи", err.Error(), "Главная", "/works/prof")
+	}
+
+	if r.FormValue("Action") == "Open" {
+		a.MakeCreateTaskListPage(w, TaskId, -1)
+	} else if r.FormValue("Action") == "Create" {
+		var taskElement mytypes.TaskWorkList
+		var err error
+		taskElement.TModel, err = strconv.Atoi(r.FormValue("TModel"))
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения модели", err.Error(), "Главная", "/works/prof")
+		}
+		taskElement.Amout, err = strconv.Atoi(r.FormValue("Amout"))
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения кол-ва", err.Error(), "Главная", "/works/prof")
+		}
+		taskElement.Done = 0
+		taskId, err := strconv.Atoi(r.FormValue("TaskId"))
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения номера задачи", err.Error(), "Главная", "/works/prof")
+		}
+		err = a.Db.InsertTaskWorkList(a.ctx, taskId, taskElement)
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка создания эл-та задачи", err.Error(), "Главная", "/works/prof")
+		}
+		a.MakeCreateTaskListPage(w, TaskId, -1)
+	} else if r.FormValue("Action") == "OpenRedact" {
+		redId, err := strconv.Atoi(r.FormValue("ListId"))
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка номера подзадачи", err.Error(), "Главная", "/works/prof")
+		}
+		a.MakeCreateTaskListPage(w, TaskId, redId)
+	} else if r.FormValue("Action") == "Redact" {
+		var taskElement mytypes.TaskWorkList
+		var err error
+		taskElement.TModel, err = strconv.Atoi(r.FormValue("TModel"))
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения модели", err.Error(), "Главная", "/works/prof")
+		}
+		taskElement.Amout, err = strconv.Atoi(r.FormValue("Amout"))
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения кол-ва", err.Error(), "Главная", "/works/prof")
+		}
+		taskElement.Id, err = strconv.Atoi(r.FormValue("ListId"))
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения номера подзадачи", err.Error(), "Главная", "/works/prof")
+		}
+		taskElement.Done = 0
+		taskElement.Date = time.Now()
+		err = a.Db.ChangeTaskList(a.ctx, taskElement)
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка изменения эл-та задачи", err.Error(), "Главная", "/works/prof")
+		}
+		a.MakeCreateTaskListPage(w, TaskId, -1)
+	}
+}
+
+func (a App) ChangeTask(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	var task mytypes.Task
+	var err error
+	task.Id, err = strconv.Atoi(r.FormValue("Id"))
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка считывания Id", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	task.Priority, err = strconv.Atoi(r.FormValue("Priority"))
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка считывания приоритета", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	task.DateStart, err = time.Parse("2006-01-02", r.FormValue("Start"))
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка считывания даты начала", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	task.DateEnd, err = time.Parse("2006-01-02", r.FormValue("End"))
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка считывания даты окончания", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	task.Color = r.FormValue("Color")
+
+	err = a.Db.ChangeTask(a.ctx, task)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка изменения", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	MakeAlertPage(w, 1, "Успешно", "Успешно", "Изменено", "Новые данные внесены", "Главная", "/works/prof")
 }
 
 //////////////////////
@@ -2844,6 +2987,14 @@ func (a App) MakeUserPage(w http.ResponseWriter, user mytypes.User) {
 		block.Btns = append(block.Btns, btn)
 		Blocks = append(Blocks, block)
 
+		block = Block{}
+		block.Title = "Задачи"
+		btn = Buton{`<i class="bi bi-card-list"></i> Задачи`, "/works/tasks"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{`<i class="bi bi-calendar-plus-fill"></i> Создать задачу`, "/works/createtask"}
+		block.Btns = append(block.Btns, btn)
+		Blocks = append(Blocks, block)
+
 	case 2:
 		block = Block{}
 		block.Title = "Склад"
@@ -3272,9 +3423,16 @@ func MakeMatEventPage(w http.ResponseWriter, events []mytypes.MatEventClean, lab
 	t.Execute(w, table)
 }
 
-func MakeCalendarPage(w http.ResponseWriter) {
+func (a App) MakeCalendarPage(w http.ResponseWriter, tasks []mytypes.TaskJs) {
 	t := template.Must(template.ParseFiles("Face/html/calendar.html"))
-	t.Execute(w, 1)
+	t.Execute(w, tasks)
+}
+
+func (a App) MakeCalendarListPage(w http.ResponseWriter, tasks []mytypes.TaskJs) {
+
+	t := template.Must(template.ParseFiles("Face/html/calendarlist.html"))
+
+	t.Execute(w, tasks)
 }
 
 func MakeCreateTaskPage(w http.ResponseWriter) {
@@ -3282,15 +3440,25 @@ func MakeCreateTaskPage(w http.ResponseWriter) {
 	t.Execute(w, 1)
 }
 
-func (a App) MakeCreateTaskListPage(w http.ResponseWriter, task mytypes.Task, redElementId int) {
+func (a App) MakeCreateTaskListPage(w http.ResponseWriter, taskId int, redElementId int) {
 	type idChoise struct {
 		Id   int
 		Name string
 	}
 	type TakeForm struct {
-		Task         mytypes.Task
-		TModels      []idChoise
-		RedElementId mytypes.TaskWorkList
+		Task       mytypes.CleanTask
+		TModels    []idChoise
+		RedElement mytypes.CleanTaskWorkList
+	}
+
+	task, err := a.Db.TakeCleanTasksById(a.ctx, taskId)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения задачи", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	if len(task) != 1 {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения задачи", strconv.Itoa(len(task)), "Главная", "/works/prof")
+		return
 	}
 
 	var choise idChoise
@@ -3309,13 +3477,64 @@ func (a App) MakeCreateTaskListPage(w http.ResponseWriter, task mytypes.Task, re
 		tmodelList = append(tmodelList, choise)
 	}
 
-	var redElement mytypes.TaskWorkList
+	var redElement mytypes.CleanTaskWorkList
 	if redElementId >= 0 {
-		rows, err := a.Db.Db.Query(a.ctx, `SELECT id, tmodel, amout, done, datechange FROM public."taskWorkList"; WHERE "id" = $1;`, redElementId)
+		rows, err := a.Db.Db.Query(a.ctx, `SELECT id, tmodel, amout, done, datechange FROM public."CleanTaskWorkList" WHERE "id" = $1;`, redElementId)
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		for rows.Next() {
+			err := rows.Scan(&redElement.Id, &redElement.TModel, &redElement.Amout, &redElement.Done, &redElement.Date)
+			if err != nil {
+				MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+				return
+			}
+		}
+	} else {
+		redElement.Id = -1
 	}
 
-	tmp := TakeForm{task, tmodelList, redElement}
+	tmp := TakeForm{task[0], tmodelList, redElement}
 
 	t := template.Must(template.ParseFiles("Face/html/CreateTaskList.html"))
 	t.Execute(w, tmp)
+}
+
+func MakeTasksPage(w http.ResponseWriter, tasks []mytypes.CleanTask) {
+	type BPage struct {
+		Tasks []mytypes.CleanTask
+	}
+
+	table := BPage{Tasks: tasks}
+	t := template.Must(template.ParseFiles("Face/html/tasks.html"))
+	t.Execute(w, table)
+}
+
+func (a App) MakeChangeTaskPage(w http.ResponseWriter, taskId string) {
+	tasks, err := a.Db.TakeJsTaskByReqest(a.ctx, "WHERE id = '"+taskId+"'")
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	if len(tasks) != 1 {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка поиска", "", "Главная", "/works/prof")
+		return
+	}
+	t := template.Must(template.ParseFiles("Face/html/ChangeTask.html"))
+	t.Execute(w, tasks[0])
+}
+
+func (a App) MakeTaskPage(w http.ResponseWriter, taskId int) {
+	tasks, err := a.Db.TakeCleanTasksById(a.ctx, taskId)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	if len(tasks) != 1 {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка поиска", "", "Главная", "/works/prof")
+		return
+	}
+	t := template.Must(template.ParseFiles("Face/html/task.html"))
+	t.Execute(w, tasks[0])
 }

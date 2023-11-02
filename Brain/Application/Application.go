@@ -87,6 +87,10 @@ func (a App) Routs(r *httprouter.Router) {
 	r.GET("/works/matevents", a.authtorized(a.MatEventPage))
 	r.GET("/works/cal", a.authtorized(a.CalendearPage))
 	r.GET("/works/createtask", a.authtorized(a.CreateTaskPage))
+	r.GET("/works/tasks", a.authtorized(a.TasksPage))
+	r.GET("/works/createtasklist", a.authtorized(a.CreateTaskListPage))
+	r.GET("/works/changetask", a.authtorized(a.ChangeTaskPage))
+	r.GET("/works/task", a.authtorized(a.TaskPage))
 
 	r.POST("/works/tmc", a.authtorized(a.TMCPage))
 	r.POST("/works/orders", a.authtorized(a.OrderPage))
@@ -117,6 +121,8 @@ func (a App) Routs(r *httprouter.Router) {
 	r.POST("/works/mattowork", a.authtorized(a.MatToWork))
 	r.POST("/works/matfromwork", a.authtorized(a.MatFromWork))
 	r.POST("/works/createtask", a.authtorized(a.CreateTask))
+	r.POST("/works/createtasklist", a.authtorized(a.CreateTaskListPage))
+	r.POST("/works/changetask", a.authtorized(a.ChangeTask))
 
 	r.GET("/works/tmcexcell", a.authtorized(a.TMCExcell))
 	r.POST("/works/tmcexcell", a.authtorized(a.TMCExcell))

@@ -240,9 +240,41 @@ type Task struct {
 	WorkList    []TaskWorkList
 }
 
+type CleanTask struct {
+	Id          int
+	Name        string
+	Autor       string
+	Description string
+	Color       string
+	Priority    int
+	DateStart   string
+	DateEnd     string
+	Complete    bool
+	WorkList    []CleanTaskWorkList
+}
+
+type TaskJs struct {
+	Id          int
+	Name        string
+	Autor       string
+	Description string
+	Color       string
+	Priority    int
+	DateStart   string
+	DateEnd     string
+	Complete    bool
+}
+
 type TaskWorkList struct {
 	Id     int
 	TModel int
+	Amout  int
+	Done   int
+	Date   time.Time
+}
+type CleanTaskWorkList struct {
+	Id     int
+	TModel string
 	Amout  int
 	Done   int
 	Date   time.Time

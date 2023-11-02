@@ -10,6 +10,7 @@
 
     <link href="Face/html/css/bootstrap.min.css" rel="stylesheet">                         
     <link href="Face/html/css/style.css" rel="stylesheet">
+    <link href="Face/html/css/bootstrap-icons.css" rel="stylesheet">
 
 </head>
 <body>
@@ -28,22 +29,23 @@
       <div class="navbar-collapse collapse" id="navbarsExample05">
 
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-          
+            
           <li class="nav-item">
-            <a class="nav-link active" href="/works/prof">Профиль</a>
+            <a class="nav-link active" href="/works/prof">Профиль <i style="color: rgb(80, 80, 80);" class="bi bi-person-circle"></i></a>
           </li>
           
           
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false">Таблицы</a>
             <ul class="dropdown-menu">
-              <li><a class="dropdown-item" href="/works/tmc">ТМЦ</a></li>
-              <li><a class="dropdown-item" href="/works/orders">Заказы</a></li>
-              <li><a class="dropdown-item" href="/works/storage">Склад</a></li>
+              <li><a class="dropdown-item" href="/works/tmc">ТМЦ <i style="color: rgb(80, 80, 80);" class="bi bi-table"></i></a></li>
+              <li><a class="dropdown-item" href="/works/orders">Заказы <i style="color: rgb(80, 80, 80);" class="bi bi-briefcase-fill"></i></a></li>
+              <li><a class="dropdown-item" href="/works/storage">Склад <i style="color: rgb(80, 80, 80);" class="bi bi-house-fill"></i></a></li>
             </ul>
           </li>
+          <a class="nav-link active" style="text-align: left;" href="/works/cal">Календарь задач <i class="bi bi-calendar-week"></i></a>
           <form id="logout" name="logout" action="/works/logout" method="post"> 
-            <input class="btn btn-outline-danger" type="submit" name="logoutBtn" value="Выйти">
+            <a href="/works/logout" class="btn btn-outline-danger" type="submit" name="logoutBtn" >Выйти <i class="bi bi-arrow-bar-right"></i></a>
           </form>
         </ul>
       </div>

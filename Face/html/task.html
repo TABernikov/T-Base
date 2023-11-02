@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="ru">
+
+<head>
+    <title>Задачи</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="Face\img\t-kom-ico.svg">
+
+    <link href="Face/html/css/bootstrap.min.css" rel="stylesheet">
+    <link href="Face/html/css/style.css" rel="stylesheet">
+    <link href="Face/html/css/bootstrap-icons.css" rel="stylesheet">
+
+</head>
+<body>
+    
+  <nav class="navbar navbar-expand-lg sticky-top navbar-light bg-light" aria-label="Fifth navbar example">
+      <div class="container-fluid">
+      
+        <a class="navbar-brand" href="/works/prof">
+          <img src="Face\img\t-kom-logo.svg" width="100" height="50" alt="" loading="lazy">
+        </a>
+
+        <button class="navbar-toggler collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#navbarsExample05" aria-controls="navbarsExample05" aria-expanded="false" aria-label="Переключить навигацию">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+  
+        <div class="navbar-collapse collapse" id="navbarsExample05">
+
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            
+            <li class="nav-item">
+              <a class="nav-link active" href="/works/prof">Профиль <i style="color: rgb(80, 80, 80);" class="bi bi-person-circle"></i></a>
+            </li>
+            
+            
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false">Таблицы</a>
+              <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="/works/tmc">ТМЦ <i style="color: rgb(80, 80, 80);" class="bi bi-table"></i></a></li>
+                <li><a class="dropdown-item" href="/works/orders">Заказы <i style="color: rgb(80, 80, 80);" class="bi bi-briefcase-fill"></i></a></li>
+                <li><a class="dropdown-item" href="/works/storage">Склад <i style="color: rgb(80, 80, 80);" class="bi bi-house-fill"></i></a></li>
+              </ul>
+            </li>
+            <a class="nav-link active" style="text-align: left;" href="/works/cal">Календарь задач <i class="bi bi-calendar-week"></i></a>
+            <form id="logout" name="logout" action="/works/logout" method="post"> 
+              <a href="/works/logout" class="btn btn-outline-danger" type="submit" name="logoutBtn" >Выйти <i class="bi bi-arrow-bar-right"></i></a>
+            </form>
+          </ul>
+
+        </div>
+
+      </div>
+  </nav>
+
+  <div class="container">
+    <div class="row col">
+      <ul class="list-inline"><li class="list-inline-item display-5" style="font-weight: 300;">Имя: {{.Name}}</li><li class="list-inline-item display-5 float-end" style="color: {{.Color}}; font-weight: bold;">#{{.Id}}</li></ul>
+      <table class="table">
+        <tr>
+            <th>Автор</th>
+            <td>{{.Autor}}</td>
+            <th>Приоритет</th>
+            <td>{{.Priority}}</td>
+        </tr>
+        <tr>
+            <th>Дата начала</th>
+            <td>{{.DateStart}}</td>
+            <th>Дата окончания</th>
+            <td>{{.DateEnd}}</td>
+        </tr>
+        <tr>
+            <th>Готовность</th>
+            <td>{{.Complete}}</td>
+            <th>Описание</th>
+            <td>{{.Description}}</td>
+        </tr>
+      </table>
+    </div>
+
+
+  
+    <div class="row mb-2 row-cols-auto">
+      <div class="col">
+        <form action="/works/createtasklist" target="_self" method="post">      
+          <input type="hidden" name="Action" value="Open"/>
+          <input type="hidden" name="TaskId" value="{{.Id}}"/>
+          <button type="submit" class="btn btn-sm btn-primary " ><i class="bi-pencil"></i>Редактировать производственную задачу</button>
+        </form>
+      </div>
+      <div class="col">
+        <form action="/works/changetask" target="_self" method="get">      
+          <input type="hidden" name="Id" value="{{.Id}}"/>
+          <button type="submit" class="btn btn-sm btn-primary"><i class="bi-pencil"></i>Редактировать задачу</button>
+        </form>
+      </div>
+    </div>
+
+
+    <div class="row col">
+      <table class="table table-bordered table-striped">
+        <tr>
+          <th>Id</th>
+          <th>Модель</th>
+          <th>Кол-во</th>
+          <th>Готово</th>
+        </tr>
+        {{range .WorkList}}
+        <tr>
+          <th>{{.Id}}</th>
+          <td>{{.TModel}}</td>
+          <td>{{.Amout}}</td>
+          <td>{{.Done}}</td>
+        </tr>
+        {{end}}
+      </table>
+    </div>
+  </div>
+
+    <script src="Face/html/js/bootstrap.bundle.js"></script>
+
+</body>
+
+
+</html>

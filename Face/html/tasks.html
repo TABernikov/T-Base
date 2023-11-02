@@ -2,7 +2,7 @@
 <html lang="ru">
 
 <head>
-    <title>{{.Title}}</title>
+    <title>Задачи</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" href="Face\img\t-kom-ico.svg">
@@ -51,32 +51,53 @@
           </div>
   
         </div>
-      </nav>
-
-    <div class="container">
-    <form id="in-form" name="in-form" action="{{.PostPath}}" method="post" enctype="multipart/form-data">
-    <div class="container">
-        <div class="row">
-            <label for="in" class="form-label">{{.InputText}}</label>
-        </div>
-        <div class="row">    
-            
-            <div class="col-8">
-                <div class="mb-3">
-                    <input class="form-control" type="file" id="in" name="in" accept=".xlsx" ></input>
+    </nav>
+    &nbsp;
+    <div class="container-xxl g-3">
+      <div class="row g-3 ">
+        {{range .Tasks}}
+        <div class="col" style="width: 100%; min-width: 400px;">
+          <div class="card" style=" width: 100%; max-width: 801px; ">
+            <ul class="list-inline card-header" style="color: white; background-color: {{.Color}};"><li class="list-inline-item h4" >{{.Name}}</li><li class="list-inline-item h4 float-end">#{{.Id}}</li></ul>
+            <div class="card-body" >
+              <h6 class="card-title">{{.Description}}</h6>
+              <p class="card-text" style="font-size: 115%; font-weight: bold;">Приоритет: {{.Priority}}</p>
+              <p class="card-text">С: {{.DateStart}} По: {{.DateEnd}}</p>
+              <p class="card-text">Создатель: {{.Autor}}</p>
+              <p class="card-text">Производственная задача:</p>
+            </div>
+            <ul class="list-group list-group-flush">
+              {{range .WorkList}}
+              <li class="list-group-item">{{.TModel}} X {{.Amout}}шт, [{{.Done}}]</li>
+              {{end}}
+            </ul>
+            <div class="card-body">
+              <div class="row mb-2 row-cols-auto">
+                <div class="col">
+                  <form action="/works/changetask" target="_self" method="get">      
+                    <input type="hidden" name="Id" value="{{.Id}}" />
+                    <button type="submit" class="btn btn-sm btn-primary " style="font-size: 80%;"><i class="bi-pencil"></i>Редактировать задачу</button>
+                  </form>
                 </div>
+                <div class="col">
+                  <form action="/works/createtasklist" target="_self" method="post">      
+                    <input type="hidden" name="Action" value="Open" />
+                    <input type="hidden" name="TaskId" value="{{.Id}}" />
+                    <button type="submit" class="btn btn-sm btn-primary " style="font-size: 80%;"><i class="bi-pencil"></i>Редактировать состав</button>
+                  </form>
+                </div>
+              </div>
             </div>
-            <div class="col-4">
-                <button type="submit" value="upload" class="btn btn-primary">{{.BtnText}}</button>
-            </div>
-        </div>
+          </div>
+      </div>
+      {{end}}
+    </div>
+    &nbsp;
+      
+      <script src="Face/html/js/bootstrap.bundle.js"></script>
+
+    </body>
     
-    </div>
-    </form>
-    </div>
-
-    <script src="Face/html/js/bootstrap.bundle.js"></script>
-</body>
-
-
-</html>
+    
+    </html>
+    
