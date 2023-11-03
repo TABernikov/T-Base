@@ -1057,27 +1057,27 @@ func (base Base) ChangeMAC(ctx context.Context, sn, mac string) (int, error) {
 	return int(res.RowsAffected()), err
 }
 
-func (base Base) ReleaseProduction(ctx context.Context, sn string) (int, map[int]int, error) {
+func (base Base) ReleaseProduction(ctx context.Context, sn string) (int, int, map[int]int, error) {
 	devices, err := base.TakeDeviceBySn(ctx, sn)
 	if err != nil {
-		return -1, nil, err
+		return -1, -1, nil, err
 	}
 	if len(devices) == 0 {
-		return -1, nil, fmt.Errorf("не девайс")
+		return -1, -1, nil, fmt.Errorf("не девайс")
 	}
 	device := devices[0]
 	if device.Condition == 1 {
-		return -1, nil, fmt.Errorf("девайс уже собран")
+		return -1, -1, nil, fmt.Errorf("девайс уже собран")
 	}
 
 	var buildId int
 	err = base.Db.QueryRow(ctx, `Select build FROM public."dModels" WHERE "dModelsId" = $1`, device.DModel).Scan(&buildId)
 	if err != nil {
-		return -1, nil, err
+		return -1, -1, nil, err
 	}
 	build, err := base.TakeBuildById(ctx, buildId)
 	if err != nil {
-		return -1, nil, err
+		return -1, -1, nil, err
 	}
 
 	matList := make(map[int]int)
@@ -1085,11 +1085,11 @@ func (base Base) ReleaseProduction(ctx context.Context, sn string) (int, map[int
 		var matId int
 		err = base.Db.QueryRow(ctx, `SELECT "matId" FROM public.mats WHERE name = $1 AND "inWork" > 0`, buildElement.MatId).Scan(&matId)
 		if err != nil {
-			return -1, nil, err
+			return -1, -1, nil, err
 		}
 		_, err = base.Db.Exec(ctx, `UPDATE public.mats SET amout= amout - $2, "inWork"= "inWork" - $2 WHERE "matId" = $1`, matId, buildElement.Amout)
 		if err != nil {
-			return -1, nil, err
+			return -1, -1, nil, err
 		}
 		matList[matId] += buildElement.Amout
 
@@ -1105,15 +1105,15 @@ func (base Base) ReleaseProduction(ctx context.Context, sn string) (int, map[int
 
 	err = base.Db.QueryRow(ctx, `SELECT "tModelsName" FROM public."tModels" WHERE "tModelsId" = $1`, build.TModel).Scan(&newName)
 	if err != nil {
-		return -1, nil, err
+		return -1, -1, nil, err
 	}
 
 	_, err = base.Db.Exec(ctx, `UPDATE public.sns SET condition = 1, "condDate" = $1, "order" = $2, name = $3 Where sn = $4`, time.Now(), order, newName, sn)
 	if err != nil {
-		return -1, nil, err
+		return -1, -1, nil, err
 	}
 
-	return build.Id, matList, nil
+	return build.Id, build.TModel, matList, nil
 }
 
 func (base Base) ReturnToStorage(ctx context.Context, sn ...string) int {
@@ -2335,6 +2335,23 @@ func (base Base) ChangeTaskList(ctx context.Context, taskWorkList mytypes.TaskWo
 	WHERE id = $1;`
 	_, err := base.Db.Exec(ctx, qq, taskWorkList.Id, taskWorkList.TModel, taskWorkList.Amout, taskWorkList.Done, taskWorkList.Date)
 	return err
+}
+
+func (base Base) TakeRelevantTaskByTModel(ctx context.Context, model int) (taskId int, taskElementId int, err error) {
+	qq := `SELECT
+	"taskWorkList".id, "taskWorkList"."taskId"
+	FROM public."taskWorkList"
+	LEFT JOIN tasks on "taskWorkList"."taskId" = tasks.id
+	WHERE amout > done AND complete = false AND datestart <= CURRENT_DATE AND dateend >= CURRENT_DATE AND tmodel = $1
+	ORDER BY priority`
+	err = base.Db.QueryRow(ctx, qq, model).Scan(&taskElementId, &taskId)
+	return
+}
+
+func (base Base) ProdToTask(ctx context.Context, taskId int, taskElementId int) (err error) {
+	qq := `UPDATE public."taskWorkList"SET done = done + 1 WHERE "taskId" = $1 AND id = $2;`
+	_, err = base.Db.Exec(ctx, qq, taskId, taskElementId)
+	return
 }
 
 ////////////////////

@@ -1615,7 +1615,7 @@ func (a App) ReleaseProduction(w http.ResponseWriter, r *http.Request, pr httpro
 	matList := make(map[int]int)
 	for _, sn := range in {
 		// Преобразование устройства
-		build, matToProdus, err := a.Db.ReleaseProduction(a.ctx, sn)
+		build, tmodel, matToProdus, err := a.Db.ReleaseProduction(a.ctx, sn)
 		if err != nil {
 			if err.Error() == "не девайс" {
 				continue
@@ -1625,21 +1625,43 @@ func (a App) ReleaseProduction(w http.ResponseWriter, r *http.Request, pr httpro
 		}
 		counter++
 
+		taskId, taskElId, err := a.Db.TakeRelevantTaskByTModel(a.ctx, tmodel)
+		if err != nil {
+			if err.Error() != "no rows in result set" {
+				MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка поиска задачи", err.Error(), "Главная", "/works/prof")
+			}
+			taskId = -1
+		}
+		if taskId != -1 {
+			err = a.Db.ProdToTask(a.ctx, taskId, taskElId)
+			if err != nil {
+				MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка обновления задачи", err.Error(), "Главная", "/works/prof")
+
+			}
+		}
+		logstr := "Выпуск по сборке №" + strconv.Itoa(build)
+		if taskId != -1 {
+			logstr += " для задачи №" + strconv.Itoa(taskId)
+		}
+
 		// Запись лога устройства
-		log := a.Db.AddDeviceEventBySn(a.ctx, 4, "Списание для сборки "+strconv.Itoa(build), user.UserId, sn)
+		log := a.Db.AddDeviceEventBySn(a.ctx, 4, logstr, user.UserId, sn)
 		if log != 1 {
 			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка записи логов", "", "Главная", "/works/prof")
+
 		}
 
 		// Добавляем материалы для этого устройства в облий лист списаия
 		for i, a := range matToProdus {
 			matList[i] += a
 		}
+
 	}
 	for matId, amout := range matList {
 		err := a.Db.AddMatLog(a.ctx, matId, amout, 4, "Преобразование", user.UserId)
 		if err != nil {
 			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка записи логов материала", "", "Главная", "/works/prof")
+
 		}
 	}
 
