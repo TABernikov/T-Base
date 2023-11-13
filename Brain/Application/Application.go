@@ -91,6 +91,7 @@ func (a App) Routs(r *httprouter.Router) {
 	r.GET("/works/createtasklist", a.authtorized(a.CreateTaskListPage))
 	r.GET("/works/changetask", a.authtorized(a.ChangeTaskPage))
 	r.GET("/works/task", a.authtorized(a.TaskPage))
+	r.GET("/works/planprodstorage", a.authtorized(a.PlanProdStoragePage))
 
 	r.POST("/works/tmc", a.authtorized(a.TMCPage))
 	r.POST("/works/orders", a.authtorized(a.OrderPage))
@@ -123,6 +124,8 @@ func (a App) Routs(r *httprouter.Router) {
 	r.POST("/works/createtask", a.authtorized(a.CreateTask))
 	r.POST("/works/createtasklist", a.authtorized(a.CreateTaskListPage))
 	r.POST("/works/changetask", a.authtorized(a.ChangeTask))
+	r.POST("/works/ordertotask", a.authtorized(a.OrderToTask))
+	r.POST("/works/hidetask", a.authtorized(a.HideTask))
 
 	r.GET("/works/tmcexcell", a.authtorized(a.TMCExcell))
 	r.POST("/works/tmcexcell", a.authtorized(a.TMCExcell))

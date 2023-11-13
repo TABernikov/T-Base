@@ -556,6 +556,29 @@ func (base Base) TakeStorageCountByPlace(ctx context.Context, fullReqest string)
 	return storage, nil
 }
 
+func (base Base) TakeStorageByTModel(ctx context.Context, fullReqest string) ([]mytypes.StorageByTModel, error) {
+	storage := []mytypes.StorageByTModel{}
+	deviceCount := mytypes.StorageByTModel{}
+
+	if fullReqest == "" {
+		fullReqest = `SELECT tmodel, name, condition, count, shiped FROM public."WearByTModel";`
+	}
+	rows, err := base.Db.Query(ctx, fullReqest)
+	if err != nil {
+		return storage, err
+	}
+
+	for rows.Next() {
+		err := rows.Scan(&deviceCount.Model, &deviceCount.Name, &deviceCount.Condition, &deviceCount.Amout, &deviceCount.Shipped)
+		if err != nil {
+			return storage, err
+		}
+
+		storage = append(storage, deviceCount)
+	}
+	return storage, nil
+}
+
 func (base Base) TakeStorageByTModelClean(ctx context.Context, fullReqest string) ([]mytypes.StorageByTModelClean, error) {
 	storage := []mytypes.StorageByTModelClean{}
 	deviceCount := mytypes.StorageByTModelClean{}
@@ -620,7 +643,9 @@ func (base Base) TakeOrderById(ctx context.Context, inId ...int) ([]mytypes.Orde
 }
 
 //////////////////////////////////////////
+
 // Функции получения читабельных заказов//
+
 //////////////////////////////////////////
 
 func (base Base) TakeCleanOrderById(ctx context.Context, inId ...int) ([]mytypes.OrderClean, error) {
@@ -1108,7 +1133,7 @@ func (base Base) ReleaseProduction(ctx context.Context, sn string) (int, int, ma
 		return -1, -1, nil, err
 	}
 
-	_, err = base.Db.Exec(ctx, `UPDATE public.sns SET condition = 1, "condDate" = $1, "order" = $2, name = $3 Where sn = $4`, time.Now(), order, newName, sn)
+	_, err = base.Db.Exec(ctx, `UPDATE public.sns SET condition = 1, "condDate" = $1, "order" = $2, name = $3, tmodel = $5 Where sn = $4`, time.Now(), order, newName, sn, build.TModel)
 	if err != nil {
 		return -1, -1, nil, err
 	}
@@ -2132,7 +2157,7 @@ func (base Base) TakeTasksById(ctx context.Context, Ids ...int) ([]mytypes.Task,
 	var Task mytypes.Task
 
 	if len(Ids) == 0 {
-		qq := `SELECT id, name, description, cololor, priority, datestart, dateend, complete, autor FROM public.tasks ORDER BY dateend;`
+		qq := `SELECT id, name, description, cololor, priority, datestart, dateend, complete, autor FROM public.tasks WHERE complete = false ORDER BY dateend;`
 
 		rows, err := base.Db.Query(ctx, qq)
 		if err != nil {
@@ -2203,7 +2228,7 @@ func (base Base) TakeCleanTasksById(ctx context.Context, Ids ...int) ([]mytypes.
 	var Task mytypes.CleanTask
 
 	if len(Ids) == 0 {
-		qq := `SELECT id, "CleanTasks".name, description, cololor, priority, datestart, dateend, complete, autor FROM public."CleanTasks" ORDER BY dateend;`
+		qq := `SELECT id, "CleanTasks".name, description, cololor, priority, datestart, dateend, complete, autor FROM public."CleanTasks" WHERE complete = false ORDER BY dateend;`
 
 		rows, err := base.Db.Query(ctx, qq)
 		if err != nil {
@@ -2352,6 +2377,49 @@ func (base Base) ProdToTask(ctx context.Context, taskId int, taskElementId int) 
 	qq := `UPDATE public."taskWorkList"SET done = done + 1 WHERE "taskId" = $1 AND id = $2;`
 	_, err = base.Db.Exec(ctx, qq, taskId, taskElementId)
 	return
+}
+
+func (base Base) CompleatTask(ctx context.Context, taskId int) (err error) {
+	qq := `UPDATE public.tasks
+	SET complete = $2
+	WHERE id=$1;`
+	_, err = base.Db.Exec(ctx, qq, taskId, true)
+	return
+}
+
+func (base Base) ChekTaks(ctx context.Context) (err error) {
+	qq := `SELECT id FROM public.tasks
+	WHERE dateend < CURRENT_DATE AND complete = false
+	ORDER BY datestart DESC `
+
+	rows, err := base.Db.Query(ctx, qq)
+	if err != nil {
+		return err
+	}
+
+	var id int
+	for rows.Next() {
+		err = rows.Scan(&id)
+		if err != nil {
+			return err
+		}
+		qqq := `UPDATE public.tasks
+		SET cololor='#bb0a1e',  dateend=CURRENT_DATE
+		WHERE id=$1 AND name like '%!!Просрочено!!';`
+		_, err = base.Db.Exec(ctx, qqq, id)
+		if err != nil {
+			return err
+		}
+
+		qqq = `UPDATE public.tasks
+		SET cololor='#bb0a1e',  dateend=CURRENT_DATE, name = name || ' !!Просрочено!!'
+		WHERE id=$1 AND NOT name like '%!!Просрочено!!';`
+		_, err = base.Db.Exec(ctx, qqq, id)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 ////////////////////

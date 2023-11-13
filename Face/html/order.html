@@ -53,12 +53,17 @@
                             </div>
                         </form>
                         {{end}}
-                        <form  class="p-1" id="changepromdate" name="changepromdate" action="/works/ordersexcell" target="_parent" method="post">   
+                        <form  class="p-1" id="excell" name="excell" action="/works/ordersexcell" target="_parent" method="post">   
                                 <button class="btn btn-outline-success btn-sm" type="submit"  ><i class="bi-file-earmark-excel" ></i></button>
                                 <input type="hidden" name="in" value="{{.Order.OrderId}}"/>
                                 <input type="hidden" name="Search" value="Raw"/>
                         </form>
-                        
+                        {{if (eq .User.Acces 1)}}
+                        <form  class="p-1" id="task" name="task" action="/works/ordertotask" target="_parent" method="post">   
+                            <button class="btn btn-outline-success btn-sm" type="submit"  ><i class="bi-calendar-plus" ></i></button>
+                            <input type="hidden" name="order" value="{{.Order.OrderId}}"/> 
+                        </form>
+                        {{end}}
                     </div>
                    
                     </nav>
@@ -151,6 +156,7 @@
                             {{if .List}}<button class="nav-link active" id="nav-list-tab" data-bs-toggle="tab" data-bs-target="#nav-list" type="button" role="tab" aria-controls="nav-list" aria-selected="true">Состав заказа</button>{{end}}
                             {{if .Status}} <button class="nav-link" id="nav-st-tab" data-bs-toggle="tab" data-bs-target="#nav-st" type="button" role="tab" aria-controls="nav-st" aria-selected="false" tabindex="-1">Статус</button> {{end}}
                             {{if .Reservs}}<button class="nav-link" id="nav-res-tab" data-bs-toggle="tab" data-bs-target="#nav-res" type="button" role="tab" aria-controls="nav-res" aria-selected="false" tabindex="-1">Резерв <a target = "_parent" type="button" class="btn btn-sm btn-outline-info"  href="/works/tmc?Search=Raw&Order={{.Order.OrderId}}">Открыть в ТМЦ</a></button>{{end}}
+                            
                         </div>
                     </nav>
 
@@ -256,6 +262,7 @@
     </div>
     
 <script src="Face/html/js/bootstrap.bundle.js"></script>
+<script src="Face/html/js/keys.js"></script>
 </body>
 
 

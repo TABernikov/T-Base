@@ -73,7 +73,7 @@ type StorageByTModel struct {
 	Name      string
 	Amout     int
 	Condition int
-	Shiped    bool
+	Shipped   bool
 }
 
 type StorageByTModelClean struct {

@@ -52,12 +52,14 @@ func (a App) UserPage(w http.ResponseWriter, r *http.Request, pr httprouter.Para
 // Таблица ТМЦ
 func (a App) TMCPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	var devices []mytypes.DeviceClean
-	var err error
 	var link string
+	var err error
+
+	link = "?"
 	if r.FormValue("Search") == "" {
 		devices, err = a.Db.TakeCleanDeviceByRequest(a.ctx, "LIMIT 1000")
 		if err != nil {
-			fmt.Println(err)
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
 		}
 	} else if r.FormValue("Search") == "Clean" {
 		link = "?Search=Clean"
@@ -193,11 +195,11 @@ func (a App) TMCPage(w http.ResponseWriter, r *http.Request, pr httprouter.Param
 
 		devices, err = a.Db.TakeCleanDeviceByRequest(a.ctx, req)
 		if err != nil {
-			fmt.Println(err)
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
 		}
 	} else if r.FormValue("Search") == "Raw" {
 		rawSelect := `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder" FROM public.sns WHERE true`
-		link = "?Search=Raw"
+		link += "Search=Raw"
 		if r.FormValue("Id") != "" {
 			rawSelect += ` AND "snsId" = ` + r.FormValue("Id")
 			link += "&Id=" + r.FormValue("Id")
@@ -324,23 +326,26 @@ func (a App) TMCPage(w http.ResponseWriter, r *http.Request, pr httprouter.Param
 		}
 	} else if r.FormValue("Search") == "Sns" {
 		snString := r.FormValue("in")
-		link = "?Search=Sns&in=" + r.FormValue("in")
+		link += "Search=Sns&in=" + r.FormValue("in")
 		Sns := strings.Fields(snString)
 		devices, err = a.Db.TakeCleanDeviceBySn(a.ctx, Sns...)
 		if err != nil {
-			fmt.Println(err)
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
 		}
 	} else if r.FormValue("Search") == "Anything" {
-		link = "?Search=Anything&in=" + r.FormValue("in")
+		link += "Search=Anything&in=" + r.FormValue("in")
 		snString := r.FormValue("in")
 		Sns := strings.Split(snString, ";")
 		devices, err = a.Db.TakeCleanDeviceByAnything(a.ctx, Sns...)
 		if err != nil {
-			fmt.Println(err)
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
 		}
 	}
-
-	MakeTMCPage(w, devices, "ТМЦ показанно устройств: "+strconv.Itoa(len(devices)), link)
+	if r.FormValue("Veiw") == "table" {
+		MakeTableTMCPage(w, devices, "ТМЦ показанно устройств: "+strconv.Itoa(len(devices)), link)
+	} else {
+		MakeTMCPage(w, devices, "ТМЦ показанно устройств: "+strconv.Itoa(len(devices)), link)
+	}
 }
 
 func (a App) TMCSearchPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
@@ -954,10 +959,13 @@ func (a App) MatEventPage(w http.ResponseWriter, r *http.Request, pr httprouter.
 }
 
 func (a App) CalendearPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if a.Db.ChekTaks(a.ctx) != nil {
+		fmt.Println(a.Db.ChekTaks(a.ctx).Error())
+	}
 	var tasks []mytypes.TaskJs
 	var err error
 	if user.Acces == 1 {
-		tasks, err = a.Db.TakeJsTaskByReqest(a.ctx, "ORDER BY dateend")
+		tasks, err = a.Db.TakeJsTaskByReqest(a.ctx, "WHERE complete = false ORDER BY dateend")
 		if err != nil {
 			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
 			return
@@ -978,6 +986,7 @@ func (a App) CreateTaskPage(w http.ResponseWriter, r *http.Request, pr httproute
 }
 
 func (a App) TasksPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	a.Db.ChekTaks(a.ctx)
 	tasks, err := a.Db.TakeCleanTasksById(a.ctx)
 	if err != nil {
 		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения задач", err.Error(), "Главная", "/works/prof")
@@ -999,6 +1008,10 @@ func (a App) TaskPage(w http.ResponseWriter, r *http.Request, pr httprouter.Para
 		return
 	}
 	a.MakeTaskPage(w, taskId)
+}
+
+func (a App) PlanProdStoragePage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	a.MakePlanProdStoragePage(w)
 }
 
 //////////////////////
@@ -2165,6 +2178,93 @@ func (a App) ChangeTask(w http.ResponseWriter, r *http.Request, pr httprouter.Pa
 	MakeAlertPage(w, 1, "Успешно", "Успешно", "Изменено", "Новые данные внесены", "Главная", "/works/prof")
 }
 
+func (a App) OrderToTask(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	orderId, err := strconv.Atoi(r.FormValue("order"))
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка считывания Id", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	list, err := a.Db.TakeOrderList(a.ctx, orderId)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка поиска состава", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	orders, err := a.Db.TakeOrderById(a.ctx, orderId)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения заказа", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	order := orders[0]
+
+	endDate := order.ReqDate
+	if order.PromDate != time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC) {
+		endDate = order.PromDate
+	}
+
+	task := mytypes.Task{
+		Name:        "Заказ " + order.Name + "#" + strconv.Itoa(order.Id1C),
+		Autor:       user.UserId,
+		Description: "Автоматическая задача для заказа",
+		Color:       "#0d6efd",
+		Priority:    10,
+		DateStart:   time.Now(),
+		DateEnd:     endDate,
+		Complete:    false,
+	}
+	err = a.Db.InsertTask(a.ctx, task)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка создания задачи", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	err = a.Db.Db.QueryRow(a.ctx, `SELECT id FROM public.tasks WHERE name = $1 AND autor = $2 AND complete = $3 ORDER BY datestart DESC`, task.Name, task.Autor, task.Complete).Scan(&task.Id)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения номера задачи", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	for _, listEl := range list {
+		taskEl := mytypes.TaskWorkList{
+			TModel: listEl.Model,
+			Amout:  listEl.Amout,
+			Done:   0,
+		}
+		err = a.Db.InsertTaskWorkList(a.ctx, task.Id, taskEl)
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка добовления в лист задачи", err.Error(), "Главная", "/works/prof")
+			return
+		}
+	}
+
+	MakeAlertPage(w, 1, "Успешно", "Успешно", "Созданно", "Новая задача создана", "Главная", "/works/prof")
+}
+
+func (a App) HideTask(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	taskId, err := strconv.Atoi(r.FormValue("TaskId"))
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка считывания Id", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	task, err := a.Db.TakeTasksById(a.ctx, taskId)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка писка задачи", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	if task[0].Autor != user.UserId {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Нельзя удалить чужую задачу", "Не надо так", "Главная", "/works/prof")
+		return
+	}
+
+	err = a.Db.CompleatTask(a.ctx, taskId)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка скрытия задачи", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	MakeAlertPage(w, 1, "Успешно", "Успешно", "Созданно", "Задача скрыта", "Главная", "/works/prof")
+}
+
 //////////////////////
 
 // Отправка отчетов //
@@ -2592,6 +2692,20 @@ func MakeTMCPage(w http.ResponseWriter, devices []mytypes.DeviceClean, lable str
 	t.Execute(w, table)
 }
 
+func MakeTableTMCPage(w http.ResponseWriter, devices []mytypes.DeviceClean, lable string, excellLink string) {
+
+	type tmcPage struct {
+		Lable      string
+		Tab        []mytypes.DeviceClean
+		SnString   string
+		ExcellLink string
+	}
+	table := tmcPage{lable, devices, GetSnfromCleanDevices(devices...), excellLink}
+
+	t := template.Must(template.ParseFiles("Face/html/TableTMC.html"))
+	t.Execute(w, table)
+}
+
 func (a App) MakeTMCAdvanceSearchPage(w http.ResponseWriter) {
 	type idChoise struct {
 		Id   int
@@ -3014,6 +3128,8 @@ func (a App) MakeUserPage(w http.ResponseWriter, user mytypes.User) {
 		btn = Buton{`<i class="bi bi-card-list"></i> Задачи`, "/works/tasks"}
 		block.Btns = append(block.Btns, btn)
 		btn = Buton{`<i class="bi bi-calendar-plus-fill"></i> Создать задачу`, "/works/createtask"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{`<i class="bi bi-graph-up"></i> Отчет о планировании`, "/works/planprodstorage"}
 		block.Btns = append(block.Btns, btn)
 		Blocks = append(Blocks, block)
 
@@ -3559,4 +3675,85 @@ func (a App) MakeTaskPage(w http.ResponseWriter, taskId int) {
 	}
 	t := template.Must(template.ParseFiles("Face/html/task.html"))
 	t.Execute(w, tasks[0])
+}
+
+func (a App) MakePlanProdStoragePage(w http.ResponseWriter) {
+	type prodStorage struct {
+		Name    string
+		Current int
+		Done1   int
+		Plan1   int
+		Done2   int
+		Plan2   int
+		Done3   int
+		Plan3   int
+	}
+
+	qq := `SELECT
+	stor."tModelsName",
+	stor.amout,
+	(COALESCE(monthone.amout, 0) - COALESCE(monthone.done, 0)) AS plan1,
+	(COALESCE(monthone.amout, 0) - COALESCE(monthone.done, 0)) + stor.amout AS done1,
+	(COALESCE(monthto.amout, 0) - COALESCE(monthto.done, 0)) AS plan2,
+	(COALESCE(monthto.amout, 0) - COALESCE(monthto.done, 0)) + (COALESCE(monthone.amout, 0) - COALESCE(monthone.done, 0)) + stor.amout AS done2,
+	(COALESCE(monththre.amout, 0) - COALESCE(monththre.done, 0)) AS plan3,
+	(COALESCE(monththre.amout, 0) - COALESCE(monththre.done, 0)) + (COALESCE(monthto.amout, 0) - COALESCE(monthto.done, 0)) + (COALESCE(monthone.amout, 0) - COALESCE(monthone.done, 0)) + stor.amout AS done3
+FROM
+	(SELECT
+		"tModels"."tModelsId",
+	 	"tModels"."tModelsName",
+		count(snsn.sn) AS amout
+	FROM "tModels"
+		LEFT JOIN (SELECT sn, tmodel FROM sns WHERE condition = 1 AND shiped = false)snsn ON snsn.tmodel = "tModels"."tModelsId"
+	GROUP BY "tModelsId")stor
+	LEFT JOIN 
+		(SELECT 
+			"taskWorkList".tmodel, 
+			sum("taskWorkList".amout) AS amout, 
+			sum("taskWorkList".done) AS done
+		FROM public."taskWorkList"
+			LEFT JOIN tasks ON tasks.id = "taskWorkList"."taskId"
+		WHERE dateend > CURRENT_DATE AND dateend <= date_trunc('month',CURRENT_DATE + '1 month'::interval)
+		GROUP BY tmodel
+		)monthone ON monthone.tmodel = stor."tModelsId"
+	LEFT JOIN
+		(SELECT 
+			"taskWorkList".tmodel, 
+			sum("taskWorkList".amout) AS amout, 
+			sum("taskWorkList".done) AS done
+		FROM public."taskWorkList"
+			LEFT JOIN tasks ON tasks.id = "taskWorkList"."taskId"
+		WHERE dateend > date_trunc('month',CURRENT_DATE + '1 month'::interval) AND dateend <= date_trunc('month',CURRENT_DATE + '2 month'::interval)
+		GROUP BY tmodel
+		)monthto ON monthto.tmodel = stor."tModelsId"
+	LEFT JOIN
+		(SELECT 
+			"taskWorkList".tmodel, 
+			sum("taskWorkList".amout) AS amout, 
+			sum("taskWorkList".done) AS done
+		FROM public."taskWorkList"
+			LEFT JOIN tasks ON tasks.id = "taskWorkList"."taskId"
+		WHERE dateend > date_trunc('month',CURRENT_DATE + '2 month'::interval) AND dateend <= date_trunc('month',CURRENT_DATE + '3 month'::interval)
+		GROUP BY tmodel
+		)monththre ON monththre.tmodel = stor."tModelsId"
+ORDER BY "tModelsName"`
+
+	temp := []prodStorage{}
+	data := prodStorage{}
+	rows, err := a.Db.Db.Query(a.ctx, qq)
+	if err != nil {
+		MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения данных", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	for rows.Next() {
+		err := rows.Scan(&data.Name, &data.Current, &data.Plan1, &data.Done1, &data.Plan2, &data.Done2, &data.Plan3, &data.Done3)
+		if err != nil {
+			MakeAlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения данных", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		temp = append(temp, data)
+	}
+
+	t := template.Must(template.ParseFiles("Face/html/storage_planprd.html"))
+	t.Execute(w, temp)
 }

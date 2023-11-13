@@ -2,7 +2,7 @@
 <html lang="ru">
 
 <head>
-    <title>{{.Lable}}</title>
+    <title>Отчет о планировании</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" href="Face\img\t-kom-ico.svg">
@@ -47,15 +47,6 @@
             <a href="/works/logout" class="btn btn-outline-danger" type="submit" name="logoutBtn" >Выйти <i class="bi bi-arrow-bar-right"></i></a>
           </form>
         </ul>
-
-        
-
-        <form class="d-flex" role="search" method="get">
-          <input type="hidden" name="Search" value="1">
-          <input class="form-control" type="search" placeholder="Модель/Наименование" name="in" aria-label="Поиск">
-          <button class="btn btn-outline-success" type="submit">Поиск</button>
-        </form>
-
       </div>
 
     </div>
@@ -65,58 +56,43 @@
 
 
       <div class="container">
-        <nav>
-          <div class="nav nav-tabs mb-3" id="nav-tab" role="tablist">
-             
-            <a class="nav-link" id="toOrders" href="/works/storage/orders" type="button">Заказы</a>
-            <a class="nav-link" id="toPlaces" href="/works/storage/places" type="button" role="button" >Места</a>
-            <a class="nav-link active" id="toModels" href="/works/storage/models" type="button">Модели</a>
-          </div>
-        </nav>
-
         <table class="table table-bordered table-hover table-striped">
             <thead>
                 <tr>
                     <th scope="col">
-                        Модель
+                      Наименование
                     </th>
                     <th scope="col">
-                        Наименование
+                      Текущее кол-во
                     </th>
                     <th scope="col">
-                        Кол-во
+                      + 1 месяц
                     </th>
                     <th scope="col">
-                      Состояние
+                      + 2 месяц
                     </th>
                     <th scope="col">
-                      Отгружен
-                    </th>
-                    <th scope="col">
-
+                      + 3 месяц
                     </th>
                 </tr>
             </thead>
             <tbody>
-                {{range .Tab}}
-                <tr class="{{if(eq .Shipped true )}} {{print "table-secondary"}} {{else if(eq .Condition "Собрано" )}} {{print "table-success"}} {{else if(eq .Condition "В работе" )}} {{print "table-primary"}}     {{else if(eq .Condition "Не собрано")}} {{print "table-warning"}} {{end}}">
+                {{range .}}
+                <tr class = "{{if or (ne .Plan1 0)  (ne .Plan2 0) (ne .Plan3 0)}} table-warning {{end}}" >
+                    <th>
+                      {{.Name}}
+                    </th>
                     <td>
-                        {{.Model}}
+                      {{.Current}}
                     </td>
                     <td>
-                        {{.Name}}
+                      <div class="row"><div class="col-6">{{.Done1}}</div> <div class="col-6">({{.Plan1}})</div></div>
                     </td>
                     <td>
-                        {{.Amout}}
+                      <div class="row"><div class="col-6">{{.Done2}}</div> <div class="col-6">({{.Plan2}})</div></div>
                     </td>
                     <td>
-                      {{.Condition}}
-                    </td>
-                    <td>
-                      {{.Shipped}}
-                    </td>
-                    <td>
-                      <a class="btn btn-sm {{if(eq .Shipped true )}} {{print "btn-secondary"}} {{else if(eq .Condition "Собрано" )}} {{print "btn-success"}} {{else if(eq .Condition "В работе" )}} {{print "btn-primary"}}     {{else if(eq .Condition "Не собрано")}} {{print "btn-warning"}} {{end}}" href="/works/tmc?Search=Clean&Condition={{.Condition}}&Name={{.Name}}&TModel={{.Model}}&Shiped={{.Shipped}}" type="button" style="width: 100%;">В ТМЦ</a>
+                      <div class="row"><div class="col-6">{{.Done3}}</div> <div class="col-6">({{.Plan3}})</div></div>
                     </td>
                 </tr>
                 {{end}}
