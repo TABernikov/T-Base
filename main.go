@@ -23,11 +23,6 @@ func main() {
 	router := httprouter.New()
 	a.Routs(router)
 
-	//a.Db.NewOrders()
-	//a.Db.NewOrderList()
-	//a.Db.NewDModels()
-	//a.Db.NewLog()
-
 	srv := &http.Server{Addr: a.AppIp, Handler: router}
 	http.HandleFunc("/service-worker.js", Application.SendSW)
 	http.HandleFunc("/manifest.json", Application.SendManifest)

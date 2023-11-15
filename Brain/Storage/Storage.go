@@ -4,9 +4,7 @@ import (
 	"T-Base/Brain/mytypes"
 	"context"
 	"database/sql"
-	"encoding/csv"
 	"fmt"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -190,7 +188,6 @@ func (base Base) TakeCleanDevice(ctx context.Context, fullReqest string) ([]myty
 	}
 
 	rows, err := base.Db.Query(ctx, fullReqest)
-	fmt.Println(fullReqest)
 	if err != nil {
 		return devices, err
 	}
@@ -413,8 +410,6 @@ func (base Base) TakeCleanDeviceByAnything(ctx context.Context, request ...strin
 	var commentnull sql.NullString
 
 	rows, err := base.Db.Query(ctx, qq)
-	fmt.Println(request)
-	fmt.Println(qq)
 	if err != nil {
 		return devices, err
 	}
@@ -1013,7 +1008,6 @@ func (base Base) AddCommentToSns(ctx context.Context, id int, text string, user 
 	res, err := base.Db.Exec(ctx, qq, id, text)
 
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
 	if res.RowsAffected() == 0 {
@@ -1022,7 +1016,6 @@ func (base Base) AddCommentToSns(ctx context.Context, id int, text string, user 
 			VALUES ( $1, $2);`
 		_, err = base.Db.Exec(ctx, qq, id, text)
 		if err != nil {
-			fmt.Println(err)
 			return err
 		}
 	}
@@ -2328,7 +2321,6 @@ func (base Base) InsertTask(ctx context.Context, task mytypes.Task) error {
 	qq := `INSERT INTO public.tasks(
 	name, description, cololor, priority, datestart, dateend, complete, autor)
 	VALUES ( $1, $2, $3, $4, $5, $6, $7, $8);`
-	fmt.Println(task)
 	_, err := base.Db.Exec(ctx, qq, task.Name, task.Description, task.Color, task.Priority, task.DateStart, task.DateEnd, task.Complete, task.Autor)
 	if err != nil {
 		return err
@@ -2430,13 +2422,11 @@ func (base Base) ChekTaks(ctx context.Context) (err error) {
 
 // запись токена генерации
 func (base Base) NewRegenToken(user string, token string, ctx context.Context) {
-	res, err := base.Db.Exec(ctx, "UPDATE users set token = $1 where login = $2", token, user)
+	_, err := base.Db.Exec(ctx, "UPDATE users set token = $1 where login = $2", token, user)
 	if err != nil {
-		fmt.Println(err)
 		return
 	}
 
-	fmt.Println(res.RowsAffected())
 }
 
 // добавление устройств в базу
@@ -2451,239 +2441,4 @@ func (base Base) InsertDiviceToSns(ctx context.Context, devices ...mytypes.Devic
 		}
 	}
 	return nil
-}
-
-func (base Base) NewDModels() {
-
-	file, err := os.Open("Запрос1.csv")
-	if err != nil {
-		panic(err)
-	}
-	defer file.Close()
-
-	reader := csv.NewReader(file)
-	reader.Comma = ';'
-
-	for {
-		record, e := reader.Read()
-		if e != nil {
-			fmt.Println(e)
-			break
-		}
-
-		Id, _ := strconv.Atoi(record[0])
-		Sn := record[3]
-		Mac := record[4]
-		DModel, _ := strconv.Atoi(record[1])
-		Rev := record[16]
-		TModel, _ := strconv.Atoi(record[2])
-		Name := record[13]
-		Condition, _ := strconv.Atoi(record[5])
-
-		var CondDate time.Time
-		if record[6] == "" || record[6] == " " {
-			CondDate, _ = time.Parse("02.01.2006", "01.01.2000")
-		} else {
-			CondDate, err = time.Parse("02.01.2006", record[6])
-			if err != nil {
-				fmt.Println(err)
-			}
-		}
-
-		Order, _ := strconv.Atoi(record[7])
-		Place, _ := strconv.Atoi(record[12])
-		var Shiped bool
-		if record[8] == "true" {
-			Shiped = true
-		} else {
-			Shiped = false
-		}
-
-		var ShipedDate time.Time
-		if record[9] == "" || record[9] == " " {
-			ShipedDate, _ = time.Parse("02.01.2006", "01.01.2000")
-		} else {
-			ShipedDate, err = time.Parse("02.01.2006", record[9])
-			if err != nil {
-				fmt.Println(err)
-			}
-		}
-
-		ShippedDest := record[10]
-
-		var TakenDate time.Time
-		if record[14] == "" || record[14] == " " {
-			TakenDate, _ = time.Parse("02.01.2006", "01.01.2000")
-		} else {
-			TakenDate, err = time.Parse("02.01.2006", record[14])
-			if err != nil {
-				fmt.Println(err)
-			}
-		}
-
-		TakenDoc := record[15]
-		TakenOrder := record[17]
-
-		qq := `INSERT INTO public.sns(
-				"snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder")
-				VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17);`
-
-		_, err = base.Db.Exec(context.Background(), qq, Id, Sn, Mac, DModel, Rev, TModel, Name, Condition, CondDate, Order, Place, Shiped, ShipedDate, ShippedDest, TakenDate, TakenDoc, TakenOrder)
-
-		if err != nil {
-			fmt.Println(err)
-		}
-	}
-}
-
-func (base Base) NewOrders() {
-
-	file, err := os.Open("Orders.csv")
-	if err != nil {
-		panic(err)
-	}
-	defer file.Close()
-
-	reader := csv.NewReader(file)
-	reader.Comma = ';'
-
-	for {
-		record, e := reader.Read()
-		if e != nil {
-			fmt.Println(e)
-			break
-		}
-
-		Id, _ := strconv.Atoi(record[0])
-		Meneger, _ := strconv.Atoi(record[1])
-		OrderDate, err := time.Parse("02.01.2006", record[2])
-		if err != nil {
-			OrderDate, _ = time.Parse("02.01.2006", "01.01.2000")
-		}
-		Customer := record[3]
-		Partner := record[4]
-		Distributor := record[5]
-		ReqDate, err := time.Parse("02.01.2006", record[6])
-		if err != nil {
-			ReqDate, _ = time.Parse("02.01.2006", "01.01.2000")
-		}
-		PromDate, err := time.Parse("02.01.2006", record[7])
-		if err != nil {
-			PromDate, _ = time.Parse("02.01.2006", "01.01.2000")
-		}
-		ShDate, err := time.Parse("02.01.2006", record[8])
-		if err != nil {
-			ShDate, _ = time.Parse("02.01.2006", "01.01.2000")
-		}
-		Comment := record[9]
-		var IsAct bool
-		if record[8] == "true" {
-			IsAct = true
-		} else {
-			IsAct = false
-		}
-
-		qq := `INSERT INTO public.orders(
-			"orderId", meneger, "orderDate", "reqDate", "promDate", "shDate", "isAct", coment, customer, partner, disributor, name, "1СName")
-			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13);`
-
-		_, err = base.Db.Exec(context.Background(), qq, Id, Meneger, OrderDate, ReqDate, PromDate, ShDate, IsAct, Comment, Customer, Partner, Distributor, "", Id)
-
-		if err != nil {
-			fmt.Println(err)
-		}
-	}
-}
-
-func (base Base) NewOrderList() {
-
-	file, err := os.Open("Запрос2.csv")
-	if err != nil {
-		panic(err)
-	}
-	defer file.Close()
-
-	reader := csv.NewReader(file)
-	reader.Comma = ';'
-
-	for {
-		record, e := reader.Read()
-		if e != nil {
-			fmt.Println(e)
-			break
-		}
-
-		Id, _ := strconv.Atoi(record[0])
-		OrderId, _ := strconv.Atoi(record[1])
-		Model, _ := strconv.Atoi(record[2])
-		Amout, _ := strconv.Atoi(record[3])
-		ServType, _ := strconv.Atoi(record[4])
-		ServActDate, err := time.Parse("02.01.2006", record[5])
-		if err != nil {
-			ServActDate, _ = time.Parse("02.01.2006", "01.01.2000")
-		}
-		LastRed, err := time.Parse("02.01.2006 15:04:05", record[7])
-		if err != nil {
-			LastRed, _ = time.Parse("02.01.2006", "01.01.2000")
-		}
-
-		qq := `INSERT INTO public."orderList"(
-			"orderListId", "orderId", model, amout, "servType", "srevActDate", "lastRed")
-			VALUES ($1, $2, $3, $4, $5, $6, $7);`
-
-		_, err = base.Db.Exec(context.Background(), qq, Id, OrderId, Model, Amout, ServType, ServActDate, LastRed)
-
-		if err != nil {
-			fmt.Println(err)
-			fmt.Println(strconv.Itoa(OrderId) + "   " + strconv.Itoa(Model))
-		}
-	}
-}
-
-func (base Base) NewLog() {
-
-	file, err := os.Open("KomLogs.csv")
-	if err != nil {
-		panic(err)
-	}
-	defer file.Close()
-
-	reader := csv.NewReader(file)
-	reader.Comma = ';'
-
-	for {
-		record, e := reader.Read()
-		if e != nil {
-			fmt.Println(e)
-			break
-		}
-
-		Id, _ := strconv.Atoi(record[0])
-		Sn := record[1]
-		EventType, _ := strconv.Atoi(record[2])
-		EventText := record[3]
-		EventDate, err := time.Parse("02.01.2006 15:04:05", record[4])
-		if err != nil {
-			EventDate, _ = time.Parse("02.01.2006", "01.01.2000")
-		}
-		user, _ := strconv.Atoi(record[5])
-
-		q := `SELECT "snsId" From sns WHERE sn = $1`
-		var deviceId int
-		err = base.Db.QueryRow(context.Background(), q, Sn).Scan(&deviceId)
-		if err != nil {
-			fmt.Println(err)
-		}
-
-		qq := `INSERT INTO public."deviceLog"(
-			"logId", "deviceId", "eventType", "eventText", "eventTime", "user")
-			VALUES ($1, $2, $3, $4, $5, $6);`
-
-		if deviceId != 0 {
-			_, err = base.Db.Exec(context.Background(), qq, Id, deviceId, EventType, EventText, EventDate, user)
-		}
-		if err != nil {
-			fmt.Println(err)
-		}
-	}
 }

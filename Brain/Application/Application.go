@@ -2,6 +2,7 @@ package Application
 
 import (
 	"T-Base/Brain/Auth"
+	PageTempl "T-Base/Brain/PageTemplates"
 	"T-Base/Brain/Storage"
 	"T-Base/Brain/mytypes"
 	"context"
@@ -16,18 +17,23 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
+// Объект приложения
 type App struct {
-	ctx    context.Context
+	Ctx    context.Context
 	Db     *Storage.Base
+	Templ  *PageTempl.Templ
 	JwtKey []byte
 	AppIp  string
 }
 
 type HandleUser func(http.ResponseWriter, *http.Request, httprouter.Params, mytypes.User)
 
+// Инициализация приложения
 func NewApp(ctx context.Context, jwtKey []byte, user, pass, ip, baseName, appIp string) (*App, error) {
 	db, err := Storage.NewBase(user, pass, ip, baseName)
-	return &App{ctx, db, jwtKey, appIp}, err
+	templ := PageTempl.NewTempl(ctx, db)
+
+	return &App{ctx, db, templ, jwtKey, appIp}, err
 }
 
 // Роутер
@@ -201,9 +207,10 @@ func (a App) NewSns(w http.ResponseWriter, r *http.Request, pr httprouter.Params
 		devices = append(devices, device)
 	}
 
-	a.Db.InsertDiviceToSns(a.ctx, devices...)
+	a.Db.InsertDiviceToSns(a.Ctx, devices...)
 }
 
+// Получение строки серийных номеров из устройств
 func GetSnfromDevices(devices ...mytypes.DeviceRaw) string {
 	var SnString string
 
@@ -213,6 +220,7 @@ func GetSnfromDevices(devices ...mytypes.DeviceRaw) string {
 	return SnString
 }
 
+// Получение строки серийных номеров из устройств (чистые данные)
 func GetSnfromCleanDevices(devices ...mytypes.DeviceClean) string {
 	var SnString string
 
@@ -222,12 +230,14 @@ func GetSnfromCleanDevices(devices ...mytypes.DeviceClean) string {
 	return SnString
 }
 
+// Отправка файла и его удаление
 func sendTMPFile(w http.ResponseWriter, r *http.Request, path, name string) error {
 	err := sendFile(w, r, path, name)
 	os.Remove(path)
 	return err
 }
 
+// Отправка файла
 func sendFile(w http.ResponseWriter, r *http.Request, path, name string) error {
 	f, err := os.Open(path)
 	if err != nil {
@@ -245,6 +255,7 @@ func sendFile(w http.ResponseWriter, r *http.Request, path, name string) error {
 	return nil
 }
 
+// Загрузка файла
 func takeFile(src multipart.File, hdr *multipart.FileHeader, user mytypes.User) (*os.File, string, error) {
 	f, err := os.OpenFile(filepath.Join("Files/Uploaded", user.Login+"_"+time.Now().Format("02-01-06_15-04-05_")+hdr.Filename), os.O_CREATE, 0666)
 	if err != nil {
@@ -256,6 +267,7 @@ func takeFile(src multipart.File, hdr *multipart.FileHeader, user mytypes.User) 
 	return f, hdr.Filename, nil
 }
 
+// Отправка service-worker
 func SendSW(w http.ResponseWriter, r *http.Request) {
 	data, err := os.ReadFile("Face/service-worker.js")
 	if err != nil {
@@ -266,6 +278,7 @@ func SendSW(w http.ResponseWriter, r *http.Request) {
 	w.Write(data)
 }
 
+// Отправка manifest
 func SendManifest(w http.ResponseWriter, r *http.Request) {
 	data, err := os.ReadFile("Face/manifest.json")
 	if err != nil {

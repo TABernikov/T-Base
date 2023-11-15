@@ -1,0 +1,1145 @@
+package PageTempl
+
+import (
+	"T-Base/Brain/Storage"
+	"context"
+
+	"T-Base/Brain/mytypes"
+	"html/template"
+	"net/http"
+	"strconv"
+	"strings"
+)
+
+// Объект генератора
+type Templ struct {
+	ctx context.Context
+	Db  *Storage.Base
+}
+
+// Инициализация генератора
+func NewTempl(ctx context.Context, db *Storage.Base) *Templ {
+	return &Templ{ctx, db}
+}
+
+// Генерация страницы TMC
+func (templ Templ) TMCPage(w http.ResponseWriter, devices []mytypes.DeviceClean, snString string, lable string, excellLink string) {
+
+	type tmcPage struct {
+		Lable      string
+		Tab        []mytypes.DeviceClean
+		SnString   string
+		ExcellLink string
+	}
+	table := tmcPage{lable, devices, snString, excellLink}
+
+	t := template.Must(template.ParseFiles("Face/html/TMC.html"))
+	t.Execute(w, table)
+}
+
+// Генерация страницы TMC в виде таблицы
+func (templ Templ) TableTMCPage(w http.ResponseWriter, devices []mytypes.DeviceClean, snString string, lable string, excellLink string) {
+
+	type tmcPage struct {
+		Lable      string
+		Tab        []mytypes.DeviceClean
+		SnString   string
+		ExcellLink string
+	}
+	table := tmcPage{lable, devices, snString, excellLink}
+
+	t := template.Must(template.ParseFiles("Face/html/TableTMC.html"))
+	t.Execute(w, table)
+}
+
+// Генерация страницы поиска в TMC
+func (templ Templ) TMCAdvanceSearchPage(w http.ResponseWriter) {
+
+	type idChoise struct {
+		Id   int
+		Name string
+	}
+	type search struct {
+		TModels    []idChoise
+		DModels    []idChoise
+		Conditions []idChoise
+	}
+
+	var choise idChoise
+
+	var tmodelList []idChoise
+	rows, err := templ.Db.Db.Query(templ.ctx, `SELECT "tModelsId", "tModelsName" FROM public."tModels";`)
+	if err != nil {
+		templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	for rows.Next() {
+		err := rows.Scan(&choise.Id, &choise.Name)
+		if err != nil {
+			templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		tmodelList = append(tmodelList, choise)
+	}
+
+	var dmodelList []idChoise
+	rows, err = templ.Db.Db.Query(templ.ctx, `SELECT "dModelsId", "dModelName" FROM public."dModels";`)
+	if err != nil {
+		templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	for rows.Next() {
+		err := rows.Scan(&choise.Id, &choise.Name)
+		if err != nil {
+			templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		dmodelList = append(dmodelList, choise)
+	}
+
+	var condList []idChoise
+	rows, err = templ.Db.Db.Query(templ.ctx, `SELECT "condNamesId", "condName" FROM public."condNames";`)
+	if err != nil {
+		templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	for rows.Next() {
+		err := rows.Scan(&choise.Id, &choise.Name)
+		if err != nil {
+			templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		condList = append(condList, choise)
+	}
+
+	tmp := search{tmodelList, dmodelList, condList}
+
+	t := template.Must(template.ParseFiles("Face/html/TMCSearch.html"))
+	t.Execute(w, tmp)
+}
+
+// Генерация страницы устройства компактная
+func (templ Templ) DeviceMiniPage(w http.ResponseWriter, device mytypes.DeviceClean, events []mytypes.DeviceEventClean) {
+	type devicePage struct {
+		Device mytypes.DeviceClean
+		Events []mytypes.DeviceEventClean
+	}
+
+	page := devicePage{device, events}
+
+	t := template.Must(template.ParseFiles("Face/html/komm.html"))
+	t.Execute(w, page)
+}
+
+// Генерация страницы заказов
+func (templ Templ) OrdersPage(w http.ResponseWriter, orders []mytypes.OrderClean, lable string, link string) {
+
+	type ordersPage struct {
+		Lable      string
+		Tab        []mytypes.OrderClean
+		ExcellLink string
+	}
+	table := ordersPage{lable, orders, link}
+
+	t := template.Must(template.ParseFiles("Face/html/orders.html"))
+	t.Execute(w, table)
+}
+
+// Генерация страницы заказа компактная
+func (templ Templ) OrderMiniPage(w http.ResponseWriter, order mytypes.OrderClean, orderList []mytypes.OrderListClean, reservs []mytypes.StorageByTModelClean, status []mytypes.OrderStatusClean, User mytypes.User) {
+	type orderPage struct {
+		Order   mytypes.OrderClean
+		List    []mytypes.OrderListClean
+		Reservs []mytypes.StorageByTModelClean
+		Status  []mytypes.OrderStatusClean
+		User    mytypes.User
+	}
+
+	page := orderPage{order, orderList, reservs, status, User}
+
+	t := template.Must(template.ParseFiles("Face/html/order.html"))
+	t.Execute(w, page)
+}
+
+// Генерация страницы склада устройств с группировкой по заказам
+func (templ Templ) StoragePage(w http.ResponseWriter, storage []mytypes.StorageCount, lable string) {
+	type storagePage struct {
+		Lable string
+		Tab   []mytypes.StorageCount
+	}
+	table := storagePage{lable, storage}
+
+	t := template.Must(template.ParseFiles("Face/html/storage.html"))
+	t.Execute(w, table)
+}
+
+// Генерация страницы склада устройств с групировкой по местам
+func (templ Templ) StorageByPlacePage(w http.ResponseWriter, storage []mytypes.StorageByPlaceCount, lable string) {
+	type storagePage struct {
+		Lable string
+		Tab   []mytypes.StorageByPlaceCount
+	}
+	table := storagePage{lable, storage}
+
+	t := template.Must(template.ParseFiles("Face/html/storageByPlace.html"))
+	t.Execute(w, table)
+}
+
+// Генерация страницы склада устройств с группировкой помоделям и статусам(включая отгруженные)
+func (templ Templ) StorageByTModelPage(w http.ResponseWriter, storage []mytypes.StorageByTModelClean, lable string) {
+	type storagePage struct {
+		Lable string
+		Tab   []mytypes.StorageByTModelClean
+	}
+	table := storagePage{lable, storage}
+
+	t := template.Must(template.ParseFiles("Face/html/storageByTModel.html"))
+	t.Execute(w, table)
+}
+
+// Генерация страницы ввода текста
+func (templ Templ) ImputPage(w http.ResponseWriter, postPath, title, imputText, btnText string) {
+
+	type imputPage struct {
+		Title     string
+		InputText string
+		BtnText   string
+		PostPath  string
+	}
+
+	tmp := imputPage{title, imputText, btnText, postPath}
+
+	t := template.Must(template.ParseFiles("Face/html/insert.html"))
+	t.Execute(w, tmp)
+}
+
+// Генерация страницы ввода значения фиксированного типа
+func (templ Templ) ImputTypePage(w http.ResponseWriter, postPath, title, typein, imputText, btnText string) {
+
+	type imputPage struct {
+		Title     string
+		InputText string
+		BtnText   string
+		PostPath  string
+		Type      string
+	}
+
+	tmp := imputPage{title, imputText, btnText, postPath, typein}
+
+	t := template.Must(template.ParseFiles("Face/html/insert_file.html"))
+	t.Execute(w, tmp)
+}
+
+// Генерация страницы ввода текста и значения фиксированного типа
+func (templ Templ) DobleImputPage(w http.ResponseWriter, postPath, title, imputText1, imputText2, type2, btnText string) {
+
+	type imputPage struct {
+		Title      string
+		InputText1 string
+		InputText2 string
+		Type2      string
+		BtnText    string
+		PostPath   string
+	}
+
+	tmp := imputPage{title, imputText1, imputText2, type2, btnText, postPath}
+
+	t := template.Must(template.ParseFiles("Face/html/dobleinsert.html"))
+	t.Execute(w, tmp)
+}
+
+// Генерация страницы ввода двух значений фиксированного типа
+func (templ Templ) DobleImputTypePage(w http.ResponseWriter, postPath, title, imputText1, type1, imputText2, type2, btnText string) {
+
+	type imputPage struct {
+		Title      string
+		InputText1 string
+		Type1      string
+		InputText2 string
+		Type2      string
+		BtnText    string
+		PostPath   string
+	}
+
+	tmp := imputPage{title, imputText1, type1, imputText2, type2, btnText, postPath}
+
+	t := template.Must(template.ParseFiles("Face/html/dobleInserttType.html"))
+	t.Execute(w, tmp)
+}
+
+// Генерация страницы с предупреждением
+func (templ Templ) AlertPage(w http.ResponseWriter, status int, lable, heading, text, subText, btnText, btnLink string) {
+	type alertPage struct {
+		Lable   string
+		Heading string
+		Status  int
+		Text    string
+		SubText string
+		BtnText string
+		BtnLink string
+	}
+
+	tmp := alertPage{
+		Lable:   lable,
+		Heading: heading,
+		Status:  status,
+		Text:    text,
+		SubText: subText,
+		BtnText: btnText,
+		BtnLink: btnLink,
+	}
+
+	testTemplate := template.Must(template.ParseFiles("Face/html/alert.html"))
+
+	testTemplate.Execute(w, tmp)
+}
+
+// Генерация страницы приемки по моделям
+func (templ Templ) TakeDeviceByModelPage(w http.ResponseWriter) {
+	type idChoise struct {
+		Id   int
+		Name string
+	}
+	type TakeForm struct {
+		TModels []idChoise
+		DModels []idChoise
+	}
+
+	var choise idChoise
+
+	var tmodelList []idChoise
+	rows, err := templ.Db.Db.Query(templ.ctx, `SELECT "tModelsId", "tModelsName" FROM public."tModels";`)
+	if err != nil {
+		templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	for rows.Next() {
+		err := rows.Scan(&choise.Id, &choise.Name)
+		if err != nil {
+			templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		tmodelList = append(tmodelList, choise)
+	}
+
+	var dmodelList []idChoise
+	rows, err = templ.Db.Db.Query(templ.ctx, `SELECT "dModelsId", "dModelName" FROM public."dModels";`)
+	if err != nil {
+		templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	for rows.Next() {
+		err := rows.Scan(&choise.Id, &choise.Name)
+		if err != nil {
+			templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		dmodelList = append(dmodelList, choise)
+	}
+
+	tmp := TakeForm{tmodelList, dmodelList}
+	t := template.Must(template.ParseFiles("Face/html/TakeDeviceByModel.html"))
+	t.Execute(w, tmp)
+}
+
+// Генерация страницы создания заказа
+func (templ Templ) CreateOrderPage(w http.ResponseWriter) {
+	var page bool
+	t := template.Must(template.ParseFiles("Face/html/CreateOrder.html"))
+	t.Execute(w, page)
+}
+
+// Генерация страницы создания состава заказа
+func (templ Templ) CreateOrderListPage(w http.ResponseWriter, ListId int, orderId int) {
+	type idChoise struct {
+		Id   int
+		Name string
+	}
+	type TakeForm struct {
+		List       []mytypes.OrderListClean
+		TModels    []idChoise
+		ListId     int
+		OrderId    int
+		RedElement mytypes.OrderListClean
+	}
+
+	OrderList, err := templ.Db.TakeCleanOrderList(templ.ctx, orderId)
+	if err != nil {
+		OrderList = []mytypes.OrderListClean{}
+	}
+
+	var choise idChoise
+	var tmodelList []idChoise
+	rows, err := templ.Db.Db.Query(templ.ctx, `SELECT "tModelsId", "tModelsName" FROM public."tModels";`)
+	if err != nil {
+		templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	for rows.Next() {
+		err := rows.Scan(&choise.Id, &choise.Name)
+		if err != nil {
+			templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		tmodelList = append(tmodelList, choise)
+	}
+
+	var redElement mytypes.OrderListClean
+	if ListId != -1 {
+		for _, a := range OrderList {
+			if a.Id == ListId {
+				redElement = a
+				s := strings.Split(redElement.ServActDate, ".")
+				redElement.ServActDate = s[2] + "-" + s[1] + "-" + s[0]
+			}
+		}
+	}
+	tmp := TakeForm{OrderList, tmodelList, ListId, orderId, redElement}
+
+	t := template.Must(template.ParseFiles("Face/html/CreateOrderList.html"))
+	t.Execute(w, tmp)
+}
+
+// Генерация страницы пользователя
+func (templ Templ) UserPage(w http.ResponseWriter, user mytypes.User) {
+	type Buton struct {
+		Text template.HTML
+		Url  string
+	}
+	type Block struct {
+		Title string
+		Btns  []Buton
+	}
+	type Page struct {
+		Bl   []Block
+		User mytypes.User
+	}
+
+	var Blocks []Block
+	var block Block
+	var btn Buton
+
+	switch user.Acces {
+	case 1:
+		block = Block{}
+		block.Title = "Склад"
+		btn = Buton{`<i class="bi bi-table"></i> ТМЦ`, "/works/tmc"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{`<i class="bi bi-search"></i> Поиск в ТМЦ`, "/works/tmcadvancesearch"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{`<i class="bi bi-house-fill"></i> Склад`, "/works/storage/orders"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{`<i class="bi bi-search"></i> Поиск по Sn`, "/works/snsearch"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{`<i class="bi bi-house-fill-cutout"></i> Склад материалов`, "/works/storage/mats"}
+		block.Btns = append(block.Btns, btn)
+
+		Blocks = append(Blocks, block)
+
+		block = Block{}
+		block.Title = "Сборки"
+		btn = Buton{`<i class="bi bi-tools"></i> Сборки`, "/works/buildlist"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{`<i class="bi bi-plus-lg"></i> Добавить сборку`, "/works/makebuild"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{`Модели T-KOM`, "/works/tmodels"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{`Модели поставщиков`, "/works/dmodels"}
+		block.Btns = append(block.Btns, btn)
+		Blocks = append(Blocks, block)
+
+		block = Block{}
+		block.Title = "Маки"
+		btn = Buton{`<i class="bi bi-gear-fill"></i> Изменить MAC адрес`, "/works/changemac"}
+		block.Btns = append(block.Btns, btn)
+		Blocks = append(Blocks, block)
+
+		block = Block{}
+		block.Title = "Выпуск"
+		btn = Buton{`<i class="bi bi-hammer"></i> Выпуск с производства`, "/works/releaseproduction"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{`<i class="bi bi-reply-fill"></i> Вернуть на склад`, "/works/returntostorage"}
+		block.Btns = append(block.Btns, btn)
+		Blocks = append(Blocks, block)
+
+		block = Block{}
+		block.Title = "Заказы"
+		btn = Buton{`<i class="bi bi-briefcase-fill"></i> Заказы`, "/works/orders"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{`<i class="bi bi-calendar-plus-fill"></i> Задать срок`, "/works/setpromdate"}
+		block.Btns = append(block.Btns, btn)
+		Blocks = append(Blocks, block)
+
+		block = Block{}
+		block.Title = "В работе"
+		btn = Buton{`<i class="bi bi-table"></i> SN в работе`, "/works/tmc?Search=1&Condition=В работе"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{`<i class="bi bi-house-fill"></i> Модели в работе`, "/works/storage/models?Search=1&Condition=3"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{`Материалы в работе`, "/works/matsinwork"}
+		block.Btns = append(block.Btns, btn)
+		Blocks = append(Blocks, block)
+
+		block = Block{}
+		block.Title = "Задачи"
+		btn = Buton{`<i class="bi bi-card-list"></i> Задачи`, "/works/tasks"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{`<i class="bi bi-calendar-plus-fill"></i> Создать задачу`, "/works/createtask"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{`<i class="bi bi-graph-up"></i> Отчет о планировании`, "/works/planprodstorage"}
+		block.Btns = append(block.Btns, btn)
+		Blocks = append(Blocks, block)
+
+	case 2:
+		block = Block{}
+		block.Title = "Склад"
+		btn = Buton{`<i class="bi bi-table"></i> ТМЦ`, "/works/tmc"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{`<i class="bi bi-search"></i> Поиск в ТМЦ`, "/works/tmcadvancesearch"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{`<i class="bi bi-house-fill"></i> Склад`, "/works/storage/orders"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{`<i class="bi bi-search"></i> Поиск по Sn`, "/works/snsearch"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{`<i class="bi bi-pencil-fill"></i> Коментарий по Sn`, "/works/addcommentbysn"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{`<i class="bi bi-house-fill-cutout"></i> Склад материалов`, "/works/storage/mats"}
+		block.Btns = append(block.Btns, btn)
+		Blocks = append(Blocks, block)
+
+		block = Block{}
+		block.Title = "Приемка"
+		btn = Buton{`<i class="bi bi-plus-lg"></i> Приемка по моделям`, "/works/takedevicebymodel"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{`<i class="bi bi-filetype-xls"></i> Приемка файлом`, "/works/takedevicebyxlsx"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{`<i class="bi bi-reply-fill"></i> Возврат`, "/works/takedemo"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{`<i class="bi bi-plus-lg"></i> Принять материалы`, "/works/takemat"}
+		block.Btns = append(block.Btns, btn)
+		Blocks = append(Blocks, block)
+
+		block = Block{}
+		block.Title = "Складская логистика"
+		btn = Buton{`<i class="bi bi-hammer"></i> Передать в производство`, "/works/towork"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{`<i class="bi bi-box-arrow-in-down"></i> Установить место`, "/works/setplace"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{`<i class="bi bi-box-arrow-right"></i> Изменить № паллета`, "/works/cangeplacenum"}
+		block.Btns = append(block.Btns, btn)
+		Blocks = append(Blocks, block)
+
+		block = Block{}
+		block.Title = "Заказы"
+		btn = Buton{`<i class="bi bi-briefcase-fill"></i> Заказы`, "/works/orders"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{`<i class="bi bi-tag-fill"></i> Назначить заказ/резерв`, "/works/setorder"}
+		block.Btns = append(block.Btns, btn)
+		Blocks = append(Blocks, block)
+
+		block = Block{}
+		block.Title = "Отгрузки"
+		btn = Buton{`<i class="bi bi-truck"></i> Отгрузка`, "/works/toship"}
+		block.Btns = append(block.Btns, btn)
+		Blocks = append(Blocks, block)
+
+		block = Block{}
+		block.Title = "Сборки"
+		btn = Buton{`<i class="bi bi-tools"></i> Сборки`, "/works/buildlist"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{`Модели T-KOM`, "/works/tmodels"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{`Модели поставщиков`, "/works/dmodels"}
+		block.Btns = append(block.Btns, btn)
+		Blocks = append(Blocks, block)
+
+		block = Block{}
+		block.Title = "Управление материалами"
+		btn = Buton{`<i class="bi bi-file-earmark-plus-fill"></i> Добавить материал`, "/works/createmat"}
+		block.Btns = append(block.Btns, btn)
+		Blocks = append(Blocks, block)
+
+	case 3:
+		block = Block{}
+		block.Title = "Заказы"
+		btn = Buton{`<i class="bi bi-file-earmark-plus-fill"></i> Создать заказ`, "/works/createorder"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{`<i class="bi bi-clipboard2-fill"></i> Мои заказы`, "/works/orders"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{`<i class="bi bi-briefcase-fill"></i> Все заказы`, "/works/orders"}
+		block.Btns = append(block.Btns, btn)
+		Blocks = append(Blocks, block)
+
+		block = Block{}
+		block.Title = "Склад"
+		btn = Buton{`<i class="bi bi-table"></i> ТМЦ`, "/works/tmc"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{`<i class="bi bi-search"></i> Поиск в ТМЦ`, "/works/tmcadvancesearch"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{`<i class="bi bi-house-fill"></i> Склад`, "/works/storage/orders"}
+		block.Btns = append(block.Btns, btn)
+		Blocks = append(Blocks, block)
+	default:
+		block.Title = "Вас тут не ждали"
+		btn = Buton{"Идите нахуй", "/works/Logout"}
+		block.Btns = append(block.Btns, btn)
+		Blocks = append(Blocks, block)
+	}
+
+	tmp := Page{Blocks, user}
+	t := template.Must(template.ParseFiles("Face/html/prof.html"))
+	t.Execute(w, tmp)
+}
+
+// Генерация страницы изменения пароля
+func (templ Templ) ChangePassPage(w http.ResponseWriter, ans string, p1, p2, p3 string) {
+
+	type page struct {
+		Ans string
+		P1  string
+		P2  string
+		P3  string
+	}
+	tmp := page{ans, p1, p2, p3}
+	t := template.Must(template.ParseFiles("Face/html/ChangePass.html"))
+	t.Execute(w, tmp)
+}
+
+// Генерация страницы создания материала
+func (templ Templ) CreateMatPage(w http.ResponseWriter) {
+	var page bool
+	t := template.Must(template.ParseFiles("Face/html/CreateMat.html"))
+	t.Execute(w, page)
+}
+
+// Генерация страницы приемки материала
+func (templ Templ) TakeMatPage(w http.ResponseWriter) {
+	type TakeForm struct {
+		NameList   []string
+		NameList1C []string
+	}
+	var NameList []string
+	var NameList1C []string
+	var Name string
+
+	rows, err := templ.Db.Db.Query(templ.ctx, `SELECT "name" FROM public."matsName" GROUP BY name ORDER BY name;`)
+	if err != nil {
+		templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	for rows.Next() {
+		err := rows.Scan(&Name)
+		if err != nil {
+			templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		NameList = append(NameList, Name)
+	}
+
+	rows, err = templ.Db.Db.Query(templ.ctx, `SELECT "1CName" FROM public."mats" GROUP BY "1CName" ORDER BY "1CName";`)
+	if err != nil {
+		templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	for rows.Next() {
+		err := rows.Scan(&Name)
+		if err != nil {
+			templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		NameList1C = append(NameList1C, Name)
+	}
+
+	tmp := TakeForm{NameList, NameList1C}
+	t := template.Must(template.ParseFiles("Face/html/TakeMat.html"))
+	t.Execute(w, tmp)
+}
+
+// Генерация страницы подробного склада материалов
+func (templ Templ) StorageMatsPage(w http.ResponseWriter, user mytypes.User) {
+	Mats, err := templ.Db.TakeMatsById(templ.ctx)
+	if err != nil {
+		templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	type storagePage struct {
+		Lable string
+		Mats  []mytypes.Mat
+		User  mytypes.User
+	}
+	table := storagePage{"Материалы", Mats, user}
+
+	t := template.Must(template.ParseFiles("Face/html/storage_mats.html"))
+	t.Execute(w, table)
+}
+
+// Генерация страницы склада материалов с групировкой по реальным моделям
+func (templ Templ) StorageMatsByNamePage(w http.ResponseWriter) {
+	Mats, err := templ.Db.TakeAmoutMatsByName(templ.ctx)
+	if err != nil {
+		templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	type storagePage struct {
+		Lable string
+		Mats  []mytypes.Mat
+	}
+	table := storagePage{"Материалы", Mats}
+
+	t := template.Must(template.ParseFiles("Face/html/storage_matsbyname.html"))
+	t.Execute(w, table)
+}
+
+// Генерация страницы склада материалов с групировкой по наименованиям 1С
+func (templ Templ) StorageMatsBy1CPage(w http.ResponseWriter) {
+	Mats, err := templ.Db.TakeAmoutMatsBy1C(templ.ctx)
+	if err != nil {
+		templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	type storagePage struct {
+		Lable string
+		Mats  []mytypes.Mat
+	}
+	table := storagePage{"Материалы", Mats}
+
+	t := template.Must(template.ParseFiles("Face/html/storage_matsby1c.html"))
+	t.Execute(w, table)
+}
+
+// Генерация страницы создания новой сборки
+func (templ Templ) CreateBuildPage(w http.ResponseWriter) {
+	type SelectList struct {
+		Id   int
+		Name string
+	}
+	type TakeForm struct {
+		ModelListT    []string
+		ModelListD    []string
+		CaseList      []SelectList
+		StikerList    []SelectList
+		BoxList       []SelectList
+		BoxholderList []SelectList
+		AnotherList   []SelectList
+	}
+	var ModelListT []string
+	var ModelListD []string
+	var CaseList []SelectList
+	var StikerList []SelectList
+	var BoxList []SelectList
+	var BoxholderList []SelectList
+	var AnotherList []SelectList
+	var Name string
+	var choise SelectList
+
+	rows, err := templ.Db.Db.Query(templ.ctx, `SELECT "tModelsName" FROM "tModels" ORDER BY "tModelsName"`)
+	if err != nil {
+		templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	for rows.Next() {
+		err := rows.Scan(&Name)
+		if err != nil {
+			templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		ModelListT = append(ModelListT, Name)
+	}
+
+	rows, err = templ.Db.Db.Query(templ.ctx, `SELECT "dModelName" FROM "dModels" ORDER BY "dModelName"`)
+	if err != nil {
+		templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	for rows.Next() {
+		err := rows.Scan(&Name)
+		if err != nil {
+			templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		ModelListD = append(ModelListD, Name)
+	}
+
+	rows, err = templ.Db.Db.Query(templ.ctx, `SELECT "matNameId", name FROM public."matsName" WHERE type = '1'`)
+	if err != nil {
+		templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	for rows.Next() {
+		err := rows.Scan(&choise.Id, &choise.Name)
+		if err != nil {
+			templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		CaseList = append(CaseList, choise)
+	}
+
+	rows, err = templ.Db.Db.Query(templ.ctx, `SELECT "matNameId", name FROM public."matsName" WHERE type = '2'`)
+	if err != nil {
+		templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	for rows.Next() {
+		err := rows.Scan(&choise.Id, &choise.Name)
+		if err != nil {
+			templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		StikerList = append(StikerList, choise)
+	}
+
+	rows, err = templ.Db.Db.Query(templ.ctx, `SELECT "matNameId", name FROM public."matsName" WHERE type = '3'`)
+	if err != nil {
+		templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	for rows.Next() {
+		err := rows.Scan(&choise.Id, &choise.Name)
+		if err != nil {
+			templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		BoxList = append(BoxList, choise)
+	}
+
+	rows, err = templ.Db.Db.Query(templ.ctx, `SELECT "matNameId", name FROM public."matsName" WHERE type = '4'`)
+	if err != nil {
+		templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	for rows.Next() {
+		err := rows.Scan(&choise.Id, &choise.Name)
+		if err != nil {
+			templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		BoxholderList = append(BoxholderList, choise)
+	}
+
+	rows, err = templ.Db.Db.Query(templ.ctx, `SELECT "matNameId", name FROM public."matsName" WHERE type = '7'`)
+	if err != nil {
+		templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	for rows.Next() {
+		err := rows.Scan(&choise.Id, &choise.Name)
+		if err != nil {
+			templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		AnotherList = append(AnotherList, choise)
+	}
+
+	tmp := TakeForm{ModelListT, ModelListD, CaseList, StikerList, BoxList, BoxholderList, AnotherList}
+	t := template.Must(template.ParseFiles("Face/html/MakeBuild.html"))
+	t.Execute(w, tmp)
+}
+
+// Генерация страницы сборок (корточки)
+func (templ Templ) BuildsPage(w http.ResponseWriter, builds []mytypes.BuildClean) {
+	type BPage struct {
+		Builds []mytypes.BuildClean
+	}
+
+	table := BPage{Builds: builds}
+	t := template.Must(template.ParseFiles("Face/html/builds.html"))
+	t.Execute(w, table)
+}
+
+// Генерация страницы моделей T-KOM
+func (templ Templ) TModelsPage(w http.ResponseWriter, TModels []mytypes.TModel) {
+	type TModelsPage struct {
+		Tab []mytypes.TModel
+	}
+	table := TModelsPage{Tab: TModels}
+
+	t := template.Must(template.ParseFiles("Face/html/tmodels.html"))
+	t.Execute(w, table)
+}
+
+// Генерация страницы модели T-KOM
+func (templ Templ) TModelPage(w http.ResponseWriter, TModel mytypes.TModel, builds []mytypes.BuildClean) {
+	type Page struct {
+		Model  mytypes.TModel
+		Builds []mytypes.BuildClean
+	}
+
+	tmp := Page{Model: TModel, Builds: builds}
+	t := template.Must(template.ParseFiles("Face/html/tmodel.html"))
+	t.Execute(w, tmp)
+}
+
+// Генерация страницы материалов в работе
+func (templ Templ) StorageMatsInWorkPage(w http.ResponseWriter) {
+	Mats, err := templ.Db.TakeMatsInWorkById(templ.ctx)
+	if err != nil {
+		templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	type storagePage struct {
+		Lable string
+		Mats  []mytypes.Mat
+	}
+	table := storagePage{"Материалы", Mats}
+
+	t := template.Must(template.ParseFiles("Face/html/storage_matsinwork.html"))
+	t.Execute(w, table)
+}
+
+// Генерация страницы моделей поставщиков
+func (templ Templ) DModelsPage(w http.ResponseWriter, DModels []mytypes.DModel) {
+	type DModelsPage struct {
+		Tab []mytypes.DModel
+	}
+	table := DModelsPage{Tab: DModels}
+	t := template.Must(template.ParseFiles("Face/html/dmodels.html"))
+	t.Execute(w, table)
+}
+
+// Генерация страницы модели поставщика
+func (templ Templ) DModelPage(w http.ResponseWriter, DModel mytypes.DModel, builds []mytypes.BuildClean) {
+	type Page struct {
+		Model  mytypes.DModel
+		Builds []mytypes.BuildClean
+	}
+	tmp := Page{Model: DModel, Builds: builds}
+	t := template.Must(template.ParseFiles("Face/html/dmodel.html"))
+	t.Execute(w, tmp)
+}
+
+// Генерация страницы утверждения сборки во время преобразования
+func (templ Templ) BuildAceptPage(w http.ResponseWriter, builds []mytypes.BuildClean, inSn ...string) {
+	type BPage struct {
+		Builds []mytypes.BuildClean
+		InSn   []string
+	}
+
+	table := BPage{Builds: builds, InSn: inSn}
+	t := template.Must(template.ParseFiles("Face/html/builds_acept.html"))
+	t.Execute(w, table)
+}
+
+// Генерация страницы событий материала
+func (templ Templ) MatEventPage(w http.ResponseWriter, events []mytypes.MatEventClean, lable string) {
+	type storagePage struct {
+		Lable string
+		Tab   []mytypes.MatEventClean
+	}
+	table := storagePage{lable, events}
+
+	t := template.Must(template.ParseFiles("Face/html/mateventpage.html"))
+	t.Execute(w, table)
+}
+
+// Генерация страницы календаря
+func (templ Templ) CalendarPage(w http.ResponseWriter, tasks []mytypes.TaskJs) {
+	t := template.Must(template.ParseFiles("Face/html/calendar.html"))
+	t.Execute(w, tasks)
+}
+
+// Генерация страницы календаря (список)
+func (templ Templ) CalendarListPage(w http.ResponseWriter, tasks []mytypes.TaskJs) {
+
+	t := template.Must(template.ParseFiles("Face/html/calendarlist.html"))
+
+	t.Execute(w, tasks)
+}
+
+// Генерация страницы создания задачи
+func (templ Templ) CreateTaskPage(w http.ResponseWriter) {
+	t := template.Must(template.ParseFiles("Face/html/CreateTask.html"))
+	t.Execute(w, 1)
+}
+
+// Генерация страницы создания состава задачи
+func (templ Templ) CreateTaskListPage(w http.ResponseWriter, taskId int, redElementId int) {
+	type idChoise struct {
+		Id   int
+		Name string
+	}
+	type TakeForm struct {
+		Task       mytypes.CleanTask
+		TModels    []idChoise
+		RedElement mytypes.CleanTaskWorkList
+	}
+
+	task, err := templ.Db.TakeCleanTasksById(templ.ctx, taskId)
+	if err != nil {
+		templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения задачи", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	if len(task) != 1 {
+		templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения задачи", strconv.Itoa(len(task)), "Главная", "/works/prof")
+		return
+	}
+
+	var choise idChoise
+	var tmodelList []idChoise
+	rows, err := templ.Db.Db.Query(templ.ctx, `SELECT "tModelsId", "tModelsName" FROM public."tModels";`)
+	if err != nil {
+		templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	for rows.Next() {
+		err := rows.Scan(&choise.Id, &choise.Name)
+		if err != nil {
+			templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		tmodelList = append(tmodelList, choise)
+	}
+
+	var redElement mytypes.CleanTaskWorkList
+	if redElementId >= 0 {
+		rows, err := templ.Db.Db.Query(templ.ctx, `SELECT id, tmodel, amout, done, datechange FROM public."CleanTaskWorkList" WHERE "id" = $1;`, redElementId)
+		if err != nil {
+			templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		for rows.Next() {
+			err := rows.Scan(&redElement.Id, &redElement.TModel, &redElement.Amout, &redElement.Done, &redElement.Date)
+			if err != nil {
+				templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+				return
+			}
+		}
+	} else {
+		redElement.Id = -1
+	}
+
+	tmp := TakeForm{task[0], tmodelList, redElement}
+
+	t := template.Must(template.ParseFiles("Face/html/CreateTaskList.html"))
+	t.Execute(w, tmp)
+}
+
+// Генерация страницы задач (карточки)
+func (templ Templ) TasksPage(w http.ResponseWriter, tasks []mytypes.CleanTask) {
+	type BPage struct {
+		Tasks []mytypes.CleanTask
+	}
+
+	table := BPage{Tasks: tasks}
+	t := template.Must(template.ParseFiles("Face/html/tasks.html"))
+	t.Execute(w, table)
+}
+
+// Генерация страницы изменения задачи
+func (templ Templ) ChangeTaskPage(w http.ResponseWriter, taskId string) {
+	tasks, err := templ.Db.TakeJsTaskByReqest(templ.ctx, "WHERE id = '"+taskId+"'")
+	if err != nil {
+		templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	if len(tasks) != 1 {
+		templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка поиска", "", "Главная", "/works/prof")
+		return
+	}
+	t := template.Must(template.ParseFiles("Face/html/ChangeTask.html"))
+	t.Execute(w, tasks[0])
+}
+
+// Генерация страницы задачи
+func (templ Templ) TaskPage(w http.ResponseWriter, taskId int) {
+	tasks, err := templ.Db.TakeCleanTasksById(templ.ctx, taskId)
+	if err != nil {
+		templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	if len(tasks) != 1 {
+		templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка поиска", "", "Главная", "/works/prof")
+		return
+	}
+	t := template.Must(template.ParseFiles("Face/html/task.html"))
+	t.Execute(w, tasks[0])
+}
+
+// Генерация страницы отчета (колво продукции на складе через 1, 2, 3 месяца исходя из задач)
+func (templ Templ) PlanProdStoragePage(w http.ResponseWriter) {
+	type prodStorage struct {
+		Name    string
+		Current int
+		Done1   int
+		Plan1   int
+		Done2   int
+		Plan2   int
+		Done3   int
+		Plan3   int
+	}
+
+	qq := `SELECT
+	stor."tModelsName",
+	stor.amout,
+	(COALESCE(monthone.amout, 0) - COALESCE(monthone.done, 0)) AS plan1,
+	(COALESCE(monthone.amout, 0) - COALESCE(monthone.done, 0)) + stor.amout AS done1,
+	(COALESCE(monthto.amout, 0) - COALESCE(monthto.done, 0)) AS plan2,
+	(COALESCE(monthto.amout, 0) - COALESCE(monthto.done, 0)) + (COALESCE(monthone.amout, 0) - COALESCE(monthone.done, 0)) + stor.amout AS done2,
+	(COALESCE(monththre.amout, 0) - COALESCE(monththre.done, 0)) AS plan3,
+	(COALESCE(monththre.amout, 0) - COALESCE(monththre.done, 0)) + (COALESCE(monthto.amout, 0) - COALESCE(monthto.done, 0)) + (COALESCE(monthone.amout, 0) - COALESCE(monthone.done, 0)) + stor.amout AS done3
+FROM
+	(SELECT
+		"tModels"."tModelsId",
+	 	"tModels"."tModelsName",
+		count(snsn.sn) AS amout
+	FROM "tModels"
+		LEFT JOIN (SELECT sn, tmodel FROM sns WHERE condition = 1 AND shiped = false)snsn ON snsn.tmodel = "tModels"."tModelsId"
+	GROUP BY "tModelsId")stor
+	LEFT JOIN 
+		(SELECT 
+			"taskWorkList".tmodel, 
+			sum("taskWorkList".amout) AS amout, 
+			sum("taskWorkList".done) AS done
+		FROM public."taskWorkList"
+			LEFT JOIN tasks ON tasks.id = "taskWorkList"."taskId"
+		WHERE dateend > CURRENT_DATE AND dateend <= date_trunc('month',CURRENT_DATE + '1 month'::interval)
+		GROUP BY tmodel
+		)monthone ON monthone.tmodel = stor."tModelsId"
+	LEFT JOIN
+		(SELECT 
+			"taskWorkList".tmodel, 
+			sum("taskWorkList".amout) AS amout, 
+			sum("taskWorkList".done) AS done
+		FROM public."taskWorkList"
+			LEFT JOIN tasks ON tasks.id = "taskWorkList"."taskId"
+		WHERE dateend > date_trunc('month',CURRENT_DATE + '1 month'::interval) AND dateend <= date_trunc('month',CURRENT_DATE + '2 month'::interval)
+		GROUP BY tmodel
+		)monthto ON monthto.tmodel = stor."tModelsId"
+	LEFT JOIN
+		(SELECT 
+			"taskWorkList".tmodel, 
+			sum("taskWorkList".amout) AS amout, 
+			sum("taskWorkList".done) AS done
+		FROM public."taskWorkList"
+			LEFT JOIN tasks ON tasks.id = "taskWorkList"."taskId"
+		WHERE dateend > date_trunc('month',CURRENT_DATE + '2 month'::interval) AND dateend <= date_trunc('month',CURRENT_DATE + '3 month'::interval)
+		GROUP BY tmodel
+		)monththre ON monththre.tmodel = stor."tModelsId"
+ORDER BY "tModelsName"`
+
+	temp := []prodStorage{}
+	data := prodStorage{}
+	rows, err := templ.Db.Db.Query(templ.ctx, qq)
+	if err != nil {
+		templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения данных", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	for rows.Next() {
+		err := rows.Scan(&data.Name, &data.Current, &data.Plan1, &data.Done1, &data.Plan2, &data.Done2, &data.Plan3, &data.Done3)
+		if err != nil {
+			templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения данных", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		temp = append(temp, data)
+	}
+
+	t := template.Must(template.ParseFiles("Face/html/storage_planprd.html"))
+	t.Execute(w, temp)
+}
