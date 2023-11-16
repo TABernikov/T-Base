@@ -176,6 +176,7 @@ func (base Base) TakeDeviceBySn(ctx context.Context, inSn ...string) ([]mytypes.
 
 ///////////////////////////////////////////
 
+// Получение слайса читабельных устройств по полному sql запросу
 func (base Base) TakeCleanDevice(ctx context.Context, fullReqest string) ([]mytypes.DeviceClean, error) {
 	devices := []mytypes.DeviceClean{}
 	device := mytypes.DeviceClean{}
@@ -461,6 +462,7 @@ func (base Base) TakeDeviceEvent(ctx context.Context, deviceId int) ([]mytypes.D
 	return events, nil
 }
 
+// Получение слайса чистых событий коммутатора по его ID
 func (base Base) TakeCleanDeviceEvent(ctx context.Context, deviceId int) ([]mytypes.DeviceEventClean, error) {
 	var events []mytypes.DeviceEventClean
 	var event mytypes.DeviceEventClean
@@ -551,6 +553,7 @@ func (base Base) TakeStorageCountByPlace(ctx context.Context, fullReqest string)
 	return storage, nil
 }
 
+// Получение кол-ва устройств на складе по моделям и статусу
 func (base Base) TakeStorageByTModel(ctx context.Context, fullReqest string) ([]mytypes.StorageByTModel, error) {
 	storage := []mytypes.StorageByTModel{}
 	deviceCount := mytypes.StorageByTModel{}
@@ -574,6 +577,7 @@ func (base Base) TakeStorageByTModel(ctx context.Context, fullReqest string) ([]
 	return storage, nil
 }
 
+// Получение кол-ва устройств на складе по чистым моделям и статусу
 func (base Base) TakeStorageByTModelClean(ctx context.Context, fullReqest string) ([]mytypes.StorageByTModelClean, error) {
 	storage := []mytypes.StorageByTModelClean{}
 	deviceCount := mytypes.StorageByTModelClean{}
@@ -643,6 +647,7 @@ func (base Base) TakeOrderById(ctx context.Context, inId ...int) ([]mytypes.Orde
 
 //////////////////////////////////////////
 
+// Получение чистого заказа по его ID
 func (base Base) TakeCleanOrderById(ctx context.Context, inId ...int) ([]mytypes.OrderClean, error) {
 	var orders []mytypes.OrderClean
 	var order mytypes.OrderClean
@@ -707,6 +712,7 @@ func (base Base) TakeCleanOrderById(ctx context.Context, inId ...int) ([]mytypes
 	return orders, nil
 }
 
+// Получение чистого заказа по sql условию
 func (base Base) TakeCleanOrderByReqest(ctx context.Context, reqest string) ([]mytypes.OrderClean, error) {
 
 	var orders []mytypes.OrderClean
@@ -736,6 +742,7 @@ func (base Base) TakeCleanOrderByReqest(ctx context.Context, reqest string) ([]m
 	return orders, nil
 }
 
+// Получение чистого заказа с вхождениями указаных строк
 func (base Base) TakeCleanOrderByAnything(ctx context.Context, reqest ...string) ([]mytypes.OrderClean, error) {
 	var qq string
 
@@ -862,6 +869,7 @@ func (base Base) TakeCleanOrderList(ctx context.Context, orderId int) ([]mytypes
 	return orderList, nil
 }
 
+// Получения чистого статуса заказа по его ID
 func (base Base) TakeCleanOrderStatus(ctx context.Context, orderId int) ([]mytypes.OrderStatusClean, error) {
 	var statusList []mytypes.OrderStatusClean
 	var status mytypes.OrderStatusClean
@@ -894,6 +902,7 @@ func (base Base) TakeCleanOrderStatus(ctx context.Context, orderId int) ([]mytyp
 
 /////////////////////////////////
 
+// Передачу устройства в работу (состояние = 3, место = 0) по его серийному номеру
 func (base Base) SnToWork(ctx context.Context, InSn ...string) (int, error) {
 	if len(InSn) == 0 {
 		return 0, fmt.Errorf("не введены серийные номера")
@@ -913,6 +922,7 @@ func (base Base) SnToWork(ctx context.Context, InSn ...string) (int, error) {
 	return int(res.RowsAffected()), err
 }
 
+// Изменение заказа устройства по его серийному нореру
 func (base Base) SnSetOrder(ctx context.Context, inOrder int, InSn ...string) (int, error) {
 	if len(InSn) == 0 {
 		return 0, fmt.Errorf("не введены серийные номера")
@@ -932,6 +942,7 @@ func (base Base) SnSetOrder(ctx context.Context, inOrder int, InSn ...string) (i
 	return int(res.RowsAffected()), err
 }
 
+// Изменение места устройства по его серийному номеру
 func (base Base) SnSetPlace(ctx context.Context, inPlace int, InSn ...string) (int, error) {
 	if len(InSn) == 0 {
 		return 0, fmt.Errorf("не введены серийные номера")
@@ -951,6 +962,7 @@ func (base Base) SnSetPlace(ctx context.Context, inPlace int, InSn ...string) (i
 	return int(res.RowsAffected()), err
 }
 
+// Возврат устройства (отгружен = false, место = 10) по его серийному номеру
 func (base Base) SnTakeDemo(ctx context.Context, InSn ...string) (int, error) {
 	if len(InSn) == 0 {
 		return 0, fmt.Errorf("не введены серийные номера")
@@ -970,6 +982,7 @@ func (base Base) SnTakeDemo(ctx context.Context, InSn ...string) (int, error) {
 	return int(res.RowsAffected()), err
 }
 
+// Отправка устройства (отгружен = true, место = -1) по его серийному номеру
 func (base Base) SnToShip(ctx context.Context, dest string, InSn ...string) (int, error) {
 	if len(InSn) == 0 {
 		return 0, fmt.Errorf("не введены серийные номера")
@@ -989,6 +1002,7 @@ func (base Base) SnToShip(ctx context.Context, dest string, InSn ...string) (int
 	return int(res.RowsAffected()), err
 }
 
+// Изменение номера места
 func (base Base) ChangeNumPlace(ctx context.Context, old, new int) error {
 
 	_, err := base.Db.Exec(ctx, `UPDATE public.sns SET place = $1 WHERE place = $2`, new, old)
@@ -996,6 +1010,7 @@ func (base Base) ChangeNumPlace(ctx context.Context, old, new int) error {
 	return err
 }
 
+// Добавление комментария к устройству по его ID
 func (base Base) AddCommentToSns(ctx context.Context, id int, text string, user mytypes.User) error {
 
 	time := time.Now().Format("02.01.2006 15:04")
@@ -1023,6 +1038,7 @@ func (base Base) AddCommentToSns(ctx context.Context, id int, text string, user 
 	return nil
 }
 
+// Добавление устройства по пораметрам
 func (base Base) InsetDeviceByModel(ctx context.Context, DModel int, Name string, TModel int, Rev string, Place int, Doc string, Order string, InSn ...string) (int, []string, error) {
 	if len(InSn) == 0 {
 		return 0, nil, fmt.Errorf("не введены серийные номера")
@@ -1047,6 +1063,7 @@ func (base Base) InsetDeviceByModel(ctx context.Context, DModel int, Name string
 	return insertCount, SnErr, lastErr
 }
 
+// Добовление устройств из структуры
 func (base Base) InsertDivice(ctx context.Context, devices ...mytypes.DeviceRaw) (int, error) {
 	if len(devices) == 0 {
 		return 0, fmt.Errorf("не введены серийные номера")
@@ -1067,6 +1084,7 @@ func (base Base) InsertDivice(ctx context.Context, devices ...mytypes.DeviceRaw)
 	return insertCount, nil
 }
 
+// Изменение MAC адреса устройства
 func (base Base) ChangeMAC(ctx context.Context, sn, mac string) (int, error) {
 	qq := `UPDATE public.sns SET mac=$2 WHERE sn=$1`
 
@@ -1075,6 +1093,9 @@ func (base Base) ChangeMAC(ctx context.Context, sn, mac string) (int, error) {
 	return int(res.RowsAffected()), err
 }
 
+// Преобразование устройства по серийному номеру
+// (состояние = 1)
+// (по сборке привязанной к модели постовщика списываются материалы находящиеся в производстве)
 func (base Base) ReleaseProduction(ctx context.Context, sn string) (int, int, map[int]int, error) {
 	devices, err := base.TakeDeviceBySn(ctx, sn)
 	if err != nil {
@@ -1134,17 +1155,19 @@ func (base Base) ReleaseProduction(ctx context.Context, sn string) (int, int, ma
 	return build.Id, build.TModel, matList, nil
 }
 
+// Возврат устройства из работы на склад
+// Демо устройства после этого считаются собраными, все осталльные нет
 func (base Base) ReturnToStorage(ctx context.Context, sn ...string) int {
 	var counter int
 	for _, a := range sn {
 		qq := `UPDATE public.sns
 		SET condition = 2
-		WHERE sn = $1 AND "order" <> 3;`
+		WHERE sn = $1 AND "order" <> 3 AND condition = 3;`
 		res, err := base.Db.Exec(ctx, qq, a)
 		if err != nil || res.RowsAffected() == 0 {
 			qq = `UPDATE public.sns
 			SET condition = 1
-			WHERE sn = $1 AND "order" = 3;`
+			WHERE sn = $1 AND "order" = 3 AND condition = 3;`
 			res, err := base.Db.Exec(ctx, qq, a)
 
 			if err != nil || res.RowsAffected() == 0 {
@@ -1156,6 +1179,7 @@ func (base Base) ReturnToStorage(ctx context.Context, sn ...string) int {
 	return counter
 }
 
+// Добавление события устройству по его ID
 func (base Base) AddDeviceEventById(ctx context.Context, evntType int, eventText string, userId int, InId ...int) int {
 	if len(InId) == 0 {
 		return 0
@@ -1176,6 +1200,7 @@ func (base Base) AddDeviceEventById(ctx context.Context, evntType int, eventText
 	return count
 }
 
+// Добавление события устройству по его серийному номеру
 func (base Base) AddDeviceEventBySn(ctx context.Context, evntType int, eventText string, userId int, InSn ...string) int {
 	if len(InSn) == 0 {
 		return 0
@@ -1217,6 +1242,7 @@ func (base Base) AddDeviceEventBySn(ctx context.Context, evntType int, eventText
 
 ///////////////////////////////
 
+// Добавление нового заказа из структуры
 func (base Base) InsertOrder(ctx context.Context, Order mytypes.OrderRaw) (int, error) {
 	qq := `INSERT INTO public.orders(
 		meneger, "orderDate", "reqDate", "promDate", "shDate", "isAct", coment, customer, partner, disributor, name, "1СName")
@@ -1230,6 +1256,8 @@ func (base Base) InsertOrder(ctx context.Context, Order mytypes.OrderRaw) (int, 
 	return Id, err
 }
 
+// Удаление заказа по его ID
+// Зарезервированные устройства стоновятся свободными
 func (base Base) DellOrder(ctx context.Context, id int) error {
 
 	qq := `UPDATE sns
@@ -1256,6 +1284,7 @@ func (base Base) DellOrder(ctx context.Context, id int) error {
 	return nil
 }
 
+// Изменение имени 1С заказа по его ID
 func (base Base) Change1CNumOrder(ctx context.Context, id int, new1CId int) error {
 	qq := `UPDATE public.orders
 	SET "1СName"=$1
@@ -1269,6 +1298,7 @@ func (base Base) Change1CNumOrder(ctx context.Context, id int, new1CId int) erro
 	return nil
 }
 
+// Добавление состава заказа
 func (base Base) InsertOrderList(ctx context.Context, OrderList mytypes.OrderList) error {
 	qq := `INSERT INTO public."orderList"(
 	"orderId", model, amout, "servType", "srevActDate", "lastRed")
@@ -1278,6 +1308,7 @@ func (base Base) InsertOrderList(ctx context.Context, OrderList mytypes.OrderLis
 	return err
 }
 
+// Изменение состава заказа
 func (base Base) ChangeOrderList(ctx context.Context, OrderList mytypes.OrderList) error {
 	qq := `UPDATE public."orderList"
 	SET  "orderId"=$2, model=$3, amout=$4, "servType"=$5, "srevActDate"=$6, "lastRed"=$7
@@ -1287,6 +1318,7 @@ func (base Base) ChangeOrderList(ctx context.Context, OrderList mytypes.OrderLis
 	return err
 }
 
+// Изменение даты сдачи заказа с производства
 func (base Base) SetPromDate(ctx context.Context, order int, date time.Time) error {
 	qq := `UPDATE public.orders
 	SET "promDate"=$2
@@ -1305,6 +1337,7 @@ func (base Base) SetPromDate(ctx context.Context, order int, date time.Time) err
 
 ///////////////
 
+// Получение списка материалов по списку их ID
 func (base Base) TakeMatsById(ctx context.Context, Ids ...int) ([]mytypes.Mat, error) {
 
 	var mat mytypes.Mat
@@ -1350,6 +1383,7 @@ func (base Base) TakeMatsById(ctx context.Context, Ids ...int) ([]mytypes.Mat, e
 	return mats, nil
 }
 
+// Получение списка материалов которые есть в работе по списку их ID
 func (base Base) TakeMatsInWorkById(ctx context.Context, Ids ...int) ([]mytypes.Mat, error) {
 
 	var mat mytypes.Mat
@@ -1395,6 +1429,8 @@ func (base Base) TakeMatsInWorkById(ctx context.Context, Ids ...int) ([]mytypes.
 	return mats, nil
 }
 
+// Получение списка материалов по списку их фактических имен
+// Возврощаемая структура имеет только фактическое имя и кол-во
 func (base Base) TakeAmoutMatsByName(ctx context.Context, names ...string) ([]mytypes.Mat, error) {
 	var mat mytypes.Mat
 	var mats []mytypes.Mat
@@ -1426,6 +1462,8 @@ func (base Base) TakeAmoutMatsByName(ctx context.Context, names ...string) ([]my
 	return mats, nil
 }
 
+// Получение списка материалов по списку их имен в 1С
+// Возврощаемая структура имеет только имя в 1с и кол-во
 func (base Base) TakeAmoutMatsBy1C(ctx context.Context, names1c ...string) ([]mytypes.Mat, error) {
 	var mat mytypes.Mat
 	var mats []mytypes.Mat
@@ -1512,6 +1550,7 @@ func (base Base) AddMat(ctx context.Context, name string, name1c string, price i
 	return nil
 }
 
+// Добавление нового места хранения материалу
 func (base Base) SetMatPlace(ctx context.Context, matId int, place int) error {
 	qq := `INSERT INTO public.matplaces(mat, place) VALUES ($1, $2);`
 	_, err := base.Db.Exec(ctx, qq, matId, place)
@@ -1521,6 +1560,7 @@ func (base Base) SetMatPlace(ctx context.Context, matId int, place int) error {
 	return nil
 }
 
+// Передать материал в работу
 func (base Base) AddMatToWork(ctx context.Context, matId int, toWork int) error {
 	var amount, inWork int
 	err := base.Db.QueryRow(ctx, `SELECT amout, "inWork" FROM public.mats WHERE "matId" = $1`, matId).Scan(&amount, &inWork)
@@ -1539,6 +1579,7 @@ func (base Base) AddMatToWork(ctx context.Context, matId int, toWork int) error 
 	return nil
 }
 
+// Вернуть материал с работы
 func (base Base) RemuveMatFromWork(ctx context.Context, matId int, toWork int) error {
 	var inWork int
 	err := base.Db.QueryRow(ctx, `SELECT "inWork" FROM public.mats WHERE "matId" = $1`, matId).Scan(&inWork)
@@ -1556,12 +1597,14 @@ func (base Base) RemuveMatFromWork(ctx context.Context, matId int, toWork int) e
 	return nil
 }
 
+// Добавть событие материалу
 func (base Base) AddMatLog(ctx context.Context, matId int, amout int, eventType int, eventText string, userId int) error {
 	qq := `INSERT INTO public."matLog" ("matId", "eventType", "eventText", "eventTime", "user", amout) VALUES ($1, $2, $3, $4, $5, $6);`
 	_, err := base.Db.Exec(ctx, qq, matId, eventType, eventText, time.Now(), userId, amout)
 	return err
 }
 
+// Получить события материала по его ID
 func (base Base) TakeMatLog(ctx context.Context, matId int) ([]mytypes.MatEvent, error) {
 	var matEvent mytypes.MatEvent
 	var matEvents []mytypes.MatEvent
@@ -1580,6 +1623,7 @@ func (base Base) TakeMatLog(ctx context.Context, matId int) ([]mytypes.MatEvent,
 	return matEvents, nil
 }
 
+// Получить чистых событий материала по его ID
 func (base Base) TakeCleanMatLog(ctx context.Context, matId ...int) ([]mytypes.MatEventClean, error) {
 	var matEvent mytypes.MatEventClean
 	var matEvents []mytypes.MatEventClean
@@ -1625,6 +1669,10 @@ func (base Base) TakeCleanMatLog(ctx context.Context, matId ...int) ([]mytypes.M
 
 ////////////
 
+// InsertBuild вставляет несколько записей о сборках в базу данных.
+//
+// Функция принимает переменное количество объектов типа `mytypes.Build` в качестве входных данных и вставляет их в таблицу `builds` в базе данных.
+// Она возвращает количество успешно вставленных записей и ошибку, если она возникла.
 func (base Base) InsertBuild(ctx context.Context, builds ...mytypes.Build) (int, error) {
 	qq := `INSERT INTO public.builds("buildId", "dModel", "tModel") VALUES ($1, $2, $3);`
 	counter := 0
@@ -1657,6 +1705,10 @@ func (base Base) InsertBuild(ctx context.Context, builds ...mytypes.Build) (int,
 	return counter, nil
 }
 
+// TakeBuildById извлекает сборку из базы данных по ее идентификатору.
+//
+// Принимает параметры context.Context и id типа int.
+// Возвращает структуру mytypes.Build и ошибку.
 func (base Base) TakeBuildById(ctx context.Context, id int) (mytypes.Build, error) {
 	var Build mytypes.Build
 	qq := `SELECT "buildId", "dModel", "tModel" FROM public.builds WHERE "buildId" = $1;`
@@ -1728,7 +1780,6 @@ func (base Base) TakeCleanBuildById(ctx context.Context, id int) (mytypes.BuildC
 		build.BuildList = buildlist
 	}
 	return build, nil
-
 }
 
 func (base Base) TakeBuildByTModel(ctx context.Context, TModels ...int) ([]mytypes.Build, error) {
@@ -2426,7 +2477,6 @@ func (base Base) NewRegenToken(user string, token string, ctx context.Context) {
 	if err != nil {
 		return
 	}
-
 }
 
 // добавление устройств в базу

@@ -53,7 +53,7 @@
               <a class="btn btn-outline-primary " href="/works/tmcadvancesearch" style="width: auto;">Сложный поиск в ТМЦ <i class="bi bi-search"></i></a>
               &nbsp;
               <a class="btn btn-outline-primary " href="/works/tmc{{.ExcellLink}}&Veiw=kombo" style="width: auto;">Комбинированный вид <i class="bi bi-table"></i></a>   
-              <button class="d.inline btn btn-outline-primary btn-sm"name="copybtn" onclick="myFunction()"><i class="bi-copy" ></i></button>
+              <button class="d.inline btn btn-outline-primary btn-sm"name="copybtn" onclick="copyToClipboard()"><i class="bi-copy" ></i></button>
               &nbsp;
               <a class="d.inline btn btn-outline-success btn-sm"name="copybtn" href="/works/tmcexcell{{.ExcellLink}}"><i class="bi-file-earmark-excel" ></i></a>
             </ul>
@@ -123,7 +123,10 @@
         document.body.removeChild(el);
       }
 
-    
+      function copyToClipboard() {
+      const text = "{{.SnString}}";
+      navigator.clipboard.writeText(text);
+      }
         
     
       </script>
