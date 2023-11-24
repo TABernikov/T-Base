@@ -55,25 +55,25 @@
 
   <div class="container">
     <div class="row col">
-      <ul class="list-inline"><li class="list-inline-item display-5" style="font-weight: 300;">Имя: {{.Name}}</li><li class="list-inline-item display-5 float-end" style="color: {{.Color}}; font-weight: bold;">#{{.Id}}</li></ul>
+      <ul class="list-inline"><li class="list-inline-item display-5" style="font-weight: 300;">Имя: {{.Task.Name}}</li><li class="list-inline-item display-5 float-end" style="color: {{.Task.Color}}; font-weight: bold;">#{{.Task.Id}}</li></ul>
       <table class="table">
         <tr>
             <th>Автор</th>
-            <td>{{.Autor}}</td>
+            <td>{{.Task.Autor}}</td>
             <th>Приоритет</th>
-            <td>{{.Priority}}</td>
+            <td>{{.Task.Priority}}</td>
         </tr>
         <tr>
             <th>Дата начала</th>
-            <td>{{.DateStart}}</td>
+            <td>{{.Task.DateStart}}</td>
             <th>Дата окончания</th>
-            <td>{{.DateEnd}}</td>
+            <td>{{.Task.DateEnd}}</td>
         </tr>
         <tr>
             <th>Готовность</th>
-            <td>{{.Complete}}</td>
+            <td>{{.Task.Complete}}</td>
             <th>Описание</th>
-            <td>{{.Description}}</td>
+            <td>{{.Task.Description}}</td>
         </tr>
       </table>
     </div>
@@ -84,19 +84,19 @@
       <div class="col mb-2">
         <form action="/works/createtasklist" target="_self" method="post">      
           <input type="hidden" name="Action" value="Open"/>
-          <input type="hidden" name="TaskId" value="{{.Id}}"/>
+          <input type="hidden" name="TaskId" value="{{.Task.Id}}"/>
           <button type="submit" class="btn btn-sm btn-primary " ><i class="bi-pencil"></i>Редактировать производственную задачу</button>
         </form>
       </div>
       <div class="col mb-2">
         <form action="/works/changetask" target="_self" method="get">      
-          <input type="hidden" name="Id" value="{{.Id}}"/>
+          <input type="hidden" name="Id" value="{{.Task.Id}}"/>
           <button type="submit" class="btn btn-sm btn-primary"><i class="bi-pencil"></i>Редактировать задачу</button>
         </form>
       </div>
       <div class="col mb-2">
         <form action="/works/hidetask" target="_self" method="post">      
-          <input type="hidden" name="TaskId" value="{{.Id}}" />
+          <input type="hidden" name="TaskId" value="{{.Task.Id}}" />
           <button type="submit" class="btn btn-sm btn-danger " style="font-size: 80%;"><i class="bi-trash-fill"></i></button>
         </form>
       </div>
@@ -111,7 +111,7 @@
           <th>Кол-во</th>
           <th>Готово</th>
         </tr>
-        {{range .WorkList}}
+        {{range .Task.WorkList}}
         <tr>
           <th>{{.Id}}</th>
           <td>{{.TModel}}</td>
@@ -121,7 +121,27 @@
         {{end}}
       </table>
     </div>
+
+    <div class="row col">
+      <table class="table table-bordered table-striped caption-top">
+        <caption style="font-weight: bold; color: black; font-size: 120%;">Материалы необходимые для выполнения:</caption>
+        <tr>
+          <th>Имя</th>
+          <th>Кол-во</th>
+        </tr>
+        {{range .MatList}}
+        <tr>
+          <td>{{.Mat}}</td>
+          <td>{{.Amout}}</td>
+        </tr>
+        {{end}}
+      </table>
+    </div>
+
   </div>
+
+  
+
 
     <script src="Face/html/js/bootstrap.bundle.js"></script>
     <script src="Face/html/js/keys.js"></script>

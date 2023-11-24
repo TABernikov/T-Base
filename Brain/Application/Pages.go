@@ -3,6 +3,7 @@ package Application
 import (
 	"T-Base/Brain/Auth"
 	"T-Base/Brain/Filer"
+	"log"
 
 	"T-Base/Brain/mytypes"
 	"fmt"
@@ -504,7 +505,7 @@ func (a App) StorageByTModelPage(w http.ResponseWriter, r *http.Request, pr http
 	} else {
 		storage, err := a.Db.TakeStorageByTModelClean(a.Ctx, "")
 		if err != nil {
-			fmt.Println(err)
+			log.Println(err)
 			return
 		}
 
@@ -962,7 +963,7 @@ func (a App) MatEventPage(w http.ResponseWriter, r *http.Request, pr httprouter.
 // Календарь с событиями
 func (a App) CalendearPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	if a.Db.ChekTaks(a.Ctx) != nil {
-		fmt.Println(a.Db.ChekTaks(a.Ctx).Error())
+		log.Println(a.Db.ChekTaks(a.Ctx).Error())
 	}
 	var tasks []mytypes.TaskJs
 	var err error
@@ -1021,6 +1022,14 @@ func (a App) PlanProdStoragePage(w http.ResponseWriter, r *http.Request, pr http
 	a.Templ.PlanProdStoragePage(w)
 }
 
+func (a App) PlanReProdStoragePage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	a.Templ.PlanReProdStoragePage(w)
+}
+
+func (a App) PlanMatProdStoragePage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	a.Templ.PlanMatProdStoragePage(w)
+}
+
 //////////////////////
 
 // Обработчики POST //
@@ -1068,7 +1077,7 @@ func (a App) ToWork(w http.ResponseWriter, r *http.Request, pr httprouter.Params
 	count, err := a.Db.SnToWork(a.Ctx, Sns...)
 	logCount := a.Db.AddDeviceEventBySn(a.Ctx, 2, "Передано в работу", user.UserId, Sns...)
 	if logCount != count {
-		fmt.Println("Ошибка записи логов")
+		log.Println("Ошибка записи логов")
 	}
 	if err != nil {
 		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
@@ -1110,7 +1119,7 @@ func (a App) SetOrder(w http.ResponseWriter, r *http.Request, pr httprouter.Para
 	count, err := a.Db.SnSetOrder(a.Ctx, order, Sns...)
 	logCount := a.Db.AddDeviceEventBySn(a.Ctx, 3, "Установлен заказ "+strconv.Itoa(order), user.UserId, Sns...)
 	if logCount != count {
-		fmt.Println("Ошибка записи логов")
+		log.Println("Ошибка записи логов")
 	}
 
 	if err != nil {
@@ -1153,7 +1162,7 @@ func (a App) SetPlace(w http.ResponseWriter, r *http.Request, pr httprouter.Para
 	count, err := a.Db.SnSetPlace(a.Ctx, place, Sns...)
 	logCount := a.Db.AddDeviceEventBySn(a.Ctx, 6, "Установлено место "+strconv.Itoa(place), user.UserId, Sns...)
 	if logCount != count {
-		fmt.Println("Ошибка записи логов")
+		log.Println("Ошибка записи логов")
 	}
 	if err != nil {
 		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
@@ -1189,7 +1198,7 @@ func (a App) TakeDemo(w http.ResponseWriter, r *http.Request, pr httprouter.Para
 	count, err := a.Db.SnTakeDemo(a.Ctx, Sns...)
 	logCount := a.Db.AddDeviceEventBySn(a.Ctx, 1, "Принято демо", user.UserId, Sns...)
 	if logCount != count {
-		fmt.Println("Ошибка записи логов")
+		log.Println("Ошибка записи логов")
 	}
 	if err != nil {
 		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
@@ -1225,7 +1234,7 @@ func (a App) ToShip(w http.ResponseWriter, r *http.Request, pr httprouter.Params
 	count, err := a.Db.SnToShip(a.Ctx, r.FormValue("in2"), Sns...)
 	logCount := a.Db.AddDeviceEventBySn(a.Ctx, 5, "Отгрузка "+r.FormValue("in2"), user.UserId, Sns...)
 	if logCount != count {
-		fmt.Println("Ошибка записи логов")
+		log.Println("Ошибка записи логов")
 	}
 	if err != nil {
 		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
@@ -1289,7 +1298,7 @@ func (a App) AddCommentToSns(w http.ResponseWriter, r *http.Request, pr httprout
 
 	err = a.Db.AddCommentToSns(a.Ctx, id, text, user)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		a.DeviceMiniPage(w, r, pr, user)
 		return
 	}
@@ -1397,7 +1406,7 @@ func (a App) CreateOrder(w http.ResponseWriter, r *http.Request, pr httprouter.P
 	}
 	Name := r.FormValue("Name")
 
-	fmt.Println(r.FormValue("Req"))
+	log.Println(r.FormValue("Req"))
 	ReqDate, err := time.Parse("2006-01-02", r.FormValue("Req"))
 	if err != nil {
 		a.Templ.AlertPage(w, 5, "Ошибка", "Требуемая дата не дата", "", err.Error(), "Главная", "/works/prof")
@@ -1607,7 +1616,7 @@ func (a App) ChangeMAC(w http.ResponseWriter, r *http.Request, pr httprouter.Par
 		_, err := a.Db.ChangeMAC(a.Ctx, in[i], in[i+1])
 		logCount := a.Db.AddDeviceEventBySn(a.Ctx, 6, "Установлен mac "+in[i+1], user.UserId, in[i])
 		if logCount != 1 {
-			fmt.Println("Ошибка записи логов")
+			log.Println("Ошибка записи логов")
 		}
 		if err != nil {
 			a.Templ.AlertPage(w, 2, "Ошибка", "Частично", "Изменнено только часть MAC", "Изменены "+strconv.Itoa(count)+" устройств, до "+in[i], "Главная", "/works/prof")
@@ -1705,7 +1714,7 @@ func (a App) ReturnToStorage(w http.ResponseWriter, r *http.Request, pr httprout
 	counter := a.Db.ReturnToStorage(a.Ctx, in...)
 	logCount := a.Db.AddDeviceEventBySn(a.Ctx, 9, "Возврат", user.UserId, in...)
 	if logCount != counter {
-		fmt.Println("Ошибка записи логов")
+		log.Println("Ошибка записи логов")
 	}
 
 	if counter == 0 {
@@ -2287,18 +2296,18 @@ func (a App) HideTask(w http.ResponseWriter, r *http.Request, pr httprouter.Para
 func (a App) TestFile(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	order, err := a.Db.TakeCleanOrderById(a.Ctx)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 	}
 
 	path, name, err := Filer.OrderExceller(*a.Db, a.AppIp, "http://"+a.AppIp+"/works/orders", order...)
-	fmt.Println(path)
+	log.Println(path)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 	}
 
 	err = sendTMPFile(w, r, path, name)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 	}
 }
 
@@ -2311,7 +2320,7 @@ func (a App) TMCExcell(w http.ResponseWriter, r *http.Request, pr httprouter.Par
 	if r.FormValue("Search") == "" {
 		devices, err = a.Db.TakeCleanDeviceById(a.Ctx)
 		if err != nil {
-			fmt.Println(err)
+			log.Println(err)
 		}
 	} else if r.FormValue("Search") == "Clean" {
 		req := `WHERE true `
@@ -2446,7 +2455,7 @@ func (a App) TMCExcell(w http.ResponseWriter, r *http.Request, pr httprouter.Par
 
 		devices, err = a.Db.TakeCleanDeviceByRequest(a.Ctx, req)
 		if err != nil {
-			fmt.Println(err)
+			log.Println(err)
 		}
 	} else if r.FormValue("Search") == "Raw" {
 		rawSelect := `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder" FROM public.sns WHERE true`
@@ -2581,7 +2590,7 @@ func (a App) TMCExcell(w http.ResponseWriter, r *http.Request, pr httprouter.Par
 		Sns := strings.Fields(snString)
 		devices, err = a.Db.TakeCleanDeviceBySn(a.Ctx, Sns...)
 		if err != nil {
-			fmt.Println(err)
+			log.Println(err)
 		}
 	} else if r.FormValue("Search") == "Anything" {
 		link = "?Search=Anything&in=" + r.FormValue("in")
@@ -2589,19 +2598,19 @@ func (a App) TMCExcell(w http.ResponseWriter, r *http.Request, pr httprouter.Par
 		Sns := strings.Split(snString, ";")
 		devices, err = a.Db.TakeCleanDeviceByAnything(a.Ctx, Sns...)
 		if err != nil {
-			fmt.Println(err)
+			log.Println(err)
 		}
 	}
 
 	path, name, err := Filer.TMCExceller("http://"+a.AppIp+"/works/tmc"+link, devices...)
-	fmt.Println(path)
+	log.Println(path)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 	}
 
 	err = sendTMPFile(w, r, path, name)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 	}
 }
 
@@ -2641,14 +2650,14 @@ func (a App) OrdersExcell(w http.ResponseWriter, r *http.Request, pr httprouter.
 	}
 
 	path, name, err := Filer.OrderExceller(*a.Db, a.AppIp, "http://"+a.AppIp+"/works/orders"+link, orders...)
-	fmt.Println(path)
+	log.Println(path)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 	}
 
 	err = sendTMPFile(w, r, path, name)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 	}
 }
 
@@ -2676,13 +2685,13 @@ func (a App) OrdersShortExcell(w http.ResponseWriter, r *http.Request, pr httpro
 	}
 
 	path, name, err := Filer.ShortOrdersExceller("http://"+a.AppIp+"/works/orders"+link, orders...)
-	fmt.Println(path)
+	log.Println(path)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 	}
 
 	err = sendTMPFile(w, r, path, name)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 	}
 }

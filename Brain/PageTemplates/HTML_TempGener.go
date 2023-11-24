@@ -492,7 +492,11 @@ func (templ Templ) UserPage(w http.ResponseWriter, user mytypes.User) {
 		block.Btns = append(block.Btns, btn)
 		btn = Buton{`<i class="bi bi-calendar-plus-fill"></i> Создать задачу`, "/works/createtask"}
 		block.Btns = append(block.Btns, btn)
-		btn = Buton{`<i class="bi bi-graph-up"></i> Отчет о планировании`, "/works/planprodstorage"}
+		btn = Buton{`<i class="bi bi-graph-up"></i> Отчет о планировании производства`, "/works/planprodstorage"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{`<i class="bi bi-graph-up"></i> Отчет о планировании выроботки`, "/works/planreprodstorage"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{`<i class="bi bi-graph-up"></i> Отчет о планировании материалов`, "/works/planmatprodstorage"}
 		block.Btns = append(block.Btns, btn)
 		Blocks = append(Blocks, block)
 
@@ -1049,6 +1053,10 @@ func (templ Templ) ChangeTaskPage(w http.ResponseWriter, taskId string) {
 
 // Генерация страницы задачи
 func (templ Templ) TaskPage(w http.ResponseWriter, taskId int) {
+	type taskPage struct {
+		Task    mytypes.CleanTask
+		MatList []mytypes.BuildListElementClean
+	}
 	tasks, err := templ.Db.TakeCleanTasksById(templ.ctx, taskId)
 	if err != nil {
 		templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
@@ -1058,11 +1066,23 @@ func (templ Templ) TaskPage(w http.ResponseWriter, taskId int) {
 		templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка поиска", "", "Главная", "/works/prof")
 		return
 	}
+
+	matList, err := templ.Db.TakeCleanMatForTask(templ.ctx, taskId)
+	if err != nil {
+		templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	TaskPage := taskPage{
+		Task:    tasks[0],
+		MatList: matList,
+	}
+
 	t := template.Must(template.ParseFiles("Face/html/task.html"))
-	t.Execute(w, tasks[0])
+	t.Execute(w, TaskPage)
 }
 
-// Генерация страницы отчета (колво продукции на складе через 1, 2, 3 месяца исходя из задач)
+// Генерация страницы отчета (колво готовой продукции на складе через 1, 2, 3 месяца исходя из задач)
 func (templ Templ) PlanProdStoragePage(w http.ResponseWriter) {
 	type prodStorage struct {
 		Name    string
@@ -1099,7 +1119,7 @@ FROM
 			sum("taskWorkList".done) AS done
 		FROM public."taskWorkList"
 			LEFT JOIN tasks ON tasks.id = "taskWorkList"."taskId"
-		WHERE dateend > CURRENT_DATE AND dateend <= date_trunc('month',CURRENT_DATE + '1 month'::interval)
+		WHERE dateend >= CURRENT_DATE AND dateend <= date_trunc('month',CURRENT_DATE + '1 month'::interval)
 		GROUP BY tmodel
 		)monthone ON monthone.tmodel = stor."tModelsId"
 	LEFT JOIN
@@ -1123,6 +1143,244 @@ FROM
 		GROUP BY tmodel
 		)monththre ON monththre.tmodel = stor."tModelsId"
 ORDER BY "tModelsName"`
+
+	temp := []prodStorage{}
+	data := prodStorage{}
+	rows, err := templ.Db.Db.Query(templ.ctx, qq)
+	if err != nil {
+		templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения данных", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	for rows.Next() {
+		err := rows.Scan(&data.Name, &data.Current, &data.Plan1, &data.Done1, &data.Plan2, &data.Done2, &data.Plan3, &data.Done3)
+		if err != nil {
+			templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения данных", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		temp = append(temp, data)
+	}
+
+	t := template.Must(template.ParseFiles("Face/html/storage_planprd.html"))
+	t.Execute(w, temp)
+}
+
+// Генерация страницы отчета (кол-во не произведенной продукции на складе через 1, 2, 3 месяца исходя из задач)
+func (templ Templ) PlanReProdStoragePage(w http.ResponseWriter) {
+	type prodStorage struct {
+		Name    string
+		Current int
+		Done1   int
+		Plan1   int
+		Done2   int
+		Plan2   int
+		Done3   int
+		Plan3   int
+	}
+
+	qq := `SELECT
+		stor."dModelName",
+		stor.amout,
+		0 - (COALESCE(dmonthone.amout, 0) - COALESCE(dmonthone.done, 0)) AS plan1,
+		(COALESCE(dmonthone.done, 0) - COALESCE(dmonthone.amout, 0)) + stor.amout AS done1,
+		0 - (COALESCE(dmonthto.amout, 0) - COALESCE(dmonthto.done, 0)) AS plan2,
+		(((COALESCE(dmonthone.done, 0) - COALESCE(dmonthone.amout, 0)) + stor.amout) - (COALESCE(dmonthto.amout, 0) - COALESCE(dmonthto.done, 0))) AS done2,
+		0 - (COALESCE(dmonththre.amout, 0) - COALESCE(dmonththre.done, 0)) AS plan3,
+		((((COALESCE(dmonthone.done, 0) - COALESCE(dmonthone.amout, 0)) + stor.amout) - (COALESCE(dmonthto.amout, 0) - COALESCE(dmonthto.done, 0))) - (COALESCE(dmonththre.amout, 0) - COALESCE(dmonththre.done, 0))) AS done3
+	FROM
+		(SELECT
+			"dModels"."dModelsId",
+			"dModels"."dModelName",
+			count(snsn.sn) AS amout
+		FROM "dModels"
+			LEFT JOIN (SELECT sn, dmodel FROM sns WHERE condition = 2 AND shiped = false)snsn ON snsn.dmodel = "dModels"."dModelsId"
+		GROUP BY "dModelsId")stor
+		LEFT JOIN
+		(SELECT 
+			COALESCE(eq."dModel", 0) AS dmodel,
+			SUM(monthone.amout) AS amout,
+			SUM(monthone.done) AS done
+		FROM
+		(SELECT 
+			"taskWorkList".tmodel, 
+			sum("taskWorkList".amout) AS amout, 
+			sum("taskWorkList".done) AS done
+		FROM public."taskWorkList"
+			LEFT JOIN tasks ON tasks.id = "taskWorkList"."taskId"
+		WHERE dateend >= CURRENT_DATE AND dateend <= date_trunc('month',CURRENT_DATE + '1 month'::interval)
+		GROUP BY tmodel
+		)monthone
+		LEFT JOIN
+			(SELECT 
+				"dModels"."dModelsId",
+				builds."dModel",
+				builds."tModel"
+			FROM "dModels"
+				LEFT JOIN builds on builds."buildId" = "dModels"."build")eq ON monthone.tmodel = eq."tModel"
+		GROUP BY dmodel)dmonthone ON dmonthone.dmodel = stor."dModelsId"
+		LEFT JOIN 
+		(SELECT 
+			COALESCE(eq."dModel", 0) AS dmodel,
+			SUM(monthone.amout) AS amout,
+			SUM(monthone.done) AS done
+		FROM
+		(SELECT 
+			"taskWorkList".tmodel, 
+			sum("taskWorkList".amout) AS amout, 
+			sum("taskWorkList".done) AS done
+		FROM public."taskWorkList"
+			LEFT JOIN tasks ON tasks.id = "taskWorkList"."taskId"
+		WHERE dateend > date_trunc('month',CURRENT_DATE + '1 month'::interval) AND dateend <= date_trunc('month',CURRENT_DATE + '2 month'::interval)
+		GROUP BY tmodel
+		)monthone
+		LEFT JOIN
+			(SELECT 
+				"dModels"."dModelsId",
+				builds."dModel",
+				builds."tModel"
+			FROM "dModels"
+				LEFT JOIN builds on builds."buildId" = "dModels"."build")eq ON monthone.tmodel = eq."tModel"
+		GROUP BY dmodel)dmonthto ON dmonthto.dmodel = stor."dModelsId"
+		LEFT JOIN 
+		(SELECT 
+			COALESCE(eq."dModel", 0) AS dmodel,
+			SUM(monthone.amout) AS amout,
+			SUM(monthone.done) AS done
+		FROM
+		(SELECT 
+			"taskWorkList".tmodel, 
+			sum("taskWorkList".amout) AS amout, 
+			sum("taskWorkList".done) AS done
+		FROM public."taskWorkList"
+			LEFT JOIN tasks ON tasks.id = "taskWorkList"."taskId"
+		WHERE dateend > date_trunc('month',CURRENT_DATE + '2 month'::interval) AND dateend <= date_trunc('month',CURRENT_DATE + '3 month'::interval)
+		GROUP BY tmodel
+		)monthone
+		LEFT JOIN
+			(SELECT 
+				"dModels"."dModelsId",
+				builds."dModel",
+				builds."tModel"
+			FROM "dModels"
+				LEFT JOIN builds on builds."buildId" = "dModels"."build")eq ON monthone.tmodel = eq."tModel"
+		GROUP BY dmodel)dmonththre ON dmonththre.dmodel = stor."dModelsId"
+	ORDER BY stor."dModelName"`
+
+	temp := []prodStorage{}
+	data := prodStorage{}
+	rows, err := templ.Db.Db.Query(templ.ctx, qq)
+	if err != nil {
+		templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения данных", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	for rows.Next() {
+		err := rows.Scan(&data.Name, &data.Current, &data.Plan1, &data.Done1, &data.Plan2, &data.Done2, &data.Plan3, &data.Done3)
+		if err != nil {
+			templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения данных", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		temp = append(temp, data)
+	}
+
+	t := template.Must(template.ParseFiles("Face/html/storage_planprd.html"))
+	t.Execute(w, temp)
+}
+
+// Генерация страницы отчета (кол-во не произведенной продукции на складе через 1, 2, 3 месяца исходя из задач)
+func (templ Templ) PlanMatProdStoragePage(w http.ResponseWriter) {
+	type prodStorage struct {
+		Name    string
+		Current int
+		Done1   int
+		Plan1   int
+		Done2   int
+		Plan2   int
+		Done3   int
+		Plan3   int
+	}
+
+	qq := `SELECT 
+		"matsByName".name,
+		"matsByName".sum,
+		COALESCE(month1.amout,0)AS plan1,
+		"matsByName".sum - (COALESCE(month1.amout, 0)) AS done1,
+		COALESCE(month2.amout,0)AS plan2,
+		"matsByName".sum - ((COALESCE(month1.amout, 0)) + (COALESCE(month2.amout, 0))) AS done2,
+		COALESCE(month3.amout,0)AS plan3,
+		"matsByName".sum - ((COALESCE(month1.amout, 0)) + (COALESCE(month2.amout, 0)) + (COALESCE(month3.amout, 0))) AS done3
+	FROM "matsByName"
+	LEFT JOIN (
+		SELECT "buildMatList".AMOUT * SUM(BUILDEQ.AMOUT) AS AMOUT,
+			"buildMatList".MAT,
+			"matsName".NAME
+		FROM PUBLIC."buildMatList"
+		INNER JOIN
+			(SELECT COALESCE(EQ."build",-1) AS BUILD,
+					SUM(MONTHONE.AMOUT) - SUM(MONTHONE.DONE) AS AMOUT
+				FROM
+					(SELECT "taskWorkList".TMODEL,
+							SUM("taskWorkList".AMOUT) AS AMOUT,
+							SUM("taskWorkList".DONE) AS DONE
+						FROM PUBLIC."taskWorkList"
+						LEFT JOIN TASKS ON TASKS.ID = "taskWorkList"."taskId"
+						WHERE dateend >= CURRENT_DATE AND dateend <= date_trunc('month',CURRENT_DATE + '1 month'::interval) /*условие выбора задач*/
+						GROUP BY TMODEL)MONTHONE
+				LEFT JOIN
+					(SELECT "dModels"."build",
+							BUILDS."tModel"
+						FROM "dModels"
+						LEFT JOIN BUILDS ON BUILDS."buildId" = "dModels"."build")EQ ON MONTHONE.TMODEL = EQ."tModel"
+				GROUP BY BUILD)BUILDEQ ON BUILDEQ.BUILD = "buildMatList"."billdId"
+		LEFT JOIN PUBLIC."matsName" ON "matsName"."matNameId" = "buildMatList".MAT
+		GROUP BY MAT,"buildMatList".AMOUT, NAME)month1 ON month1.name = "matsByName".name
+	LEFT JOIN (
+		SELECT "buildMatList".AMOUT * SUM(BUILDEQ.AMOUT) AS AMOUT,
+			"buildMatList".MAT,
+			"matsName".NAME
+		FROM PUBLIC."buildMatList"
+		INNER JOIN
+			(SELECT COALESCE(EQ."build",-1) AS BUILD,
+					SUM(MONTHONE.AMOUT) - SUM(MONTHONE.DONE) AS AMOUT
+				FROM
+					(SELECT "taskWorkList".TMODEL,
+							SUM("taskWorkList".AMOUT) AS AMOUT,
+							SUM("taskWorkList".DONE) AS DONE
+						FROM PUBLIC."taskWorkList"
+						LEFT JOIN TASKS ON TASKS.ID = "taskWorkList"."taskId"
+						WHERE dateend > date_trunc('month',CURRENT_DATE + '1 month'::interval) AND dateend <= date_trunc('month',CURRENT_DATE + '2 month'::interval) /*условие выбора задач*/
+						GROUP BY TMODEL)MONTHONE
+				LEFT JOIN
+					(SELECT "dModels"."build",
+							BUILDS."tModel"
+						FROM "dModels"
+						LEFT JOIN BUILDS ON BUILDS."buildId" = "dModels"."build")EQ ON MONTHONE.TMODEL = EQ."tModel"
+				GROUP BY BUILD)BUILDEQ ON BUILDEQ.BUILD = "buildMatList"."billdId"
+		LEFT JOIN PUBLIC."matsName" ON "matsName"."matNameId" = "buildMatList".MAT
+		GROUP BY MAT,"buildMatList".AMOUT, NAME)month2 ON month2.name = "matsByName".name
+	LEFT JOIN (
+		SELECT "buildMatList".AMOUT * SUM(BUILDEQ.AMOUT) AS AMOUT,
+			"buildMatList".MAT,
+			"matsName".NAME
+		FROM PUBLIC."buildMatList"
+		INNER JOIN
+			(SELECT COALESCE(EQ."build",-1) AS BUILD,
+					SUM(MONTHONE.AMOUT) - SUM(MONTHONE.DONE) AS AMOUT
+				FROM
+					(SELECT "taskWorkList".TMODEL,
+							SUM("taskWorkList".AMOUT) AS AMOUT,
+							SUM("taskWorkList".DONE) AS DONE
+						FROM PUBLIC."taskWorkList"
+						LEFT JOIN TASKS ON TASKS.ID = "taskWorkList"."taskId"
+						WHERE dateend > date_trunc('month',CURRENT_DATE + '2 month'::interval) AND dateend <= date_trunc('month',CURRENT_DATE + '3 month'::interval) /*условие выбора задач*/
+						GROUP BY TMODEL)MONTHONE
+				LEFT JOIN
+					(SELECT "dModels"."build",
+							BUILDS."tModel"
+						FROM "dModels"
+						LEFT JOIN BUILDS ON BUILDS."buildId" = "dModels"."build")EQ ON MONTHONE.TMODEL = EQ."tModel"
+				GROUP BY BUILD)BUILDEQ ON BUILDEQ.BUILD = "buildMatList"."billdId"
+		LEFT JOIN PUBLIC."matsName" ON "matsName"."matNameId" = "buildMatList".MAT
+		GROUP BY MAT,"buildMatList".AMOUT, NAME)month3 ON month3.name = "matsByName".name
+	ORDER BY name`
 
 	temp := []prodStorage{}
 	data := prodStorage{}

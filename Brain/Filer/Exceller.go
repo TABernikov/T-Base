@@ -6,6 +6,7 @@ import (
 	"context"
 	"crypto/rand"
 	"fmt"
+	"log"
 	"math/big"
 	"strconv"
 	"time"
@@ -26,12 +27,12 @@ func TMCExceller(link string, devices ...mytypes.DeviceClean) (string, string, e
 	name := rndName("ТМЦ") + ".xlsx"
 	path := "./Files/" + name
 	if err := f.SaveAs(path); err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return "", "", err
 	}
 
 	if err := f.Close(); err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return "", "", err
 	}
 	return path, name, nil
@@ -66,12 +67,12 @@ func OrderExceller(base Storage.Base, ip, link string, orders ...mytypes.OrderCl
 	name := rndName("Заказ") + ".xlsx"
 	path := "./Files/" + name
 	if err := f.SaveAs(path); err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return "", "", err
 	}
 
 	if err := f.Close(); err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return "", "", err
 	}
 	return path, name, nil
@@ -86,12 +87,12 @@ func ShortOrdersExceller(link string, orders ...mytypes.OrderClean) (string, str
 	name := rndName("Список заказов") + ".xlsx"
 	path := "./Files/" + name
 	if err := f.SaveAs(path); err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return "", "", err
 	}
 
 	if err := f.Close(); err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return "", "", err
 	}
 	return path, name, nil
@@ -228,14 +229,14 @@ func makeOrderSheet(f *excelize.File, name, link string, order mytypes.OrderClea
 		},
 	})
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 	}
 	f.SetCellStyle(name, "A4", "D16", style)
 
 	// Лист заказа
 	list, err := base.TakeCleanOrderList(context.Background(), order.OrderId)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return err
 	}
 
@@ -272,7 +273,7 @@ func makeOrderSheet(f *excelize.File, name, link string, order mytypes.OrderClea
 	// Статус заказа
 	stasus, err := base.TakeCleanOrderStatus(context.Background(), order.OrderId)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return err
 	}
 
@@ -370,7 +371,7 @@ func makeOrdersListSheet(f *excelize.File, name, link string, orders ...mytypes.
 		ShowRowStripes:    &disable,
 		ShowColumnStripes: true,
 	})
-	fmt.Println(err)
+	log.Println(err)
 }
 
 ///////////////////
@@ -431,7 +432,7 @@ func ReadNewDevice(path string, base Storage.Base) ([]mytypes.DeviceRaw, error, 
 			localLittlErr = true
 		}
 		dModel, ok := DNamesMap[rows[i][0]]
-		fmt.Println(dModel)
+		log.Println(dModel)
 		if !ok {
 			f.SetCellValue("Лист1", "H"+strconv.Itoa(i+1), "Ошибка чтения модели поставщика")
 			isLitleErr = true
@@ -467,7 +468,7 @@ func ReadNewDevice(path string, base Storage.Base) ([]mytypes.DeviceRaw, error, 
 		}
 	}
 	if err := f.SaveAs(path); err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return devices, err, isLitleErr
 	}
 
@@ -485,7 +486,7 @@ func TextExcell() (string, string, error) {
 	// Create a new sheet.
 	_, err := f.NewSheet("Данные")
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return "", "", err
 	}
 	// Set value of a cell.
@@ -495,11 +496,11 @@ func TextExcell() (string, string, error) {
 	name := rndName("Тест") + ".xlsx"
 	path := "./Files/" + name
 	if err := f.SaveAs(path); err != nil {
-		fmt.Println(err)
+		log.Println(err)
 	}
 
 	if err := f.Close(); err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return "", "", err
 	}
 	return path, name, nil

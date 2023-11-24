@@ -1737,6 +1737,7 @@ func (base Base) TakeBuildById(ctx context.Context, id int) (mytypes.Build, erro
 	return Build, nil
 }
 
+// Получить чистую сборку по ее ID
 func (base Base) TakeCleanBuildById(ctx context.Context, id int) (mytypes.BuildClean, error) {
 	qq := ` SELECT builds."buildId",
 		"tModels"."tModelsName" AS "tModel",
@@ -1782,6 +1783,7 @@ func (base Base) TakeCleanBuildById(ctx context.Context, id int) (mytypes.BuildC
 	return build, nil
 }
 
+// Получить лист сборок относящихся к модели T-KOM
 func (base Base) TakeBuildByTModel(ctx context.Context, TModels ...int) ([]mytypes.Build, error) {
 	var Builds []mytypes.Build
 	if len(TModels) > 0 {
@@ -1853,6 +1855,7 @@ func (base Base) TakeBuildByTModel(ctx context.Context, TModels ...int) ([]mytyp
 	return Builds, nil
 }
 
+// Получить лист сборок относящихся к модели поставщика
 func (base Base) TakeBuildByDModel(ctx context.Context, DModels ...int) ([]mytypes.Build, error) {
 	var Builds []mytypes.Build
 	if len(DModels) > 0 {
@@ -1924,6 +1927,7 @@ func (base Base) TakeBuildByDModel(ctx context.Context, DModels ...int) ([]mytyp
 	return Builds, nil
 }
 
+// Получить лист чистых сборок относящихся к модели T-KOM
 func (base Base) TakeCleanBuildByTModel(ctx context.Context, TModels ...int) ([]mytypes.BuildClean, error) {
 	var Builds []mytypes.BuildClean
 	if len(TModels) > 0 {
@@ -2016,6 +2020,7 @@ func (base Base) TakeCleanBuildByTModel(ctx context.Context, TModels ...int) ([]
 	return Builds, nil
 }
 
+// Получить лист чистых сборок относящихся к модели поставщика
 func (base Base) TakeCleanBuildByDModel(ctx context.Context, DModels ...int) ([]mytypes.BuildClean, error) {
 	var Builds []mytypes.BuildClean
 	if len(DModels) > 0 {
@@ -2463,6 +2468,49 @@ func (base Base) ChekTaks(ctx context.Context) (err error) {
 		}
 	}
 	return nil
+}
+
+// Материалы и их кол-ва необходимые для завершения этой задачи
+func (base Base) TakeCleanMatForTask(ctx context.Context, taskId int) ([]mytypes.BuildListElementClean, error) {
+	var result []mytypes.BuildListElementClean
+
+	qq := `SELECT "buildMatList".AMOUT * SUM(BUILDEQ.AMOUT) AS AMOUT,
+		"matsName".NAME
+	FROM PUBLIC."buildMatList"
+	INNER JOIN
+		(SELECT COALESCE(EQ."build",-1) AS BUILD,
+				SUM(MONTHONE.AMOUT) - SUM(MONTHONE.DONE) AS AMOUT
+			FROM
+				(SELECT "taskWorkList".TMODEL,
+						SUM("taskWorkList".AMOUT) AS AMOUT,
+						SUM("taskWorkList".DONE) AS DONE
+					FROM PUBLIC."taskWorkList"
+					LEFT JOIN TASKS ON TASKS.ID = "taskWorkList"."taskId"
+					WHERE TASKS.ID = $1
+					GROUP BY TMODEL)MONTHONE
+			LEFT JOIN
+				(SELECT "dModels"."build",
+						BUILDS."tModel"
+					FROM "dModels"
+					LEFT JOIN BUILDS ON BUILDS."buildId" = "dModels"."build")EQ ON MONTHONE.TMODEL = EQ."tModel"
+			GROUP BY BUILD)BUILDEQ ON BUILDEQ.BUILD = "buildMatList"."billdId"
+	LEFT JOIN PUBLIC."matsName" ON "matsName"."matNameId" = "buildMatList".MAT
+	GROUP BY MAT,"buildMatList".AMOUT, NAME`
+
+	rows, err := base.Db.Query(ctx, qq, taskId)
+	if err != nil {
+		return result, err
+	}
+
+	for rows.Next() {
+		var element mytypes.BuildListElementClean
+		err = rows.Scan(&element.Amout, &element.Mat)
+		if err != nil {
+			return result, err
+		}
+		result = append(result, element)
+	}
+	return result, nil
 }
 
 ////////////////////

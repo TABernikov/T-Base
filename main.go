@@ -3,6 +3,7 @@ package main
 import (
 	"T-Base/Brain/Application"
 	"context"
+	"log"
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
@@ -10,7 +11,7 @@ import (
 
 func main() {
 
-	println("hello")
+	log.Println("hello")
 
 	ctx := context.Background()
 	var jwtKey = []byte("Kr7yRk7Akv3LaN2G11-Adrrr9on5iyG1djj1K4ola5ider-hfdhswkjuIOUGFedyfhKiFGIoy")

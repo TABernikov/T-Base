@@ -78,7 +78,7 @@
             </thead>
             <tbody>
                 {{range .}}
-                <tr class = "{{if or (ne .Plan1 0)  (ne .Plan2 0) (ne .Plan3 0)}} table-warning {{end}}" >
+                <tr class = "{{if or (lt .Done1 0)  (lt .Done2 0) (lt .Done3 0)}} table-danger {{else if or (ne .Plan1 0)  (ne .Plan2 0) (ne .Plan3 0)}} table-warning {{end}}" >
                     <th>
                       {{.Name}}
                     </th>

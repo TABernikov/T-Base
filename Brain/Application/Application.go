@@ -7,6 +7,7 @@ import (
 	"T-Base/Brain/mytypes"
 	"context"
 	"io"
+	"log"
 	"mime/multipart"
 	"net/http"
 	"os"
@@ -98,6 +99,8 @@ func (a App) Routs(r *httprouter.Router) {
 	r.GET("/works/changetask", a.authtorized(a.ChangeTaskPage))
 	r.GET("/works/task", a.authtorized(a.TaskPage))
 	r.GET("/works/planprodstorage", a.authtorized(a.PlanProdStoragePage))
+	r.GET("/works/planreprodstorage", a.authtorized(a.PlanReProdStoragePage))
+	r.GET("/works/planmatprodstorage", a.authtorized(a.PlanMatProdStoragePage))
 
 	r.POST("/works/tmc", a.authtorized(a.TMCPage))
 	r.POST("/works/orders", a.authtorized(a.OrderPage))
@@ -148,16 +151,15 @@ func (a App) authtorized(nestedFunction HandleUser) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		authToken, err := Auth.ReadCookie("Lolijoyu", r)
 		if err != nil { // нет токена авторизации
-			println("нет токена авторизации " + err.Error())
+			log.Println("нет токена авторизации " + err.Error())
 
 			http.Redirect(w, r, "/works/login", http.StatusSeeOther)
 			return
-
 		}
 
 		user, err := Auth.ParseJWT(authToken, a.JwtKey)
 		if err != nil {
-			println("Ошибка авторизации 11 " + err.Error())
+			log.Println("Ошибка авторизации 11 " + err.Error())
 			gentoken, err := Auth.ReadCookie("Korikasa", r)
 			if err != nil { //нет токена генерации
 				http.Redirect(w, r, "/works/login", http.StatusSeeOther)
