@@ -3,6 +3,7 @@ package PageTempl
 import (
 	"T-Base/Brain/Storage"
 	"context"
+	"time"
 
 	"T-Base/Brain/mytypes"
 	"html/template"
@@ -34,6 +35,53 @@ func (templ Templ) TMCPage(w http.ResponseWriter, devices []mytypes.DeviceClean,
 	table := tmcPage{lable, devices, snString, excellLink}
 
 	t := template.Must(template.ParseFiles("Face/html/TMC.html"))
+	t.Execute(w, table)
+}
+
+func (templ Templ) TMCDemoPage(w http.ResponseWriter, devices []mytypes.DeviceClean, snString string, lable string) {
+
+	type demoDevices struct {
+		Device        mytypes.DeviceClean
+		CurrentReserv string
+		NextReserv    string
+	}
+
+	type tmcPage struct {
+		Lable    string
+		Tab      []demoDevices
+		SnString string
+	}
+
+	var demo []demoDevices
+	var currentReserv, nextReserv string
+	var time1, time2 time.Time
+
+	for _, device := range devices {
+		currentReserv = "нет"
+		nextReserv = "нет"
+		time1 = time.Now()
+		time2 = time.Now()
+
+		err := templ.Db.Db.QueryRow(templ.ctx, `SELECT datestart, dateend FROM public.demoreservation WHERE datestart <= CURRENT_DATE AND dateend >= CURRENT_DATE AND "snsId" = $1 ORDER BY datestart`, device.Id).Scan(&time1, &time2)
+		if err != nil {
+			currentReserv = "нет"
+		} else {
+			currentReserv = time1.Format("02.01.2006") + " - " + time2.Format("02.01.2006")
+		}
+
+		err = templ.Db.Db.QueryRow(templ.ctx, `SELECT datestart, dateend FROM public.demoreservation WHERE datestart > CURRENT_DATE AND "snsId" = $1 ORDER BY datestart`, device.Id).Scan(&time1, &time2)
+		if err != nil {
+			nextReserv = "Нет"
+		} else {
+			nextReserv = time1.Format("02.01.2006") + " - " + time2.Format("02.01.2006")
+		}
+
+		demo = append(demo, demoDevices{device, currentReserv, nextReserv})
+	}
+
+	table := tmcPage{lable, demo, snString}
+
+	t := template.Must(template.ParseFiles("Face/html/TMC Demo.html"))
 	t.Execute(w, table)
 }
 
@@ -478,7 +526,7 @@ func (templ Templ) UserPage(w http.ResponseWriter, user mytypes.User) {
 
 		block = Block{}
 		block.Title = "В работе"
-		btn = Buton{`<i class="bi bi-table"></i> SN в работе`, "/works/tmc?Search=1&Condition=В работе"}
+		btn = Buton{`<i class="bi bi-table"></i> SN в работе`, "/works/tmc?Search=Clean&Condition=В работе"}
 		block.Btns = append(block.Btns, btn)
 		btn = Buton{`<i class="bi bi-house-fill"></i> Модели в работе`, "/works/storage/models?Search=1&Condition=3"}
 		block.Btns = append(block.Btns, btn)
@@ -1400,4 +1448,19 @@ func (templ Templ) PlanMatProdStoragePage(w http.ResponseWriter) {
 
 	t := template.Must(template.ParseFiles("Face/html/storage_planprd.html"))
 	t.Execute(w, temp)
+}
+
+func (templ Templ) ReservCalendarPage(w http.ResponseWriter, reservs []mytypes.ReservTaskJS, snsId int) {
+	type reservcall struct {
+		Reservs []mytypes.ReservTaskJS
+		SnsId   int
+	}
+	call := reservcall{Reservs: reservs, SnsId: snsId}
+	t := template.Must(template.ParseFiles("Face/html/Reserv calendar.html"))
+	t.Execute(w, call)
+}
+
+func (templ Templ) CreateReservPage(w http.ResponseWriter, snsId string) {
+	t := template.Must(template.ParseFiles("Face/html/CreateReserv.html"))
+	t.Execute(w, snsId)
 }

@@ -2435,6 +2435,7 @@ func (base Base) CompleatTask(ctx context.Context, taskId int) (err error) {
 	return
 }
 
+// Нужно переделать (скрипт должен сробатывать сам на сервере раз в сутки) !!!!
 func (base Base) ChekTaks(ctx context.Context) (err error) {
 	qq := `SELECT id FROM public.tasks
 	WHERE dateend < CURRENT_DATE AND complete = false
@@ -2508,6 +2509,78 @@ func (base Base) TakeCleanMatForTask(ctx context.Context, taskId int) ([]mytypes
 		if err != nil {
 			return result, err
 		}
+		result = append(result, element)
+	}
+	return result, nil
+}
+
+/////////////////////////
+
+// Резервирование ДЕМО //
+
+/////////////////////////
+
+func (base Base) InsertReservation(ctx context.Context, reservTask mytypes.ReservTask) error {
+	qq := `INSERT INTO public.demoreservation(
+		"snsId", datestart, dateend, autor, dest)
+		VALUES ($1, $2, $3, $4, $5);`
+
+	_, err := base.Db.Exec(ctx, qq, reservTask.SnsId, reservTask.DateStart, reservTask.DateEnd, reservTask.Autor, reservTask.Dest)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (base Base) DeleteReservation(ctx context.Context, id int) error {
+	qq := `DELETE FROM public.demoreservation WHERE id = $1;`
+
+	_, err := base.Db.Exec(ctx, qq, id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (base Base) TakeReservation(ctx context.Context, snsId int) ([]mytypes.ReservTask, error) {
+	var result []mytypes.ReservTask
+	qq := `SELECT id, "snsId", datestart, dateend, autor, dest FROM public.demoreservation WHERE "snsId" = $1;`
+
+	rows, err := base.Db.Query(ctx, qq, snsId)
+	if err != nil {
+		return result, err
+	}
+
+	for rows.Next() {
+		var element mytypes.ReservTask
+		err = rows.Scan(&element.Id, &element.SnsId, &element.DateStart, &element.DateEnd, &element.Autor, &element.Dest)
+		if err != nil {
+			return result, err
+		}
+		result = append(result, element)
+	}
+	return result, nil
+}
+
+func (base Base) TakeJSReservatios(ctx context.Context, snsId int) ([]mytypes.ReservTaskJS, error) {
+	var result []mytypes.ReservTaskJS
+	qq := `SELECT id, "snsId", datestart, dateend, users.name, dest AS autor FROM public.demoreservation LEFT JOIN users ON users.userid = demoreservation.autor WHERE "snsId" = $1;`
+
+	rows, err := base.Db.Query(ctx, qq, snsId)
+	if err != nil {
+		return result, err
+	}
+
+	for rows.Next() {
+		var timeStart, timeEnd time.Time
+		var element mytypes.ReservTaskJS
+		err = rows.Scan(&element.Id, &element.SnsId, &timeStart, &timeEnd, &element.Autor, &element.Dest)
+		if err != nil {
+			return result, err
+		}
+
+		element.DateStart = timeStart.Format("2006-01-02")
+		element.DateEnd = timeEnd.Format("2006-01-02")
 		result = append(result, element)
 	}
 	return result, nil

@@ -280,6 +280,24 @@ type CleanTaskWorkList struct {
 	Date   time.Time
 }
 
+type ReservTask struct {
+	Id        int
+	SnsId     int
+	DateStart time.Time
+	DateEnd   time.Time
+	Autor     int
+	Dest      string
+}
+
+type ReservTaskJS struct {
+	Id        int
+	SnsId     int
+	DateStart string
+	DateEnd   string
+	Autor     string
+	Dest      string
+}
+
 func CountByDModel(devices ...DeviceRaw) (counter map[int]int) {
 	counter = make(map[int]int)
 	for _, device := range devices {
