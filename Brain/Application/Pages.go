@@ -1083,6 +1083,14 @@ func (a App) CreateReservPage(w http.ResponseWriter, r *http.Request, pr httprou
 	a.Templ.CreateReservPage(w, SnsId)
 }
 
+func (a App) CreateCanBeBuildPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	a.Templ.CanBeBuildPage(w)
+}
+
+func (a App) CreateCanBeBuildOrdersPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	a.Templ.CanBeBuildOrdersPage(w)
+}
+
 //////////////////////
 
 // Обработчики POST //
@@ -1412,7 +1420,7 @@ func (a App) TakeDeviceByModel(w http.ResponseWriter, r *http.Request, pr httpro
 
 	var TModel int
 	TModelIn := r.FormValue("TModel")
-	err = a.Db.Db.QueryRow(a.Ctx, `SELECT "tModelsId" FROM "tModels" WHERE "tModelName" = $1`, TModelIn).Scan(&TModel)
+	err = a.Db.Db.QueryRow(a.Ctx, `SELECT "tModelsId" FROM "tModels" WHERE "tModels"."tModelsName" = $1`, TModelIn).Scan(&TModel)
 	if err != nil {
 		TModel = 0
 	}

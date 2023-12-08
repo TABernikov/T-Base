@@ -104,6 +104,8 @@ func (a App) Routs(r *httprouter.Router) {
 	r.GET("/works/tmcdemo", a.authtorized(a.TMCDemoPage))
 	r.GET("/works/reservcal", a.authtorized(a.ReservCalendarPage))
 	r.GET("/works/createreserv", a.authtorized(a.CreateReservPage))
+	r.GET("/works/canbebuild", a.authtorized(a.CreateCanBeBuildPage))
+	r.GET("/works/canbebuildorders", a.authtorized(a.CreateCanBeBuildOrdersPage))
 
 	r.POST("/works/tmc", a.authtorized(a.TMCPage))
 	r.POST("/works/orders", a.authtorized(a.OrderPage))

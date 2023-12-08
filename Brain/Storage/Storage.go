@@ -2113,6 +2113,191 @@ func (base Base) TakeCleanBuildByDModel(ctx context.Context, DModels ...int) ([]
 	return Builds, nil
 }
 
+// [buildId]amout
+func (base Base) TakeCanBuildMap(ctx context.Context) (map[int]int, error) {
+	canbuld := make(map[int]int)
+	canbuld[-1] = -1
+
+	qq := `SELECT "buildId", "amout" FROM public.canbebuilded`
+	rows, err := base.Db.Query(ctx, qq)
+	if err != nil {
+
+		return canbuld, err
+	}
+
+	var id, amout int
+	for rows.Next() {
+		err := rows.Scan(&id, &amout)
+		if err != nil {
+
+			return canbuld, err
+		}
+		canbuld[id] = amout
+	}
+	return canbuld, nil
+}
+
+func (base Base) TakeCanBuildByDmodel(ctx context.Context, dmodel int) int {
+	qq := ` SELECT 
+		LEAST(COALESCE(modelcount.count, 0::bigint), COALESCE(matcount.minmat, 0::bigint)) AS amout
+	FROM "dModels"
+		LEFT JOIN ( SELECT sns.dmodel,
+				count(sns."snsId") AS count
+			FROM sns
+			WHERE sns.condition = 2 AND sns.shiped = false
+			GROUP BY sns.dmodel) modelcount ON "dModels"."dModelsId" = modelcount.dmodel
+		LEFT JOIN ( SELECT "buildMatList"."billdId" AS build,
+				min(matsamout.sum / "buildMatList".amout) AS minmat
+			FROM "buildMatList"
+				LEFT JOIN ( SELECT mats.name,
+						sum(mats.amout) AS sum
+					FROM mats
+					GROUP BY mats.name) matsamout ON "buildMatList".mat = matsamout.name
+			GROUP BY "buildMatList"."billdId") matcount ON matcount.build = "dModels"."build"
+	WHERE "dModels"."dModelsId" = $1`
+
+	var amout int
+	err := base.Db.QueryRow(ctx, qq, dmodel).Scan(&amout)
+	if err != nil {
+		return 0
+	}
+	return amout
+}
+
+func (base Base) TakeCanBuildByOrder(ctx context.Context, order int, current bool) ([]mytypes.CanBuild, error) {
+	var canbuild []mytypes.CanBuild
+	var element mytypes.CanBuild
+	var qq string
+	if current {
+		qq = `SELECT builds."buildId",
+			builds."dModel",
+			builds."tModel",
+			LEAST(COALESCE(modelcount.count, 0::bigint), COALESCE(matcount.minmat, 0::bigint)) AS amout
+		FROM builds
+			LEFT JOIN ( SELECT sns.dmodel,
+					count(sns."snsId") AS count
+				FROM sns
+				WHERE sns.condition = 2 AND sns.shiped = false AND sns.order = $1
+				GROUP BY sns.dmodel) modelcount ON builds."dModel" = modelcount.dmodel
+			LEFT JOIN ( SELECT "buildMatList"."billdId" AS build,
+					min(matsamout.sum / "buildMatList".amout) AS minmat
+				FROM "buildMatList"
+					LEFT JOIN ( SELECT mats.name,
+							sum(mats.amout) AS sum
+						FROM mats
+						GROUP BY mats.name) matsamout ON "buildMatList".mat = matsamout.name
+				GROUP BY "buildMatList"."billdId") matcount ON matcount.build = builds."buildId"
+				INNER JOIN (SELECT model FROM "orderList"
+						WHERE "orderId" = $1)ordermodel ON ordermodel.model = builds."tModel"
+				INNER JOIN "dModels" ON "dModels".build = builds."buildId"
+		WHERE builds."buildId" <> '-1'::integer AND LEAST(COALESCE(modelcount.count, 0::bigint), COALESCE(matcount.minmat, 0::bigint)) > 0`
+	} else {
+		qq = `SELECT builds."buildId",
+			builds."dModel",
+			builds."tModel",
+			LEAST(COALESCE(modelcount.count, 0::bigint), COALESCE(matcount.minmat, 0::bigint)) AS amout
+		FROM builds
+			LEFT JOIN ( SELECT sns.dmodel,
+					count(sns."snsId") AS count
+				FROM sns
+				WHERE sns.condition = 2 AND sns.shiped = false AND sns.order = $1
+				GROUP BY sns.dmodel) modelcount ON builds."dModel" = modelcount.dmodel
+			LEFT JOIN ( SELECT "buildMatList"."billdId" AS build,
+					min(matsamout.sum / "buildMatList".amout) AS minmat
+				FROM "buildMatList"
+					LEFT JOIN ( SELECT mats.name,
+							sum(mats.amout) AS sum
+						FROM mats
+						GROUP BY mats.name) matsamout ON "buildMatList".mat = matsamout.name
+				GROUP BY "buildMatList"."billdId") matcount ON matcount.build = builds."buildId"
+				INNER JOIN (SELECT model FROM "orderList"
+						WHERE "orderId" = $1)ordermodel ON ordermodel.model = builds."tModel"
+		WHERE builds."buildId" <> '-1'::integer AND LEAST(COALESCE(modelcount.count, 0::bigint), COALESCE(matcount.minmat, 0::bigint)) > 0`
+	}
+
+	rows, err := base.Db.Query(ctx, qq, order)
+	if err != nil {
+		return canbuild, err
+	}
+
+	for rows.Next() {
+		err := rows.Scan(&element.BuildID, &element.DModel, &element.TModel, &element.Amout)
+		if err != nil {
+			return canbuild, err
+		}
+		canbuild = append(canbuild, element)
+	}
+
+	return canbuild, nil
+}
+
+func (base Base) TakeCanBuildByOrderTmodel(ctx context.Context, order int, tmodel int, current bool) ([]mytypes.CanBuild, error) {
+	var canbuild []mytypes.CanBuild
+	var element mytypes.CanBuild
+	var qq string
+	if current {
+		qq = `SELECT builds."buildId",
+			builds."dModel",
+			builds."tModel",
+			LEAST(COALESCE(modelcount.count, 0::bigint), COALESCE(matcount.minmat, 0::bigint)) AS amout
+		FROM builds
+			LEFT JOIN ( SELECT sns.dmodel,
+					count(sns."snsId") AS count
+				FROM sns
+				WHERE sns.condition = 2 AND sns.shiped = false AND sns.order = $1
+				GROUP BY sns.dmodel) modelcount ON builds."dModel" = modelcount.dmodel
+			LEFT JOIN ( SELECT "buildMatList"."billdId" AS build,
+					min(matsamout.sum / "buildMatList".amout) AS minmat
+				FROM "buildMatList"
+					LEFT JOIN ( SELECT mats.name,
+							sum(mats.amout) AS sum
+						FROM mats
+						GROUP BY mats.name) matsamout ON "buildMatList".mat = matsamout.name
+				GROUP BY "buildMatList"."billdId") matcount ON matcount.build = builds."buildId"
+				INNER JOIN (SELECT model FROM "orderList"
+						WHERE "orderId" = $1)ordermodel ON ordermodel.model = builds."tModel"
+				INNER JOIN "dModels" ON "dModels".build = builds."buildId"
+		WHERE builds."buildId" <> '-1'::integer AND LEAST(COALESCE(modelcount.count, 0::bigint), COALESCE(matcount.minmat, 0::bigint)) > 0`
+	} else {
+		qq = `SELECT builds."buildId",
+			builds."dModel",
+			builds."tModel",
+			LEAST(COALESCE(modelcount.count, 0::bigint), COALESCE(matcount.minmat, 0::bigint)) AS amout
+		FROM builds
+			LEFT JOIN ( SELECT sns.dmodel,
+					count(sns."snsId") AS count
+				FROM sns
+				WHERE sns.condition = 2 AND sns.shiped = false AND sns.order = $1
+				GROUP BY sns.dmodel) modelcount ON builds."dModel" = modelcount.dmodel
+			LEFT JOIN ( SELECT "buildMatList"."billdId" AS build,
+					min(matsamout.sum / "buildMatList".amout) AS minmat
+				FROM "buildMatList"
+					LEFT JOIN ( SELECT mats.name,
+							sum(mats.amout) AS sum
+						FROM mats
+						GROUP BY mats.name) matsamout ON "buildMatList".mat = matsamout.name
+				GROUP BY "buildMatList"."billdId") matcount ON matcount.build = builds."buildId"
+				INNER JOIN (SELECT model FROM "orderList"
+						WHERE "orderId" = $1)ordermodel ON ordermodel.model = builds."tModel"
+		WHERE builds."buildId" <> '-1'::integer AND LEAST(COALESCE(modelcount.count, 0::bigint), COALESCE(matcount.minmat, 0::bigint)) > 0 AND builds."tModel" = $2`
+	}
+
+	rows, err := base.Db.Query(ctx, qq, order, tmodel)
+	if err != nil {
+		return canbuild, err
+	}
+
+	for rows.Next() {
+		err := rows.Scan(&element.BuildID, &element.DModel, &element.TModel, &element.Amout)
+		if err != nil {
+			return canbuild, err
+		}
+		canbuild = append(canbuild, element)
+	}
+
+	return canbuild, nil
+}
+
 ////////////
 
 // Модели //

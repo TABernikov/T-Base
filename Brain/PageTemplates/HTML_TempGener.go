@@ -351,9 +351,14 @@ func (templ Templ) TakeDeviceByModelPage(w http.ResponseWriter) {
 		Id   int
 		Name string
 	}
+	type Mach struct {
+		TModel string
+		DModel string
+	}
 	type TakeForm struct {
 		TModels []idChoise
 		DModels []idChoise
+		Maching []Mach
 	}
 
 	var choise idChoise
@@ -390,7 +395,22 @@ func (templ Templ) TakeDeviceByModelPage(w http.ResponseWriter) {
 		dmodelList = append(dmodelList, choise)
 	}
 
-	tmp := TakeForm{tmodelList, dmodelList}
+	var maching []Mach
+	rows, err = templ.Db.Db.Query(templ.ctx, `SELECT "dModelName", "tModelsName" FROM "cleanModelMatching";`)
+	if err != nil {
+		templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	var m Mach
+	for rows.Next() {
+		err := rows.Scan(&m.DModel, &m.TModel)
+		if err != nil {
+			templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		maching = append(maching, m)
+	}
+	tmp := TakeForm{tmodelList, dmodelList, maching}
 	t := template.Must(template.ParseFiles("Face/html/TakeDeviceByModel.html"))
 	t.Execute(w, tmp)
 }
@@ -493,6 +513,8 @@ func (templ Templ) UserPage(w http.ResponseWriter, user mytypes.User) {
 		block = Block{}
 		block.Title = "Сборки"
 		btn = Buton{`<i class="bi bi-tools"></i> Сборки`, "/works/buildlist"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{`<i class="bi bi-lightbulb"></i> Можно собрать`, "/works/canbebuild"}
 		block.Btns = append(block.Btns, btn)
 		btn = Buton{`<i class="bi bi-plus-lg"></i> Добавить сборку`, "/works/makebuild"}
 		block.Btns = append(block.Btns, btn)
@@ -898,10 +920,21 @@ func (templ Templ) CreateBuildPage(w http.ResponseWriter) {
 // Генерация страницы сборок (корточки)
 func (templ Templ) BuildsPage(w http.ResponseWriter, builds []mytypes.BuildClean) {
 	type BPage struct {
-		Builds []mytypes.BuildClean
+		Build    mytypes.BuildClean
+		Canbuild int
 	}
 
-	table := BPage{Builds: builds}
+	canbuld, err := templ.Db.TakeCanBuildMap(templ.ctx)
+	if err != nil {
+		templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	var table []BPage
+
+	for _, build := range builds {
+		table = append(table, BPage{Build: build, Canbuild: canbuld[build.Id]})
+	}
 	t := template.Must(template.ParseFiles("Face/html/builds.html"))
 	t.Execute(w, table)
 }
@@ -1463,4 +1496,179 @@ func (templ Templ) ReservCalendarPage(w http.ResponseWriter, reservs []mytypes.R
 func (templ Templ) CreateReservPage(w http.ResponseWriter, snsId string) {
 	t := template.Must(template.ParseFiles("Face/html/CreateReserv.html"))
 	t.Execute(w, snsId)
+}
+
+func (templ Templ) CanBeBuildPage(w http.ResponseWriter) {
+	type canByild struct {
+		Name  string
+		Build int
+		Amout int
+	}
+
+	type Page struct {
+		AllD     []canByild
+		CurrentD []canByild
+		AllT     []canByild
+		CurrentT []canByild
+	}
+
+	var allbuildsD []canByild
+	qq := `SELECT "dModel", "buildId", amout FROM "cleanCanbebuilded"`
+
+	rows, err := templ.Db.Db.Query(templ.ctx, qq)
+	if err != nil {
+		templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения данных", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	for rows.Next() {
+		var element canByild
+		err := rows.Scan(&element.Name, &element.Build, &element.Amout)
+		if err != nil {
+			templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения данных", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		allbuildsD = append(allbuildsD, element)
+	}
+
+	qq = `SELECT "dModel", "buildId", amout FROM "cleanCurrentcanbebuilded"`
+	var currentBuildsD []canByild
+	rows, err = templ.Db.Db.Query(templ.ctx, qq)
+	if err != nil {
+		templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения данных", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	for rows.Next() {
+		var element canByild
+		err := rows.Scan(&element.Name, &element.Build, &element.Amout)
+		if err != nil {
+			templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения данных", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		currentBuildsD = append(currentBuildsD, element)
+	}
+
+	var allbuildsT []canByild
+	qq = `SELECT "tModel", "buildId", amout FROM "cleanCanbebuilded"`
+
+	rows, err = templ.Db.Db.Query(templ.ctx, qq)
+	if err != nil {
+		templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения данных", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	for rows.Next() {
+		var element canByild
+		err := rows.Scan(&element.Name, &element.Build, &element.Amout)
+		if err != nil {
+			templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения данных", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		allbuildsT = append(allbuildsT, element)
+	}
+
+	qq = `SELECT "tModel", "buildId", amout FROM "cleanCurrentcanbebuilded"`
+	var currentBuildsT []canByild
+	rows, err = templ.Db.Db.Query(templ.ctx, qq)
+	if err != nil {
+		templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения данных", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	for rows.Next() {
+		var element canByild
+		err := rows.Scan(&element.Name, &element.Build, &element.Amout)
+		if err != nil {
+			templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения данных", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		currentBuildsT = append(currentBuildsT, element)
+	}
+
+	page := Page{AllD: allbuildsD, CurrentD: currentBuildsD, AllT: allbuildsT, CurrentT: currentBuildsT}
+
+	t := template.Must(template.ParseFiles("Face/html/canbebuilded.html"))
+	t.Execute(w, page)
+}
+
+func (templ Templ) CanBeBuildOrdersPage(w http.ResponseWriter) {
+	type CanOrder struct {
+		Order     int
+		OrderName string
+		BuildID   int
+		DModel    string
+		TModel    string
+		InOrder   int
+		Amout     int
+	}
+
+	type orders struct {
+		Id   int
+		Name string
+	}
+
+	qq := `SELECT "orderId", name FROM public.orders WHERE "isAct" = true`
+
+	rows, err := templ.Db.Db.Query(templ.ctx, qq)
+	if err != nil {
+		templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения данных", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	var ordersList []orders
+	for rows.Next() {
+		var element orders
+		err := rows.Scan(&element.Id, &element.Name)
+		if err != nil {
+			templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения данных", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		ordersList = append(ordersList, element)
+	}
+
+	var allbuilds []CanOrder
+	for _, order := range ordersList {
+		qq := `SELECT builds."buildId",
+			"dModels"."dModelName",
+			"tModels"."tModelsName",
+			ordermodel.amout AS inorder,
+			LEAST(COALESCE(modelcount.count, 0::bigint), COALESCE(matcount.minmat, 0::bigint)) AS amout
+		FROM builds
+			LEFT JOIN ( SELECT sns.dmodel,
+					count(sns."snsId") AS count
+				FROM sns
+				WHERE sns.condition = 2 AND sns.shiped = false AND sns.order = $1
+				GROUP BY sns.dmodel) modelcount ON builds."dModel" = modelcount.dmodel
+			LEFT JOIN ( SELECT "buildMatList"."billdId" AS build,
+					min(matsamout.sum / "buildMatList".amout) AS minmat
+				FROM "buildMatList"
+					LEFT JOIN ( SELECT mats.name,
+							sum(mats.amout) AS sum
+						FROM mats
+						GROUP BY mats.name) matsamout ON "buildMatList".mat = matsamout.name
+				GROUP BY "buildMatList"."billdId") matcount ON matcount.build = builds."buildId"
+				INNER JOIN (SELECT model, amout FROM "orderList"
+						WHERE "orderId" = $1 )ordermodel ON ordermodel.model = builds."tModel"
+						INNER JOIN "dModels" ON "dModels".build = builds."buildId"
+		LEFT JOIN "tModels" ON "tModels"."tModelsId" = builds."tModel"
+		WHERE builds."buildId" <> '-1'::integer `
+
+		rows, err := templ.Db.Db.Query(templ.ctx, qq, order.Id)
+		if err != nil {
+			templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения данных", err.Error(), "Главная", "/works/prof")
+			return
+		}
+
+		for rows.Next() {
+			var element CanOrder
+			rows.Scan(&element.BuildID, &element.DModel, &element.TModel, &element.InOrder, &element.Amout)
+			element.OrderName = order.Name
+			allbuilds = append(allbuilds, element)
+		}
+
+	}
+
+	t := template.Must(template.ParseFiles("Face/html/canbebuildedOrders.html"))
+	t.Execute(w, allbuilds)
 }

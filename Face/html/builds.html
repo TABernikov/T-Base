@@ -55,19 +55,22 @@
     &nbsp;
     <div class="container-xxl g-3">
       <div class="row g-3 ">
-        {{range .Builds}}
+        {{range .}}
         <div class="col" style="width: 100%; min-width: 400px;">
           <div class="card" style=" width: 100%; max-width: 801px; ">
-            <ul class="list-inline card-header"><li class="list-inline-item h4" >{{.TModel}}</li><li class="list-inline-item h4 float-end">#{{.Id}}</li></ul>
+            <ul class="list-inline card-header"><li class="list-inline-item h4" >{{.Build.TModel}}</li><li class="list-inline-item h4 float-end">#{{.Build.Id}}</li></ul>
             <div class="card-body">
-              <h6 class="card-title">{{.DModel}}</h6>
+              <h6 class="card-title">{{.Build.DModel}}</h6>
               <p class="card-text"></p>
             </div>
             <ul class="list-group list-group-flush">
-              {{range .BuildList}}
+              {{range .Build.BuildList}}
               <li class="list-group-item">{{.Mat}} [{{.Amout}}]</li>
               {{end}}
             </ul>
+            <div class="card-footer">
+              Можно собрать: {{.Canbuild}}
+            </div>
           </div>
       </div>
       {{end}}

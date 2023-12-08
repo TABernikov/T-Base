@@ -30,7 +30,7 @@
                         {{ if (eq .User.Acces 3)}}
                         <form  class="p-1" id="changenum" name="changenum" action="/works/change1cnumorder" target="_parent" method="post">   
                             <div class=" input-group input-group-sm" >
-                                <button class="btn btn-info" type="submit"  ><i class="icon-pin"> </i></button>
+                                <button class="btn btn-info" type="submit"  ><i class="bi-pencil-fill"> </i></button>
                                 <input type="hidden" name="Id" value="{{.Order.OrderId}}" />
                                 <input class="form-control " type="number" name="1CNum" placeholder="Изменить №1С" style="width: 150px" />
                             </div>
@@ -47,7 +47,7 @@
                         {{else if (eq .User.Acces 1)}}
                         <form  class="p-1" id="changepromdate" name="changepromdate" action="/works/setpromdate" target="_parent" method="post">   
                             <div class=" input-group input-group-sm" >
-                                <button class="btn btn-info" type="submit"  ><i class="icon-pin"></i><small>Изменить дату производства</small></button>
+                                <button class="btn btn-info" type="submit"  ><i class="bi-pencil-fill"></i><small> Изменить дату производства</small></button>
                                 <input type="hidden" name="in1" value="{{.Order.OrderId}}" />
                                 <input class="form-control " type="date" name="in2" placeholder="Изменить дату производства" style="width: 150px" />
                             </div>

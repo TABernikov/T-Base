@@ -61,7 +61,7 @@
             <label for="DModel" class="form-label">Модель поставщика</label>
             <div class="input-group mb-3" >
               <span class="input-group-text">DModel</span>
-              <input class="form-select" name="DModel" type="text" onchange="resetIfInvalid(this)" list="dmodellist" placeholder="Не выбрано"></input>
+              <input class="form-select" name="DModel" type="text" onchange="maching(this)" list="dmodellist" placeholder="Не выбрано"></input>
               <datalist id="dmodellist">
                 <option selected value=""></option>
                 {{range .DModels}}
@@ -85,7 +85,7 @@
             <label for="TModel" class="form-label">Планируемая модель</label>
             <div class=" input-group mb-3" >
               <span class="input-group-text">TModel</span>
-              <input class="form-select" name="TModel" type="text" placeholder="Не выбрано" list="tmodellist" onchange="resetIfInvalid(this)"></input>
+              <input class="form-select" name="TModel" id="TModel" type="text" placeholder="Не выбрано" list="tmodellist" onchange="resetIfInvalid(this)"></input>
               <datalist id="tmodellist">
                 <option selected value=""></option>
                 {{range .TModels}}
@@ -107,7 +107,7 @@
           </div>
           <div class="col mb-3" style="min-width: 350px;">
             <label for="Sn" class="form-label">Серийные номера через пробел или с новой строки</label>
-            <textarea class="form-control" type="Sn" id="Sn" name="Sn"  placeholder="" style="height: 45vh;" ></textarea>
+            <textarea class="form-control" type="Sn" id="Sn" name="Sn"  placeholder="" ></textarea>
           </div>
         </div>
           
@@ -116,6 +116,17 @@
     </div>
 
     <script>
+      var textarea = document.getElementsByTagName('textarea')[0];
+
+      textarea.addEventListener('keydown', resize);
+
+      function resize() {
+      var el = this;
+      setTimeout(function() {
+        el.style.cssText = 'height:auto;';
+        el.style.cssText = 'height:' + el.scrollHeight + 'px';
+      }, 1);
+      }
       function resetIfInvalid(el){
        
         if (el.value == "")
@@ -128,6 +139,19 @@
         
         el.value = "";
       }
+
+      const machmap = new Map([{{range .Maching}}[{{.DModel}},{{.TModel}}],{{end}}]);
+
+      function maching(el){ 
+        var tmodel = document.getElementById("TModel");
+        if (machmap.has(el.value)){
+          tmodel.value = machmap.get(el.value);
+        }else{
+          tmodel.value = "";
+        }
+        resetIfInvalid(el)  
+      }
+
     </script>
 
     <script src="Face/html/js/bootstrap.bundle.js"></script>

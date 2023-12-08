@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="ru">
+
+<head>
+    <title>Модели</title>
+    <meta charset="utf-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="Face\img\t-kom-ico.svg">
+
+    <link href="Face/html/css/bootstrap.min.css" rel="stylesheet">
+    <link href="Face/html/css/style.css" rel="stylesheet">
+    <link href="Face/html/css/bootstrap-icons.css" rel="stylesheet">
+
+</head>
+<body>
+    
+  <nav class="navbar navbar-expand-lg sticky-top navbar-light bg-light" aria-label="Fifth navbar example">
+    <div class="container-fluid">
+    
+      <a class="navbar-brand" href="/works/prof">
+        <img src="Face\img\t-kom-logo.svg" width="100" height="50" alt="" loading="lazy">
+      </a>
+
+      <button class="navbar-toggler collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#navbarsExample05" aria-controls="navbarsExample05" aria-expanded="false" aria-label="Переключить навигацию">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="navbar-collapse collapse" id="navbarsExample05">
+
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            
+          <li class="nav-item">
+            <a class="nav-link active" href="/works/prof">Профиль <i style="color: rgb(80, 80, 80);" class="bi bi-person-circle"></i></a>
+          </li>
+          
+          
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false">Таблицы</a>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="/works/tmc">ТМЦ <i style="color: rgb(80, 80, 80);" class="bi bi-table"></i></a></li>
+              <li><a class="dropdown-item" href="/works/orders">Заказы <i style="color: rgb(80, 80, 80);" class="bi bi-briefcase-fill"></i></a></li>
+              <li><a class="dropdown-item" href="/works/storage">Склад <i style="color: rgb(80, 80, 80);" class="bi bi-house-fill"></i></a></li>
+            </ul>
+          </li>
+          <a class="nav-link active" style="text-align: left;" href="/works/cal">Календарь задач <i class="bi bi-calendar-week"></i></a>
+          <form id="logout" name="logout" action="/works/logout" method="post"> 
+            <a href="/works/logout" class="btn btn-outline-danger" type="submit" name="logoutBtn" >Выйти <i class="bi bi-arrow-bar-right"></i></a>
+          </form>
+        </ul>
+      </div>
+
+    </div>
+  </nav>
+
+
+
+
+      <div class="container">
+
+        <ul class="nav nav-pills nav-fill" id="myTab" role="tablist">
+          <li class="nav-item" >
+            <a class="nav-link" href="/works/canbebuild">Сборка/Выработка</a>
+          </li>
+          <li class="nav-item" >
+            <a class="nav-link active" href="/works/canbebuildorders">Заказы</a>
+          </li>
+        </ul>
+
+
+        <div class="d-flex align-items-start" >
+          <div class="nav flex-column nav-pills me-3" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+            <button class="nav-link active" id="v-pills-1-tab" data-bs-toggle="pill" data-bs-target="#v-pills-1" type="button" role="tab" aria-controls="v-pills-1" aria-selected="true">Заказ 1</button>
+            <button class="nav-link" id="v-pills-2-tab" data-bs-toggle="pill" data-bs-target="#v-pills-2" type="button" role="tab" aria-controls="v-pills-2" aria-selected="false">Заказ 2</button>
+            <button class="nav-link" id="v-pills-3-tab" data-bs-toggle="pill" data-bs-target="#v-pills-3" type="button" role="tab" aria-controls="v-pills-3" aria-selected="false">Заказ 3</button>
+          </div>
+          <div class="tab-content" id="v-pills-tabContent" style="width: 100%;">
+            <div class="tab-pane fade show active" id="v-pills-1" role="tabpanel" aria-labelledby="v-pills-1-tab" tabindex="0">
+              &nbsp;
+              Название заказа
+              <table class="table table-bordered table-hover table-striped">
+                <thead>
+                    <tr>
+                      <th scope="col">
+                        Модель
+                      </th>
+                      <th scope="col">
+                        ID сборки
+                      </th>
+                      <th scope="col">
+                        Кол-во
+                      </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+                    <tr>
+                        <td>
+                          1
+                        </td>
+                        <td>
+                          1
+                        </td>
+                        <td>
+                           123
+                        </td>
+                    </tr>
+                    
+                </tbody>
+              </table>
+            </div>
+            <div class="tab-pane fade" id="v-pills-2" role="tabpanel" aria-labelledby="v-pills-2-tab" tabindex="0">
+              &nbsp;
+              <table class="table table-bordered table-hover table-striped">
+                <thead>
+                    <tr>
+                      <th scope="col">
+                        Модель
+                      </th>
+                      <th scope="col">
+                        ID сборки
+                      </th>
+                      <th scope="col">
+                        Кол-во
+                      </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+                    <tr>
+                        <td>
+                          2
+                        </td>
+                        <td>
+                          2
+                        </td>
+                        <td>
+                           234
+                        </td>
+                    </tr>
+                    
+                </tbody>
+              </table>
+            </div>
+            <div class="tab-pane fade" id="v-pills-3" role="tabpanel" aria-labelledby="v-pills-3-tab" tabindex="0">
+              &nbsp;
+              <table class="table table-bordered table-hover table-striped">
+                <thead>
+                    <tr>
+                      <th scope="col">
+                        Модель
+                      </th>
+                      <th scope="col">
+                        ID сборки
+                      </th>
+                      <th scope="col">
+                        Кол-во
+                      </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+                    <tr>
+                        <td>
+                          3
+                        </td>
+                        <td>
+                          3
+                        </td>
+                        <td>
+                           345
+                        </td>
+                    </tr>
+                    
+                </tbody>
+              </table>
+              
+            </div>
+      
+          </div>
+        </div>
+
+
+        
+
+        
+        
+      </div>
+
+        <script src="Face/html/js/bootstrap.bundle.js"></script>
+        <script src="Face/html/js/keys.js"></script>
+</body>
+
+
+</html>

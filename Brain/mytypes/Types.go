@@ -298,6 +298,20 @@ type ReservTaskJS struct {
 	Dest      string
 }
 
+type CanBuild struct {
+	BuildID int
+	DModel  int
+	TModel  int
+	Amout   int
+}
+
+type CanBuildClean struct {
+	BuildID int
+	DModel  string
+	TModel  string
+	Amout   int
+}
+
 func CountByDModel(devices ...DeviceRaw) (counter map[int]int) {
 	counter = make(map[int]int)
 	for _, device := range devices {
