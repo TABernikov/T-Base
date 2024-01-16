@@ -312,6 +312,21 @@ type CanBuildClean struct {
 	Amout   int
 }
 
+type Draft struct {
+	Id      int
+	DraftId int
+	Model   int
+	Amout   int
+}
+
+type DraftClean struct {
+	Id        int
+	DraftId   int
+	Model     int
+	ModelName string
+	Amout     int
+}
+
 func CountByDModel(devices ...DeviceRaw) (counter map[int]int) {
 	counter = make(map[int]int)
 	for _, device := range devices {

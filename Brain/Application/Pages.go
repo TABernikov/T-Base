@@ -1091,6 +1091,10 @@ func (a App) CreateCanBeBuildOrdersPage(w http.ResponseWriter, r *http.Request, 
 	a.Templ.CanBeBuildOrdersPage(w)
 }
 
+func (a App) CreateTeastTablePage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	a.Templ.TeastTablePage(w)
+}
+
 //////////////////////
 
 // Обработчики POST //
@@ -2374,6 +2378,101 @@ func (a App) CreateReserv(w http.ResponseWriter, r *http.Request, pr httprouter.
 		return
 	}
 	a.Templ.AlertPage(w, 1, "Успешно", "Успешно", "Созданно", "Резерв создан", "Главная", "/works/prof")
+}
+
+func (a App) Draft(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if r.FormValue("DraftId") == "" {
+		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Отсутствует Id драфта", "Отсутствует Id драфта", "Главная", "/works/prof")
+		return
+	}
+	drftId, err := strconv.Atoi(r.FormValue("DraftId"))
+	if err != nil {
+		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка считывания Id", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	action := r.FormValue("Action")
+	switch action {
+	case "Open":
+
+		draft, err := a.Db.TakeClenDrafts(a.Ctx, drftId)
+		if err != nil {
+			a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения драфта", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		a.Templ.DraftPage(w, draft, -1)
+
+	case "Redact":
+
+		redId, err := strconv.Atoi(r.FormValue("Id"))
+		if err != nil {
+			a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка считывания Id редактируемой позиции", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		draft, err := a.Db.TakeClenDrafts(a.Ctx, drftId)
+		if err != nil {
+			a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения драфта", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		a.Templ.DraftPage(w, draft, redId)
+	case "Update":
+		redId, err := strconv.Atoi(r.FormValue("Id"))
+		if err != nil {
+			a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка считывания Id редактируемой позиции", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		model, err := strconv.Atoi(r.FormValue("Model"))
+		if err != nil {
+			a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка считывания Id модели", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		amout, err := strconv.Atoi(r.FormValue("Amout"))
+		if err != nil {
+			a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка считывания количества", err.Error(), "Главная", "/works/prof")
+			return
+		}
+
+		err = a.Db.UpdateDraft(a.Ctx, redId, amout, model)
+		if err != nil {
+			a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка обновления драфта", err.Error(), "Главная", "/works/prof")
+			return
+		}
+
+		draft, err := a.Db.TakeClenDrafts(a.Ctx, drftId)
+		if err != nil {
+			a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения драфта", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		a.Templ.DraftPage(w, draft, redId)
+	case "Create":
+		model, err := strconv.Atoi(r.FormValue("Model"))
+		if err != nil {
+			a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка считывания Id модели", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		amout, err := strconv.Atoi(r.FormValue("Amout"))
+		if err != nil {
+			a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка считывания количества", err.Error(), "Главная", "/works/prof")
+			return
+		}
+
+		err = a.Db.InsertDraft(a.Ctx, mytypes.Draft{DraftId: drftId, Model: model, Amout: amout})
+		if err != nil {
+			a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка создания драфта", err.Error(), "Главная", "/works/prof")
+			return
+		}
+
+		draft, err := a.Db.TakeClenDrafts(a.Ctx, drftId)
+		if err != nil {
+			a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения драфта", err.Error(), "Главная", "/works/prof")
+			return
+		}
+
+		a.Templ.DraftPage(w, draft, -1)
+
+	default:
+		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Неизвестное действие", "", "Главная", "/works/prof")
+		return
+	}
 }
 
 //////////////////////

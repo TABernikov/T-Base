@@ -2237,27 +2237,25 @@ func (base Base) TakeCanBuildByOrderTmodel(ctx context.Context, order int, tmode
 	var qq string
 	if current {
 		qq = `SELECT builds."buildId",
-			builds."dModel",
-			builds."tModel",
-			LEAST(COALESCE(modelcount.count, 0::bigint), COALESCE(matcount.minmat, 0::bigint)) AS amout
-		FROM builds
-			LEFT JOIN ( SELECT sns.dmodel,
-					count(sns."snsId") AS count
-				FROM sns
-				WHERE sns.condition = 2 AND sns.shiped = false AND sns.order = $1
-				GROUP BY sns.dmodel) modelcount ON builds."dModel" = modelcount.dmodel
-			LEFT JOIN ( SELECT "buildMatList"."billdId" AS build,
-					min(matsamout.sum / "buildMatList".amout) AS minmat
-				FROM "buildMatList"
-					LEFT JOIN ( SELECT mats.name,
-							sum(mats.amout) AS sum
-						FROM mats
-						GROUP BY mats.name) matsamout ON "buildMatList".mat = matsamout.name
-				GROUP BY "buildMatList"."billdId") matcount ON matcount.build = builds."buildId"
-				INNER JOIN (SELECT model FROM "orderList"
-						WHERE "orderId" = $1)ordermodel ON ordermodel.model = builds."tModel"
-				INNER JOIN "dModels" ON "dModels".build = builds."buildId"
-		WHERE builds."buildId" <> '-1'::integer AND LEAST(COALESCE(modelcount.count, 0::bigint), COALESCE(matcount.minmat, 0::bigint)) > 0`
+		builds."dModel",
+		builds."tModel",
+		LEAST(COALESCE(modelcount.count, 0::bigint), COALESCE(matcount.minmat, 0::bigint)) AS amout
+	FROM builds
+		LEFT JOIN ( SELECT sns.dmodel,
+				count(sns."snsId") AS count
+			FROM sns
+			WHERE sns.condition = 2 AND sns.shiped = false AND sns.order = $1
+			GROUP BY sns.dmodel) modelcount ON builds."dModel" = modelcount.dmodel
+		LEFT JOIN ( SELECT "buildMatList"."billdId" AS build,
+				min(matsamout.sum / "buildMatList".amout) AS minmat
+			FROM "buildMatList"
+				LEFT JOIN ( SELECT mats.name,
+						sum(mats.amout) AS sum
+					FROM mats
+					GROUP BY mats.name) matsamout ON "buildMatList".mat = matsamout.name
+			GROUP BY "buildMatList"."billdId") matcount ON matcount.build = builds."buildId"
+			INNER JOIN "dModels" ON "dModels".build = builds."buildId"
+	WHERE builds."buildId" <> '-1'::integer AND LEAST(COALESCE(modelcount.count, 0::bigint), COALESCE(matcount.minmat, 0::bigint)) > 0 AND builds."tModel" = $2`
 	} else {
 		qq = `SELECT builds."buildId",
 			builds."dModel",
@@ -2277,8 +2275,6 @@ func (base Base) TakeCanBuildByOrderTmodel(ctx context.Context, order int, tmode
 						FROM mats
 						GROUP BY mats.name) matsamout ON "buildMatList".mat = matsamout.name
 				GROUP BY "buildMatList"."billdId") matcount ON matcount.build = builds."buildId"
-				INNER JOIN (SELECT model FROM "orderList"
-						WHERE "orderId" = $1)ordermodel ON ordermodel.model = builds."tModel"
 		WHERE builds."buildId" <> '-1'::integer AND LEAST(COALESCE(modelcount.count, 0::bigint), COALESCE(matcount.minmat, 0::bigint)) > 0 AND builds."tModel" = $2`
 	}
 
@@ -2769,6 +2765,85 @@ func (base Base) TakeJSReservatios(ctx context.Context, snsId int) ([]mytypes.Re
 		result = append(result, element)
 	}
 	return result, nil
+}
+
+////////////////////
+
+// Драфты заказов //
+
+////////////////////
+
+func (base Base) TakeDrafts(ctx context.Context, DraftId int) ([]mytypes.Draft, error) {
+	var result []mytypes.Draft
+
+	qq := `SELECT id, draft, model, amout FROM public.drafts WHERE draft = $1;`
+
+	rows, err := base.Db.Query(ctx, qq, DraftId)
+	if err != nil {
+		return result, err
+	}
+
+	for rows.Next() {
+		var element mytypes.Draft
+		err = rows.Scan(&element.Id, &element.DraftId, &element.Model, &element.Amout)
+		if err != nil {
+			return result, err
+		}
+		result = append(result, element)
+	}
+	return result, nil
+}
+
+func (base Base) TakeClenDrafts(ctx context.Context, DraftId int) ([]mytypes.DraftClean, error) {
+	var result []mytypes.DraftClean
+	qq := `SELECT id, draft, model, "tModels"."tModelsName" AS modelname, amout FROM public.drafts 
+	LEFT JOIN public."tModels" ON drafts.model = "tModels"."tModelsId"
+	WHERE draft = $1 ORDER BY "tModels"."tModelsName"`
+
+	rows, err := base.Db.Query(ctx, qq, DraftId)
+	if err != nil {
+		return result, err
+	}
+
+	for rows.Next() {
+		var element mytypes.DraftClean
+		err = rows.Scan(&element.Id, &element.DraftId, &element.Model, &element.ModelName, &element.Amout)
+		if err != nil {
+			return result, err
+		}
+		result = append(result, element)
+	}
+	return result, nil
+}
+
+func (base Base) TakeDraft(ctx context.Context, id int) (mytypes.Draft, error) {
+	var result mytypes.Draft
+	qq := `SELECT id, draft, model, amout FROM public.drafts WHERE id = $1;`
+
+	err := base.Db.QueryRow(ctx, qq, id).Scan(&result.Id, &result.DraftId, &result.Model, &result.Amout)
+	return result, err
+}
+
+func (base Base) DeleteDraft(ctx context.Context, id int) error {
+	qq := `DELETE FROM public.drafts WHERE id = $1;`
+	_, err := base.Db.Exec(ctx, qq, id)
+	return err
+}
+
+func (base Base) InsertDraft(ctx context.Context, draft mytypes.Draft) error {
+	qq := `INSERT INTO public.drafts(
+		draft, model, amout)
+		VALUES ($1, $2, $3);`
+
+	_, err := base.Db.Exec(ctx, qq, draft.DraftId, draft.Model, draft.Amout)
+	return err
+}
+
+func (base Base) UpdateDraft(ctx context.Context, id, amout, model int) error {
+	qq := `UPDATE public.drafts SET model = $1, amout = $2 WHERE id = $3;`
+
+	_, err := base.Db.Exec(ctx, qq, model, amout, id)
+	return err
 }
 
 ////////////////////

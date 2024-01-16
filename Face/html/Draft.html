@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="ru">
+
+<head>
+    <title>Драфт заказа</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="Face\img\t-kom-ico.svg">
+
+    <link href="Face/html/css/bootstrap.min.css" rel="stylesheet">
+    <link href="Face/html/css/style.css" rel="stylesheet">
+    <link href="Face/html/css/bootstrap-icons.css" rel="stylesheet">
+
+</head>
+<body>
+    
+    <nav class="navbar navbar-expand-lg sticky-top navbar-light bg-light" aria-label="Fifth navbar example">
+        <div class="container-fluid">
+        
+          <a class="navbar-brand" href="/works/prof">
+            <img src="Face\img\t-kom-logo.svg" width="100" height="50" alt="" loading="lazy">
+          </a>
+  
+          <button class="navbar-toggler collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#navbarsExample05" aria-controls="navbarsExample05" aria-expanded="false" aria-label="Переключить навигацию">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+    
+          <div class="navbar-collapse collapse" id="navbarsExample05">
+  
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            
+              <li class="nav-item">
+                <a class="nav-link active" href="/works/prof">Профиль <i style="color: rgb(80, 80, 80);" class="bi bi-person-circle"></i></a>
+              </li>
+              
+              
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false">Таблицы</a>
+                <ul class="dropdown-menu">
+                  <li><a class="dropdown-item" href="/works/tmc">ТМЦ <i style="color: rgb(80, 80, 80);" class="bi bi-table"></i></a></li>
+                  <li><a class="dropdown-item" href="/works/orders">Заказы <i style="color: rgb(80, 80, 80);" class="bi bi-briefcase-fill"></i></a></li>
+                  <li><a class="dropdown-item" href="/works/storage">Склад <i style="color: rgb(80, 80, 80);" class="bi bi-house-fill"></i></a></li>
+                </ul>
+              </li>
+              <a class="nav-link active" style="text-align: left;" href="/works/cal">Календарь задач <i class="bi bi-calendar-week"></i></a>
+              <form id="logout" name="logout" action="/works/logout" method="post"> 
+                <a href="/works/logout" class="btn btn-outline-danger" type="submit" name="logoutBtn" >Выйти <i class="bi bi-arrow-bar-right"></i></a>
+              </form>
+            </ul>
+  
+          </div>
+  
+        </div>
+    </nav>
+
+    <div class="container-xl" >
+      <table class="table table-striped">
+          <thead>
+              <tr>
+                  <th style="min-width: 100px;" scope="col">#</th>
+                  <th style="min-width: 100px;" scope="col">Модель</th>
+                  <th style="min-width: 100px;" scope="col">Кол-во</th>
+                  <th style="min-width: 100px;" scope="col">Свободные</th>
+                  <th style="min-width: 100px;" scope="col">Свободные не собраные (явно задана планируемая модель)</th>
+                  <th style="min-width: 100px;" scope="col">Можно собрать свободных</th>
+              </tr>
+          </thead>
+          <tbody>
+              {{range .List}}
+              <tr>
+                <td>
+                  <form  class="p-1" id="Redact" name="Redact" action="/works/draft" target="_parent" method="post">
+                    <input type="hidden" name="Action" value="Redact" />
+                    <input type="hidden" name="Id" value="{{.Draft.Id}}" />
+                    <input type="hidden" name="DraftId" value="{{.Draft.DraftId}}" />
+                    <button type="submit" class="btn btn-sm btn-info " ><i class="bi-pencil">{{.Draft.Id}}</i></button>
+                  </form>
+                </td>
+                <td>{{.Draft.ModelName}}</td>
+                <td>{{.Draft.Amout}}</td>
+                <td>{{.DoneFree}}</td>
+                <td>{{.BlackFree}}</td>
+                <td>{{range .CanBuildCurrent}}{{.Amout}}[{{.BuildID}}]; {{end}}</td>
+              </tr>
+              {{end}}
+          </tbody>
+      </table>
+      <form action="" method="post">
+        <input type="hidden" name="Action" value="Open">
+        <input type="hidden" name="DraftId" value="{{ with index .List 0}}{{.Draft.DraftId}}{{end}}">
+        <button type="submit" class="btn btn-sm btn-info " ><i class="bi-plus-lg"></i></button>
+      </form>
+    </div>
+
+  
+
+    <div class="container-xl p-3">
+      {{if eq $.RedElement.Id -1}} 
+      <form id="in-form" name="in-form" action="" method="post">
+        <div class="row">
+          <div class="col" style="min-width: 200px;">
+            
+            <label for="Model" class="form-label">Модель</label>
+            <div class=" input-group mb-1">
+              <span class="input-group-text"><i class="bi-plus-lg"></i></span>
+              <select class="form-select" name="Model">
+                  <option selected value="">Не выбрано</option>
+                  {{range .TModels}}
+                  <option value="{{.Id}}">{{.Name}}</option>
+                  {{end}}
+              </select>
+              <input type="number" class="form-control" placeholder=",шт" name="Amout" id="Amout">
+              
+              
+            </div>
+          </div>
+        </div>
+          <input type="hidden" name="DraftId" value="{{ with index .List 0}}{{.Draft.DraftId}}{{end}}">
+          <input type="hidden" name="Action" value="Create">
+          <button class="btn btn-primary" type="submit" style="width: 100%;">Добавить</button>
+      </form>
+      {{else}}
+      <form id="in-form" name="in-form" action="" method="post">
+        <div class="row">
+          <div class="col" style="min-width: 200px;">
+            
+            <label for="Model" class="form-label">Модель</label>
+            <div class=" input-group mb-1">
+              <span class="input-group-text"><i class="bi-pencil"></i>{{$.RedElement.Id}}</span>
+              <select class="form-select" name="Model">
+                  {{range .TModels}}
+                  <option {{if(eq $.RedElement.Model .Id )}}{{ print "selected" }} {{end}} value="{{.Id}}">{{.Name}}</option>
+                  {{end}}
+              </select>
+              <input type="number" class="form-control" placeholder=",шт" name="Amout" id="Amout" value="{{$.RedElement.Amout}}">
+            </div>
+          </div>
+        </div>
+        <input type="hidden" name="Id" value="{{$.RedElement.Id}}">
+        <input type="hidden" name="DraftId" value="{{$.RedElement.DraftId}}"/>
+        <input type="hidden" name="Action" value="Update" />
+        <button class="btn btn-primary" type="submit" style="width: 100%;">Изменить</button>
+      </form>
+      {{end}}
+    </div>
+
+    <script src="Face/html/js/bootstrap.bundle.js"></script>
+    <script src="Face/html/js/keys.js"></script>
+</body>
+
+
+</html>
+

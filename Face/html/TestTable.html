@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <title>Bootstrap Test Table</title>
+  <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="Face\img\t-kom-ico.svg">
+
+    <link href="Face/html/css/bootstrap.min.css" rel="stylesheet">
+    <link href="Face/html/css/style.css" rel="stylesheet">
+    <link href="Face/html/css/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .tcs-select {
+        font-weight: bolder;
+        color: blueviolet;
+}
+    </style>
+</head>
+<body>
+  <table class="tcs table table-hover table-striped table-bordered" id="tcs-table">
+    <thead class="thead-dark">
+      <tr>
+        <th scope="col">#</th>
+        <th scope="col">First</th>
+        <th scope="col">Last</th>
+        <th scope="col">Handle</th>
+      </tr>
+    </thead>
+    <tbody>
+      <script>
+        for (let i = 1; i <= 100; i++) {
+          document.write("<tr class='table-" + (i % 2 === 0 ? "primary" : "primary") + "'>");
+          document.write("<th scope='row'>" + i + "</th>");
+          document.write("<td>First name " + i + "</td>");
+          document.write("<td>Last name " + i + "</td>");
+          document.write("<td>Handle " + i + "</td>");
+          document.write("</tr>");
+        }
+      </script>
+    </tbody>
+  </table>
+  
+  <script src="Face/html/js/bootstrap.bundle.js"></script>
+  <script src="Face/html/js/keys.js"></script>
+
+  <script src="Face/html/js/tcs.bundle.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function(e) {
+        var table = document.getElementById("tcs-table");
+        var options = {
+            changeTracking: true,
+            deselectOutTableClick: false,
+            enableChanging: true,
+            selectClass: "tcs-select",
+        };
+        var buffer = new TableCellSelector.Buffer();
+        var tcs = new TableCellSelector(table, options, buffer);
+
+    });
+    </script>
+</body>
+</html>

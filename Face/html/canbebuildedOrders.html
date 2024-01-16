@@ -70,14 +70,14 @@
 
         <div class="d-flex align-items-start" >
           <div class="nav flex-column nav-pills me-3" id="v-pills-tab" role="tablist" aria-orientation="vertical">
-            <button class="nav-link active" id="v-pills-1-tab" data-bs-toggle="pill" data-bs-target="#v-pills-1" type="button" role="tab" aria-controls="v-pills-1" aria-selected="true">Заказ 1</button>
-            <button class="nav-link" id="v-pills-2-tab" data-bs-toggle="pill" data-bs-target="#v-pills-2" type="button" role="tab" aria-controls="v-pills-2" aria-selected="false">Заказ 2</button>
-            <button class="nav-link" id="v-pills-3-tab" data-bs-toggle="pill" data-bs-target="#v-pills-3" type="button" role="tab" aria-controls="v-pills-3" aria-selected="false">Заказ 3</button>
+            {{range .}}
+            <button class="nav-link" id="v-pills-{{.Id}}-tab" data-bs-toggle="pill" data-bs-target="#v-pills-{{.Id}}" type="button" role="tab" aria-controls="v-pills-{{.Id}}" aria-selected="true">Заказ {{.Id}}</button>
+            {{end}}
           </div>
           <div class="tab-content" id="v-pills-tabContent" style="width: 100%;">
-            <div class="tab-pane fade show active" id="v-pills-1" role="tabpanel" aria-labelledby="v-pills-1-tab" tabindex="0">
-              &nbsp;
-              Название заказа
+            {{range .}}
+            <div class="tab-pane fade show" id="v-pills-{{.Id}}" role="tabpanel" aria-labelledby="v-pills-{{.Id}}-tab" tabindex="0">
+              <a href="/works/order/mini?Id={{.Id}}">#{{.Id}} {{.Name}}</a>
               <table class="table table-bordered table-hover table-striped">
                 <thead>
                     <tr>
@@ -85,37 +85,7 @@
                         Модель
                       </th>
                       <th scope="col">
-                        ID сборки
-                      </th>
-                      <th scope="col">
-                        Кол-во
-                      </th>
-                    </tr>
-                </thead>
-                <tbody>
-                    
-                    <tr>
-                        <td>
-                          1
-                        </td>
-                        <td>
-                          1
-                        </td>
-                        <td>
-                           123
-                        </td>
-                    </tr>
-                    
-                </tbody>
-              </table>
-            </div>
-            <div class="tab-pane fade" id="v-pills-2" role="tabpanel" aria-labelledby="v-pills-2-tab" tabindex="0">
-              &nbsp;
-              <table class="table table-bordered table-hover table-striped">
-                <thead>
-                    <tr>
-                      <th scope="col">
-                        Модель
+                        Из
                       </th>
                       <th scope="col">
                         ID сборки
@@ -123,59 +93,37 @@
                       <th scope="col">
                         Кол-во
                       </th>
-                    </tr>
-                </thead>
-                <tbody>
-                    
-                    <tr>
-                        <td>
-                          2
-                        </td>
-                        <td>
-                          2
-                        </td>
-                        <td>
-                           234
-                        </td>
-                    </tr>
-                    
-                </tbody>
-              </table>
-            </div>
-            <div class="tab-pane fade" id="v-pills-3" role="tabpanel" aria-labelledby="v-pills-3-tab" tabindex="0">
-              &nbsp;
-              <table class="table table-bordered table-hover table-striped">
-                <thead>
-                    <tr>
                       <th scope="col">
-                        Модель
-                      </th>
-                      <th scope="col">
-                        ID сборки
-                      </th>
-                      <th scope="col">
-                        Кол-во
+                        В заказе
                       </th>
                     </tr>
                 </thead>
                 <tbody>
-                    
+                    {{range .Tab}}
                     <tr>
                         <td>
-                          3
+                          {{.TModel}}
                         </td>
                         <td>
-                          3
+                          {{.DModel}}
                         </td>
                         <td>
-                           345
+                          {{.BuildID}}
+                        </td>
+                        <td>
+                          {{.Amout}}
+                        </td>
+                        <td>
+                          {{.InOrder}}
                         </td>
                     </tr>
-                    
+                    {{end}}
                 </tbody>
               </table>
-              
             </div>
+            {{end}}
+            
+            
       
           </div>
         </div>

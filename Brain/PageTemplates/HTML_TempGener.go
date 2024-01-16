@@ -1593,19 +1593,19 @@ func (templ Templ) CanBeBuildPage(w http.ResponseWriter) {
 }
 
 func (templ Templ) CanBeBuildOrdersPage(w http.ResponseWriter) {
+
 	type CanOrder struct {
-		Order     int
-		OrderName string
-		BuildID   int
-		DModel    string
-		TModel    string
-		InOrder   int
-		Amout     int
+		BuildID int
+		DModel  string
+		TModel  string
+		InOrder int
+		Amout   int
 	}
 
 	type orders struct {
 		Id   int
 		Name string
+		Tab  []CanOrder
 	}
 
 	qq := `SELECT "orderId", name FROM public.orders WHERE "isAct" = true`
@@ -1616,7 +1616,7 @@ func (templ Templ) CanBeBuildOrdersPage(w http.ResponseWriter) {
 		return
 	}
 
-	var ordersList []orders
+	var OrdersList []orders
 	for rows.Next() {
 		var element orders
 		err := rows.Scan(&element.Id, &element.Name)
@@ -1624,12 +1624,10 @@ func (templ Templ) CanBeBuildOrdersPage(w http.ResponseWriter) {
 			templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения данных", err.Error(), "Главная", "/works/prof")
 			return
 		}
-		ordersList = append(ordersList, element)
-	}
 
-	var allbuilds []CanOrder
-	for _, order := range ordersList {
-		qq := `SELECT builds."buildId",
+		var allbuilds []CanOrder
+
+		qqq := `SELECT builds."buildId",
 			"dModels"."dModelName",
 			"tModels"."tModelsName",
 			ordermodel.amout AS inorder,
@@ -1654,7 +1652,7 @@ func (templ Templ) CanBeBuildOrdersPage(w http.ResponseWriter) {
 		LEFT JOIN "tModels" ON "tModels"."tModelsId" = builds."tModel"
 		WHERE builds."buildId" <> '-1'::integer `
 
-		rows, err := templ.Db.Db.Query(templ.ctx, qq, order.Id)
+		rows, err := templ.Db.Db.Query(templ.ctx, qqq, element.Id)
 		if err != nil {
 			templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения данных", err.Error(), "Главная", "/works/prof")
 			return
@@ -1663,12 +1661,96 @@ func (templ Templ) CanBeBuildOrdersPage(w http.ResponseWriter) {
 		for rows.Next() {
 			var element CanOrder
 			rows.Scan(&element.BuildID, &element.DModel, &element.TModel, &element.InOrder, &element.Amout)
-			element.OrderName = order.Name
+
 			allbuilds = append(allbuilds, element)
 		}
 
+		element.Tab = allbuilds
+		OrdersList = append(OrdersList, element)
 	}
 
 	t := template.Must(template.ParseFiles("Face/html/canbebuildedOrders.html"))
-	t.Execute(w, allbuilds)
+	t.Execute(w, OrdersList)
+}
+
+func (templ Templ) DraftPage(w http.ResponseWriter, drafts []mytypes.DraftClean, redId int) {
+
+	type idChoise struct {
+		Id   int
+		Name string
+	}
+
+	type ExtendedDraft struct {
+		Draft           mytypes.DraftClean
+		CanBuildCurrent []mytypes.CanBuild
+		DoneFree        int
+		BlackFree       int
+	}
+	type DraftPage struct {
+		List       []ExtendedDraft
+		TModels    []idChoise
+		RedElement mytypes.DraftClean
+	}
+
+	var choise idChoise
+	var tmodelList []idChoise
+	rows, err := templ.Db.Db.Query(templ.ctx, `SELECT "tModelsId", "tModelsName" FROM public."tModels" ORDER BY "tModelsName";`)
+	if err != nil {
+		templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	for rows.Next() {
+		err := rows.Scan(&choise.Id, &choise.Name)
+		if err != nil {
+			templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		tmodelList = append(tmodelList, choise)
+	}
+
+	var redElement mytypes.DraftClean
+	if redId != -1 {
+		for _, a := range drafts {
+			if a.Id == redId {
+				redElement = a
+			}
+		}
+	} else {
+		redElement = mytypes.DraftClean{Id: -1, DraftId: -1, Model: -1, Amout: 0}
+	}
+
+	var ExtendedDrafts []ExtendedDraft
+	for _, draft := range drafts {
+
+		canBuildCurrent, err := templ.Db.TakeCanBuildByOrderTmodel(templ.ctx, 2, draft.Model, true)
+		if err != nil {
+			canBuildCurrent = []mytypes.CanBuild{}
+		}
+
+		var doneFree int
+		err = templ.Db.Db.QueryRow(templ.ctx, `SELECT count("snsId") FROM public.sns WHERE tmodel = $1 AND condition = 1 AND "order" = 1 AND shiped = false`, draft.Model).Scan(&doneFree)
+		if err != nil {
+			doneFree = 0
+		}
+
+		var blackFree int
+		err = templ.Db.Db.QueryRow(templ.ctx, `SELECT count("snsId") FROM public.sns WHERE tmodel = $1 AND condition = 2 AND "order" = 2 AND shiped = false`, draft.Model).Scan(&blackFree)
+		if err != nil {
+			blackFree = 0
+		}
+
+		element := ExtendedDraft{Draft: draft, CanBuildCurrent: canBuildCurrent, DoneFree: doneFree, BlackFree: blackFree}
+		ExtendedDrafts = append(ExtendedDrafts, element)
+	}
+
+	tmp := DraftPage{List: ExtendedDrafts, TModels: tmodelList, RedElement: redElement}
+	t := template.Must(template.ParseFiles("Face/html/Draft.html"))
+	t.Execute(w, tmp)
+}
+
+func (templ Templ) TeastTablePage(w http.ResponseWriter) {
+
+	t := template.Must(template.ParseFiles("Face/html/TestTable.html"))
+	t.Execute(w, nil)
 }

@@ -11,7 +11,7 @@
     <link href="Face/html/css/style.css" rel="stylesheet">
     <link href="Face/html/css/bootstrap-icons.css" rel="stylesheet">
     <style>
-      .table-selected {
+        .tcs-select {
         font-weight: bolder;
         color: blueviolet;
       }
@@ -93,6 +93,7 @@
                      {{.Lable}} <button class="d.inline btn btn-outline-primary btn-sm"name="copybtn" onclick="myFunction()"><i class="bi-copy" ></i></button>
                      &nbsp;<a class="d.inline btn btn-outline-success btn-sm"name="copybtn" href="/works/tmcexcell{{.ExcellLink}}"><i class="bi-file-earmark-excel" ></i></a>
                      &nbsp;<a class="d.inline btn btn-outline-primary btn-sm " href="/works/tmcadvancesearch" style="width: auto;"><i class="bi bi-filter-circle"></i> Фильтр/Поиск <i class="bi bi-search"></i></a>
+                     &nbsp;<button class="d.inline btn btn-outline-primary btn-sm" id="deselect" style="width: auto;">Снять выделение</button>
                         <tr>
                             <th scope="col" id = "12344">Id</th>
                             
@@ -127,7 +128,7 @@
                     {{range .Tab}}
                     
                     <tr onclick="document.o.location= '/works/device/mini?Id={{.Id}}'"  class="{{if(eq .Shiped "true" )}} {{print "table-secondary"}} {{else if(eq .Condition "Собрано" )}} {{print "table-success"}} {{else if(eq .Condition "В работе" )}} {{print "table-primary"}}     {{else if(eq .Condition "Не собрано")}} {{print "table-warning"}} {{end}}">
-                        <th scope="row" style="display: flexbox;"> &nbsp;{{.Id}} <a class="btn btn-sm {{if(eq .Shiped "true" )}} {{print "btn-secondary"}} {{else if(eq .Condition "Собрано" )}} {{print "btn-success"}} {{else if(eq .Condition "В работе" )}} {{print "btn-primary"}}     {{else if(eq .Condition "Не собрано")}} {{print "btn-warning"}} {{end}}" role="button" href="/works/device/mini?Id={{.Id}}" style="width: 100%; " >Открыть</a> </th>
+                        <th scope="row" style="display: flexbox;"> &nbsp;{{.Id}} <a class="btn btn-sm {{if(eq .Shiped "true" )}} {{print "btn-secondary"}} {{else if(eq .Condition "Собрано" )}} {{print "btn-success"}} {{else if(eq .Condition "В работе" )}} {{print "btn-primary"}}     {{else if(eq .Condition "Не собрано")}} {{print "btn-warning"}} {{end}}" role="button" href="/works/device/mini?Id={{.Id}}" style="width: 100%; " ><i class="bi bi-eye-fill"></i><i class="bi bi-reply-fill"></i></a> </th>
                         
                         <td>{{.Sn}}</td>
                         <td>{{.Mac}}</td>
@@ -172,31 +173,28 @@
       </script>
         <script src="Face/html/js/bootstrap.bundle.js"></script>
         <script src="Face/html/js/keys.js"></script>
-        <!-- Выделение строчек
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-        
-        <script>
-          $(function () {
-          var isMouseDown = false;
-          $("#TMCData tr")
-            .mousedown(function () {
-              isMouseDown = true;
-              $(this).toggleClass("table-selected");
-              return false; 
-            })
-            .mouseover(function () {
-              if (isMouseDown) {
-                $(this).toggleClass("table-selected");
-              }
-            });
-          
-          $(document)
-            .mouseup(function () {
-              isMouseDown = false;
-            });
-        });
-        </script>
-      -->
+       
+
+        <script src="Face/html/js/tcs.bundle.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function(e) {
+        var table = document.getElementById("TMCData");
+        var options = {
+            changeTracking: true,
+            deselectOutTableClick: false,
+            enableChanging: false,
+            selectClass: "tcs-select",
+        };
+        var buffer = new TableCellSelector.Buffer();
+        var tcs = new TableCellSelector(table, options, buffer);
+        document.getElementById("deselect").onclick = function (e) {
+            e.preventDefault();
+            var res = tcs.deselect();
+            console.log("deselect = " + res);
+        };
+
+    });
+    </script>
 </body>
 
 
