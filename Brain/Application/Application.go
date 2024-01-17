@@ -2,6 +2,7 @@ package Application
 
 import (
 	"T-Base/Brain/Auth"
+	"T-Base/Brain/DocBase"
 	PageTempl "T-Base/Brain/PageTemplates"
 	"T-Base/Brain/Storage"
 	"T-Base/Brain/mytypes"
@@ -20,11 +21,12 @@ import (
 
 // Объект приложения
 type App struct {
-	Ctx    context.Context
-	Db     *Storage.Base
-	Templ  *PageTempl.Templ
-	JwtKey []byte
-	AppIp  string
+	Ctx     context.Context
+	Db      *Storage.Base
+	DocBase *DocBase.DocBase
+	Templ   *PageTempl.Templ
+	JwtKey  []byte
+	AppIp   string
 }
 
 type HandleUser func(http.ResponseWriter, *http.Request, httprouter.Params, mytypes.User)
@@ -32,9 +34,16 @@ type HandleUser func(http.ResponseWriter, *http.Request, httprouter.Params, myty
 // Инициализация приложения
 func NewApp(ctx context.Context, jwtKey []byte, user, pass, ip, baseName, appIp string) (*App, error) {
 	db, err := Storage.NewBase(user, pass, ip, baseName)
+	if err != nil {
+		return &App{}, err
+	}
+	docbase, err := DocBase.NewDocBase()
+	if err != nil {
+		return &App{}, err
+	}
 	templ := PageTempl.NewTempl(ctx, db)
 
-	return &App{ctx, db, templ, jwtKey, appIp}, err
+	return &App{ctx, db, docbase, templ, jwtKey, appIp}, nil
 }
 
 // Роутер
@@ -44,6 +53,8 @@ func (a App) Routs(r *httprouter.Router) {
 	r.ServeFiles("/works/device/Face/*filepath", http.Dir("Face"))
 	r.ServeFiles("/works/order/Face/*filepath", http.Dir("Face"))
 	r.ServeFiles("/works/storage/Face/*filepath", http.Dir("Face"))
+	r.ServeFiles("/works/docs/Face/*filepath", http.Dir("Face"))
+
 	r.GET("/", a.startPage)
 	r.GET("/works/login", func(w http.ResponseWriter, r *http.Request, pr httprouter.Params) { a.LoginPage(w, "") })
 	r.GET("/works/home", a.homePage)
@@ -107,7 +118,7 @@ func (a App) Routs(r *httprouter.Router) {
 	r.GET("/works/canbebuild", a.authtorized(a.CreateCanBeBuildPage))
 	r.GET("/works/canbebuildorders", a.authtorized(a.CreateCanBeBuildOrdersPage))
 	r.GET("/works/draft", a.authtorized(a.Draft))
-	r.GET("/works/test", a.authtorized(a.CreateTeastTablePage))
+	r.GET("/works/docs", a.authtorized(a.CreateDocsPage))
 
 	r.POST("/works/tmc", a.authtorized(a.TMCPage))
 	r.POST("/works/orders", a.authtorized(a.OrderPage))
@@ -154,6 +165,10 @@ func (a App) Routs(r *httprouter.Router) {
 	r.POST("/works/shortordersexcell", a.authtorized(a.OrdersShortExcell))
 
 	r.GET("/works/file", a.authtorized(a.TestFile))
+	r.GET("/works/filesbase", a.authtorized(a.FilesBase))
+	r.GET("/works/doc", a.authtorized(a.CreateDocPage))
+	r.GET("/works/createdoc", a.authtorized(a.CreateDocCreatePage))
+	r.POST("/works/createdoc", a.authtorized(a.CreateDoc))
 }
 
 // Проверка авторизациия

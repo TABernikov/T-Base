@@ -1,6 +1,10 @@
 package mytypes
 
-import "time"
+import (
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
 
 // структура устройства
 type DeviceRaw struct {
@@ -325,6 +329,16 @@ type DraftClean struct {
 	Model     int
 	ModelName string
 	Amout     int
+}
+
+type Document struct {
+	Id           primitive.ObjectID `bson:"_id"`
+	Tatle        string             `bson:"tatle"`
+	Authtor      string             `bson:"authtor"`
+	CreationTime time.Time          `bson:"creationTime"`
+	Content      string             `bson:"content"`
+	Access       []string           `bson:"access"`
+	Files        []string           `bson:"files"`
 }
 
 func CountByDModel(devices ...DeviceRaw) (counter map[int]int) {

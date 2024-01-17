@@ -1749,8 +1749,53 @@ func (templ Templ) DraftPage(w http.ResponseWriter, drafts []mytypes.DraftClean,
 	t.Execute(w, tmp)
 }
 
-func (templ Templ) TeastTablePage(w http.ResponseWriter) {
+func (templ Templ) DocsPage(w http.ResponseWriter, mainDocs []mytypes.Document, otherDocs []mytypes.Document, privateDocs []mytypes.Document) {
 
-	t := template.Must(template.ParseFiles("Face/html/TestTable.html"))
+	type DocAndId struct {
+		Doc mytypes.Document
+		Id  string
+	}
+
+	type Page struct {
+		OtherDocs   []DocAndId
+		MainDocs    []DocAndId
+		PrivateDocs []DocAndId
+	}
+	var OtherDocsAndId []DocAndId
+	for _, doc := range otherDocs {
+		strinId := doc.Id.Hex()
+		OtherDocsAndId = append(OtherDocsAndId, DocAndId{Doc: doc, Id: strinId})
+	}
+
+	var MainDocsAndId []DocAndId
+	for _, doc := range mainDocs {
+		strinId := doc.Id.Hex()
+		MainDocsAndId = append(MainDocsAndId, DocAndId{Doc: doc, Id: strinId})
+	}
+
+	var PrivateDocsAndId []DocAndId
+	for _, doc := range privateDocs {
+		strinId := doc.Id.Hex()
+		PrivateDocsAndId = append(PrivateDocsAndId, DocAndId{Doc: doc, Id: strinId})
+	}
+
+	tmp := Page{OtherDocs: OtherDocsAndId, MainDocs: MainDocsAndId, PrivateDocs: PrivateDocsAndId}
+	t := template.Must(template.ParseFiles("Face/html/DocsPage.html"))
+	t.Execute(w, tmp)
+}
+
+func (templ Templ) DocPage(w http.ResponseWriter, doc mytypes.Document, docId string, docType string) {
+	type Page struct {
+		Doc  mytypes.Document
+		Id   string
+		Type string
+	}
+	t := template.Must(template.ParseFiles("Face/html/DocPage.html"))
+	t.Execute(w, Page{Doc: doc, Id: docId, Type: docType})
+}
+
+func (templ Templ) DocCreatePage(w http.ResponseWriter) {
+
+	t := template.Must(template.ParseFiles("Face/html/DocCreatePage.html"))
 	t.Execute(w, nil)
 }

@@ -4,6 +4,7 @@ import (
 	"T-Base/Brain/Auth"
 	"T-Base/Brain/Filer"
 	"log"
+	"os"
 
 	"T-Base/Brain/mytypes"
 	"fmt"
@@ -14,6 +15,7 @@ import (
 	"time"
 
 	"github.com/julienschmidt/httprouter"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 /////////////////////
@@ -1091,8 +1093,67 @@ func (a App) CreateCanBeBuildOrdersPage(w http.ResponseWriter, r *http.Request, 
 	a.Templ.CanBeBuildOrdersPage(w)
 }
 
-func (a App) CreateTeastTablePage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
-	a.Templ.TeastTablePage(w)
+func (a App) CreateDocsPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+
+	mainDocs, err := a.DocBase.TakeDocs(a.Ctx, "main")
+	if err != nil {
+		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Не удалось получить документы", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	privateDocs, err := a.DocBase.TakeDocsByUser(a.Ctx, "private", user)
+	if err != nil {
+		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Не удалось получить документы", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	fmt.Println(privateDocs)
+
+	otherDocs, err := a.DocBase.TakeDocs(a.Ctx, "other")
+	if err != nil {
+		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Не удалось получить документы", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	a.Templ.DocsPage(w, mainDocs, otherDocs, privateDocs)
+}
+
+func (a App) CreateDocPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	docType := r.FormValue("type")
+	if docType == "" {
+		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Не задан тип документа", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+
+	}
+	docId := r.FormValue("id")
+	if docId == "" {
+		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Не задан Id документа", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
+	objID, err := primitive.ObjectIDFromHex(docId)
+	if err != nil {
+		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Не верно задан Id документа", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	doc, err := a.DocBase.TakeDoc(a.Ctx, docType, objID)
+	if err != nil {
+		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Не удалось получить документ", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	if len(doc.Access) > 0 {
+		for _, approved := range doc.Access {
+			if approved == user.Login {
+				a.Templ.DocPage(w, doc, docId, docType)
+				return
+			}
+		}
+		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Доступ запрещен", "обратитесь к администратору", "Главная", "/works/prof")
+	} else {
+		a.Templ.DocPage(w, doc, docId, docType)
+	}
+}
+
+func (a App) CreateDocCreatePage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	a.Templ.DocCreatePage(w)
 }
 
 //////////////////////
@@ -1745,7 +1806,7 @@ func (a App) ReleaseProduction(w http.ResponseWriter, r *http.Request, pr httpro
 
 		}
 
-		// Добавляем материалы для этого устройства в облий лист списаия
+		// Добавляем материалы для этого устройства в общий лист списаия
 		for i, a := range matToProdus {
 			matList[i] += a
 		}
@@ -2475,6 +2536,25 @@ func (a App) Draft(w http.ResponseWriter, r *http.Request, pr httprouter.Params,
 	}
 }
 
+func (a App) CreateDoc(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	docType := r.FormValue("type")
+	docContent := r.FormValue("inContent")
+	docName := r.FormValue("name")
+
+	var acces []string
+	acces = []string{}
+	if docType == "private" {
+		acces = []string{user.Login}
+	}
+
+	err := a.DocBase.NewDoc(a.Ctx, docType, docName, user, docContent, acces)
+	if err != nil {
+		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Не удалось создать документ", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	a.Templ.AlertPage(w, 1, "Успех", "Успех", "Документ успешно создан", "", "Главная", "/works/prof")
+}
+
 //////////////////////
 
 // Отправка отчетов //
@@ -2883,4 +2963,69 @@ func (a App) OrdersShortExcell(w http.ResponseWriter, r *http.Request, pr httpro
 	if err != nil {
 		log.Println(err)
 	}
+}
+
+// выводит файл из франилища
+func (a App) FilesBase(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	filepath := r.FormValue("filepath")
+	if filepath == "" {
+		w.Header()["Date"] = nil
+		http.Error(w, "Ошибка 404. Файл не найден", 404)
+		return
+	}
+
+	docType := r.FormValue("type")
+	if docType == "" {
+		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Не задан тип документа", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+
+	}
+	docId := r.FormValue("id")
+	if docId == "" {
+		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Не задан Id документа", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
+	objID, err := primitive.ObjectIDFromHex(docId)
+	if err != nil {
+		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Не верно задан Id документа", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	doc, err := a.DocBase.TakeDoc(a.Ctx, docType, objID)
+	if err != nil {
+		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Не удалось получить документ", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	p := "Files/DocStor/" + docType + "/" + filepath
+	file, err := os.Open(p)
+	if err != nil {
+		w.Header()["Date"] = nil
+		http.Error(w, "Ошибка 404. Файл не найден", 404)
+		return
+	}
+	defer file.Close()
+
+	info, err := file.Stat()
+	if err != nil {
+		w.Header()["Date"] = nil
+		http.Error(w, "Ошибка 404. Файл не найден", 404)
+		return
+	}
+
+	if len(doc.Access) > 0 {
+		for _, approved := range doc.Access {
+			if approved == user.Login {
+				w.Header().Add("Content-Type", "text/plain; charset=UTF-8")
+				w.Header().Add("content-disposition", `inline; filename=`+filepath)
+				http.ServeContent(w, r, p, info.ModTime(), file)
+				return
+			}
+		}
+		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Доступ запрещен", "обратитесь к администратору", "Главная", "/works/prof")
+	} else {
+		w.Header().Add("Content-Type", "text/plain; charset=UTF-8")
+		w.Header().Add("content-disposition", `inline; filename=`+filepath)
+		http.ServeContent(w, r, p, info.ModTime(), file)
+	}
+
 }
