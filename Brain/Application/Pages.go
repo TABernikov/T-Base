@@ -1105,7 +1105,6 @@ func (a App) CreateDocsPage(w http.ResponseWriter, r *http.Request, pr httproute
 		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Не удалось получить документы", err.Error(), "Главная", "/works/prof")
 		return
 	}
-	fmt.Println(privateDocs)
 
 	otherDocs, err := a.DocBase.TakeDocs(a.Ctx, "other")
 	if err != nil {
@@ -3027,5 +3026,165 @@ func (a App) FilesBase(w http.ResponseWriter, r *http.Request, pr httprouter.Par
 		w.Header().Add("content-disposition", `inline; filename=`+filepath)
 		http.ServeContent(w, r, p, info.ModTime(), file)
 	}
+
+}
+
+func (a App) AddDocFile(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	src, hdr, err := r.FormFile("in")
+	if err != nil {
+		if err.Error() == "http: no such file" {
+			sendFile(w, r, "Files/Templ/Приемка файлом шаблон.xlsx", "Приемка файлом шаблон.xlsx")
+			return
+		}
+
+		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка получения", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	defer src.Close()
+
+	docId, err := primitive.ObjectIDFromHex(r.FormValue("docid"))
+	if err != nil {
+		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка преобразования", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	docType := r.FormValue("doctype")
+
+	doc, err := a.DocBase.TakeDoc(a.Ctx, docType, docId)
+	if err != nil {
+		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка получения", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	f, name, err := takeDocFile(src, hdr, docType)
+	if err != nil {
+		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка записи в хранилище", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	f.Close()
+
+	doc.Files = append(doc.Files, name)
+	err = a.DocBase.UpdateDoc(a.Ctx, docType, doc)
+	if err != nil {
+		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка записи в документ", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	a.Templ.AlertPage(w, 1, "Успех", "Успех", "Файл добавлен", "", "Главная", "/works/prof")
+}
+
+func (a App) DellDocFile(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	docid, err := primitive.ObjectIDFromHex(r.FormValue("docid"))
+	if err != nil {
+		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Не верно задан Id документа", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	docType := r.FormValue("doctype")
+	filepath := r.FormValue("filepath")
+
+	doc, err := a.DocBase.TakeDoc(a.Ctx, docType, docid)
+	if err != nil {
+		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка поиска документа", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	var files []string
+	for _, file := range doc.Files {
+		if file != filepath {
+			files = append(files, file)
+		}
+	}
+	doc.Files = files
+
+	err = a.DocBase.UpdateDoc(a.Ctx, docType, doc)
+	if err != nil {
+		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка удаления из документа", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	err = dellDocFile(docType, filepath)
+	if err != nil {
+		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка удаления из хранилища", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	a.Templ.AlertPage(w, 1, "Успех", "Успех", "Файл удален", "", "Главная", "/works/prof")
+
+}
+
+func (a App) DellDoc(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	docid, err := primitive.ObjectIDFromHex(r.FormValue("id"))
+	if err != nil {
+		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Не верно задан Id документа", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	docType := r.FormValue("type")
+
+	doc, err := a.DocBase.TakeDoc(a.Ctx, docType, docid)
+	if err != nil {
+		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка поиска документа", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	for _, file := range doc.Files {
+		err = dellDocFile(docType, file)
+		if err != nil {
+			a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка удаления из хранилища", err.Error(), "Главная", "/works/prof")
+			return
+		}
+	}
+
+	err = a.DocBase.DeleteDoc(a.Ctx, docType, docid)
+	if err != nil {
+		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка удаления документа", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	a.Templ.AlertPage(w, 1, "Успех", "Успех", "Документ удален", "", "Главная", "/works/prof")
+
+}
+
+func (a App) CreateEditDocPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	docId, err := primitive.ObjectIDFromHex(r.FormValue("id"))
+	if err != nil {
+		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Не верно задан Id документа", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	docType := r.FormValue("type")
+
+	doc, err := a.DocBase.TakeDoc(a.Ctx, docType, docId)
+	if err != nil {
+		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка поиска документа", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	a.Templ.EditDocPage(w, doc, r.FormValue("id"), docType)
+}
+
+func (a App) EditDoc(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+
+	docid, err := primitive.ObjectIDFromHex(r.FormValue("id"))
+	if err != nil {
+		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Не верно задан Id документа", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	doctype := r.FormValue("type")
+	newContent := r.FormValue("inContent")
+
+	doc, err := a.DocBase.TakeDoc(a.Ctx, doctype, docid)
+	if err != nil {
+		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка поиска документа", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	doc.Content = newContent
+
+	err = a.DocBase.UpdateDoc(a.Ctx, doctype, doc)
+	if err != nil {
+		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка обновления документа", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	a.Templ.AlertPage(w, 1, "Успех", "Успех", "Документ обновлен", "", "Главная", "/works/prof")
 
 }

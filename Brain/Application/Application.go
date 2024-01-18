@@ -14,6 +14,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/julienschmidt/httprouter"
@@ -169,6 +170,11 @@ func (a App) Routs(r *httprouter.Router) {
 	r.GET("/works/doc", a.authtorized(a.CreateDocPage))
 	r.GET("/works/createdoc", a.authtorized(a.CreateDocCreatePage))
 	r.POST("/works/createdoc", a.authtorized(a.CreateDoc))
+	r.POST("/works/addfile", a.authtorized(a.AddDocFile))
+	r.POST("/works/deletefile", a.authtorized(a.DellDocFile))
+	r.POST("/works/deletedoc", a.authtorized(a.DellDoc))
+	r.POST("/works/editdocpage", a.authtorized(a.CreateEditDocPage))
+	r.POST("/works/editdoc", a.authtorized(a.EditDoc))
 }
 
 // Проверка авторизациия
@@ -292,6 +298,22 @@ func takeFile(src multipart.File, hdr *multipart.FileHeader, user mytypes.User) 
 	io.Copy(f, src)
 
 	return f, hdr.Filename, nil
+}
+
+func takeDocFile(src multipart.File, hdr *multipart.FileHeader, docType string) (*os.File, string, error) {
+	docType = strings.ReplaceAll(docType, ".", "/")
+	f, err := os.OpenFile(filepath.Join("Files/DocStor", docType, hdr.Filename), os.O_CREATE, 0666)
+	if err != nil {
+		return nil, "", err
+	}
+	defer f.Close()
+	io.Copy(f, src)
+	return f, hdr.Filename, nil
+}
+
+func dellDocFile(docType string, docPath string) error {
+	docType = strings.ReplaceAll(docType, ".", "/")
+	return os.Remove(filepath.Join("Files/DocStor", docType, docPath))
 }
 
 // Отправка service-worker

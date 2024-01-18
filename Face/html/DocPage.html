@@ -46,8 +46,9 @@
               <form id="logout" name="logout" action="/works/logout" method="post"> 
                 <a href="/works/logout" class="btn btn-outline-danger" type="submit" name="logoutBtn" >Выйти <i class="bi bi-arrow-bar-right"></i></a>
               </form>
+             
             </ul>
-  
+            <a class="btn btn-primary" href="/works/createdoc" role="button" > <i class="bi bi-file-earmark-plus"></i> Новый документ</a>
           </div>
   
         </div>
@@ -55,16 +56,75 @@
 
 
     <div class="container">
-      <div id="markdown-container"></div>
+      &nbsp;
+      <div class="card">
+        <div class="card-header">
+          <div class="container row justify-content-between">
+            <div class="col"><h4>{{.Doc.Tatle}}</h4></div>
+            <div class="col-2"><form class="d-inline-block" action="/works/editdocpage" method="post">
+              <input type="hidden" name="id" value="{{.Id}}">
+              <input type="hidden" name="type" value="{{.Type}}">
+              <button type="submit" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil-square"></i></button>
+            </form>
+            <form class="d-inline-block" action="/works/deletedoc" method="post">
+              <input type="hidden" name="id" value="{{.Id}}">
+              <input type="hidden" name="type" value="{{.Type}}">
+              <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+            </form></div>
+          </div>
+        </div>
+        
+        <h6 class="card-header text-secondary">{{.Doc.Authtor}}</h6>
+        
+        <div class="card-body">
+          <div class="card-text" id="markdown-container"></div>
+        </div>
+        <div class ="list-group list-group-flush">
+          <h6 class="card-header">Файлы: </h6>
+          {{range .Doc.Files}}
+          <li class="list-group-item">
+            <div class="container row">
+              <div class="col-10"><a href="/works/filesbase?id={{$.Id}}&type={{$.Type}}&filepath={{.}}">{{.}}</a></div>
+              
+              <div class="col-2">
+                <form action="deletefile" method="post">
+                  <input type="hidden" id="docid" name="docid" value="{{$.Id}}">
+                  <input type="hidden" id="doctype" name="doctype" value="{{$.Type}}">
+                  <input type="hidden" id="filepath" name="filepath" value="{{.}}">
+                  <button class="btn btn-sm btn-outline-danger" type="submit">Удалить</button>
+                </form>
+              </div>
+            </div>
+          </li>
+          {{end}}
+          <li class="list-group-item"><button class="btn btn-sm btn-primary"  type="button" data-bs-toggle="modal" data-bs-target="#staticBackdrop" >Добавить</button></li>
+        </div>
+      </div>
     </div>
 
-    <div class="container">
-      <h4>Файлы</h4>
-      {{range .Doc.Files}}
-        <p><a href="/works/filesbase?id={{$.Id}}&type={{$.Type}}&filepath={{.}}">{{.}}</a></p>
-      {{end}}
+    <!-- Модальное окно -->
+    <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h1 class="modal-title fs-5" id="staticBackdropLabel">Добавить файл</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+          </div>
+          <form action="addfile" method="post" enctype="multipart/form-data">
+            <div class="modal-body">
+              <input class="form-control" type="file" id="in" name="in" accept="" required></input>
+              <input type="hidden" id="docid" name="docid" value="{{.Id}}">
+              <input type="hidden" id="doctype" name="doctype" value="{{.Type}}">
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+              <button type="submit" value="upload" class="btn btn-primary">Добавить</button>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
-
+          
 
     <script src="Face/html/js/bootstrap.bundle.js"></script>
     <script src="Face/html/js/keys.js"></script>
@@ -75,8 +135,10 @@
       var container = document.getElementById('markdown-container');
       container.innerHTML =
       marked.parse(markdownContent);
-
     </script>
+
+
+
 
 </body>
 

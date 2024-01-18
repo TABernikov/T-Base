@@ -1799,3 +1799,14 @@ func (templ Templ) DocCreatePage(w http.ResponseWriter) {
 	t := template.Must(template.ParseFiles("Face/html/DocCreatePage.html"))
 	t.Execute(w, nil)
 }
+
+func (templ Templ) EditDocPage(w http.ResponseWriter, doc mytypes.Document, docId string, docType string) {
+
+	type Page struct {
+		Doc  mytypes.Document
+		Id   string
+		Type string
+	}
+	t := template.Must(template.ParseFiles("Face/html/ChangeDocPage.html"))
+	t.Execute(w, Page{Doc: doc, Id: docId, Type: docType})
+}

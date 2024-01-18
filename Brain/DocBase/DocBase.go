@@ -103,3 +103,16 @@ func (base DocBase) TakeDocsByUser(ctx context.Context, DocType string, user myt
 
 	return res, nil
 }
+
+func (base DocBase) DeleteDoc(ctx context.Context, DocType string, id primitive.ObjectID) error {
+	collection := base.Db.Collection(DocType)
+
+	_, err := collection.DeleteOne(ctx, bson.D{{"_id", id}})
+	return err
+}
+
+func (base DocBase) UpdateDoc(ctx context.Context, DocType string, doc mytypes.Document) error {
+	collection := base.Db.Collection(DocType)
+	_, err := collection.UpdateByID(context.Background(), doc.Id, bson.M{"$set": doc})
+	return err
+}
