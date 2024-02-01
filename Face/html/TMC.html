@@ -124,6 +124,28 @@
             <div class="" style="height: 45vh;  overflow-x:hidden; overflow-y:scroll; ">
                 <table class="table table-hover table-striped table-bordered"style = "table-layout: fixed" id = "TMCData" >
                   <col span="18" style="width: 150px;">
+                    <thead>
+                      <tr>
+                        <th scope="col">сортировка</th>
+                        <th scope="col">сортировка</th>
+                        <th scope="col">сортировка</th>
+                        <th scope="col">сортировка</th>
+                        <th scope="col">сортировка</th>
+                        <th scope="col">сортировка</th>
+                        <th scope="col">сортировка</th>
+                        <th scope="col">сортировка</th>
+                        <th scope="col">сортировка</th>
+                        <th scope="col">сортировка</th>
+                        <th scope="col">сортировка</th>
+                        <th scope="col">сортировка</th>
+                        <th scope="col">сортировка</th>
+                        <th scope="col">сортировка</th>
+                        <th scope="col">сортировка</th>
+                        <th scope="col">сортировка</th>
+                        <th scope="col">сортировка</th>
+                        <th scope="col">сортировка</th>
+                      </tr>
+                    </thead>
                     <tbody>
                     {{range .Tab}}
                     
@@ -195,6 +217,14 @@
 
     });
     </script>
+
+    <script src="Face/html/js/tablesort.min.js"></script>
+    <script src="Face/html/js/tablesort.number.min.js"></script>
+    <script src="Face/html/js/tablesort.date.min.js"></script>
+    <script>
+      new Tablesort(document.getElementById('TMCData'));
+    </script>
+
 </body>
 
 
