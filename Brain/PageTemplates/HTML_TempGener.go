@@ -537,6 +537,8 @@ func (templ Templ) UserPage(w http.ResponseWriter, user mytypes.User) {
 		block.Btns = append(block.Btns, btn)
 		btn = Buton{`<i class="bi bi-reply-fill"></i> Вернуть на склад`, "/works/returntostorage"}
 		block.Btns = append(block.Btns, btn)
+		btn = Buton{`<i class="bi bi-person-fill-down"></i> Установить сборщика`, "/works/changeassembler"}
+		block.Btns = append(block.Btns, btn)
 		Blocks = append(Blocks, block)
 
 		block = Block{}
@@ -1810,4 +1812,29 @@ func (templ Templ) EditDocPage(w http.ResponseWriter, doc mytypes.Document, docI
 	}
 	t := template.Must(template.ParseFiles("Face/html/ChangeDocPage.html"))
 	t.Execute(w, Page{Doc: doc, Id: docId, Type: docType})
+}
+
+func (templ Templ) ChangeAssemblerPage(w http.ResponseWriter) {
+	type Assembler struct {
+		Id   int
+		Name string
+	}
+
+	var Assemblers []Assembler
+
+	rows, err := templ.Db.Db.Query(templ.ctx, `SELECT userid, name FROM public.users WHERE access = 1;`)
+	if err != nil {
+		return
+	}
+	for rows.Next() {
+		var assembler Assembler
+		err := rows.Scan(&assembler.Id, &assembler.Name)
+		if err != nil {
+			return
+		}
+		Assemblers = append(Assemblers, assembler)
+	}
+
+	t := template.Must(template.ParseFiles("Face/html/changeAssembler.html"))
+	t.Execute(w, Assemblers)
 }

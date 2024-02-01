@@ -201,7 +201,7 @@ func (a App) TMCPage(w http.ResponseWriter, r *http.Request, pr httprouter.Param
 			a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
 		}
 	} else if r.FormValue("Search") == "Raw" {
-		rawSelect := `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder" FROM public.sns WHERE true`
+		rawSelect := `SELECT "snsId", sn, mac, dmodel, rev, tmodel, name, condition, "condDate", "order", place, shiped, "shipedDate", "shippedDest", "takenDate", "takenDoc", "takenOrder", assembler FROM public.sns WHERE true`
 		link += "Search=Raw"
 		if r.FormValue("Id") != "" {
 			rawSelect += ` AND "snsId" = ` + r.FormValue("Id")
@@ -320,7 +320,7 @@ func (a App) TMCPage(w http.ResponseWriter, r *http.Request, pr httprouter.Param
 			link += "&TakenDateTo=2100-01-01"
 		}
 
-		cleanSelect := `SELECT tmp."snsId", tmp.sn, tmp.mac, "dModels"."dModelName" AS dmodel, tmp.rev, "tModels"."tModelsName" AS tmodel, tmp.name, "condNames"."condName" AS condition, tmp."condDate", tmp."order", tmp.place, tmp.shiped, tmp."shipedDate", tmp."shippedDest", tmp."takenDate", tmp."takenDoc", tmp."takenOrder", snscomment.comment FROM (` + rawSelect + `)tmp LEFT JOIN "dModels" ON "dModels"."dModelsId" = tmp.dmodel LEFT JOIN "tModels" ON "tModels"."tModelsId" = tmp.tmodel LEFT JOIN "condNames" ON "condNames"."condNamesId" = tmp.condition LEFT JOIN snscomment ON snscomment."snsId" = tmp."snsId"`
+		cleanSelect := `SELECT tmp."snsId", tmp.sn, tmp.mac, "dModels"."dModelName" AS dmodel, tmp.rev, "tModels"."tModelsName" AS tmodel, tmp.name, "condNames"."condName" AS condition, tmp."condDate", tmp."order", tmp.place, tmp.shiped, tmp."shipedDate", tmp."shippedDest", tmp."takenDate", tmp."takenDoc", tmp."takenOrder", snscomment.comment, users.name AS assembler  FROM (` + rawSelect + `)tmp LEFT JOIN "dModels" ON "dModels"."dModelsId" = tmp.dmodel LEFT JOIN "tModels" ON "tModels"."tModelsId" = tmp.tmodel LEFT JOIN "condNames" ON "condNames"."condNamesId" = tmp.condition LEFT JOIN snscomment ON snscomment."snsId" = tmp."snsId" LEFT JOIN users ON tmp.assembler = users.userid`
 
 		devices, err = a.Db.TakeCleanDevice(a.Ctx, cleanSelect)
 		if err != nil {
@@ -1155,6 +1155,10 @@ func (a App) CreateDocPage(w http.ResponseWriter, r *http.Request, pr httprouter
 
 func (a App) CreateDocCreatePage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	a.Templ.DocCreatePage(w)
+}
+
+func (a App) CreateChangeAssemblerPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	a.Templ.ChangeAssemblerPage(w)
 }
 
 //////////////////////
@@ -2554,6 +2558,32 @@ func (a App) CreateDoc(w http.ResponseWriter, r *http.Request, pr httprouter.Par
 		return
 	}
 	a.Templ.AlertPage(w, 1, "Успех", "Успех", "Документ успешно создан", "", "Главная", "/works/prof")
+}
+
+func (a App) ChangeAssembler(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	snString := r.FormValue("sn")
+	Sns := strings.Fields(snString)
+	if len(Sns) == 0 {
+		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Не ввседены серийные номера", "", "Главная", "/works/prof")
+		return
+	}
+
+	ass, err := strconv.Atoi(r.FormValue("assembler"))
+	if err != nil {
+		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Не выбран сборщик", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	for _, sn := range Sns {
+		err := a.Db.ChangeDeviceAssembler(a.Ctx, sn, ass)
+		if err != nil {
+			a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Не удалось изменить сборщика", err.Error(), "Главная", "/works/prof")
+			return
+		}
+	}
+
+	a.Templ.AlertPage(w, 1, "Успех", "Успех", "Сборщик успешно изменен", "", "Главная", "/works/prof")
+
 }
 
 //////////////////////

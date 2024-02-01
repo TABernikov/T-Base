@@ -25,6 +25,7 @@ type DeviceRaw struct {
 	TakenDate   time.Time
 	TakenDoc    string
 	TakenOrder  string
+	Assembler   string
 }
 
 // структура устройства для вывода пользователю
@@ -47,6 +48,7 @@ type DeviceClean struct {
 	TakenDoc    string
 	TakenOrder  string
 	Comment     string
+	Assembler   string
 }
 
 // Структура пользователя

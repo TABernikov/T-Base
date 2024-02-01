@@ -85,7 +85,7 @@
 
 
     <div class="container-fluid" style="overflow-y:hidden; width: 100%;  height: 55vh;">
-    <div class="container-fluid" style="overflow-y:hidden; width: 2800px;  height: 55vh; overflow-x:hidden;">
+    <div class="container-fluid" style="overflow-y:hidden; width: 2950px;  height: 55vh; overflow-x:hidden;">
         <div class="" >
                 <table class="table table-hover table-striped"style = "table-layout: fixed;" >
                   <col span="18" style="width: 150px;">
@@ -114,6 +114,7 @@
                             <th scope="col">Документ приемки</th>
                             <th scope="col">Заказ приемки</th>
                             <th scope="col">Коментарий</th>
+                            <th scope="col">Сборщик</th>
                             
                         </tr>
                     </thead>
@@ -126,6 +127,7 @@
                   <col span="18" style="width: 150px;">
                     <thead>
                       <tr>
+                        <th scope="col">сортировка</th>
                         <th scope="col">сортировка</th>
                         <th scope="col">сортировка</th>
                         <th scope="col">сортировка</th>
@@ -169,6 +171,7 @@
                         <td>{{.TakenDoc}}</td>
                         <td>{{.TakenOrder}}</td>
                         <td class="text-nowrap" >{{.Comment}}</td>
+                        <td>{{.Assembler}}</td>
                         
                     </tr>
                     

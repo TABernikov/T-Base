@@ -120,6 +120,7 @@ func (a App) Routs(r *httprouter.Router) {
 	r.GET("/works/canbebuildorders", a.authtorized(a.CreateCanBeBuildOrdersPage))
 	r.GET("/works/draft", a.authtorized(a.Draft))
 	r.GET("/works/docs", a.authtorized(a.CreateDocsPage))
+	r.GET("/works/changeassembler", a.authtorized(a.CreateChangeAssemblerPage))
 
 	r.POST("/works/tmc", a.authtorized(a.TMCPage))
 	r.POST("/works/orders", a.authtorized(a.OrderPage))
@@ -157,6 +158,7 @@ func (a App) Routs(r *httprouter.Router) {
 	r.POST("/works/tmcdemo", a.authtorized(a.TMCDemoPage))
 	r.POST("/works/createreserv", a.authtorized(a.CreateReserv))
 	r.POST("/works/draft", a.authtorized(a.Draft))
+	r.POST("/works/changeassembler", a.authtorized(a.ChangeAssembler))
 
 	r.GET("/works/tmcexcell", a.authtorized(a.TMCExcell))
 	r.POST("/works/tmcexcell", a.authtorized(a.TMCExcell))
