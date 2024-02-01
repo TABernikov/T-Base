@@ -282,7 +282,7 @@ func (templ Templ) ImputTypePage(w http.ResponseWriter, postPath, title, typein,
 }
 
 // Генерация страницы ввода текста и значения фиксированного типа
-func (templ Templ) DobleImputPage(w http.ResponseWriter, postPath, title, imputText1, imputText2, type2, btnText string) {
+func (templ Templ) DobleImputPage(w http.ResponseWriter, postPath, title, imputText1, imputText2, type2, btnText, input2Data string) {
 
 	type imputPage struct {
 		Title      string
@@ -291,9 +291,10 @@ func (templ Templ) DobleImputPage(w http.ResponseWriter, postPath, title, imputT
 		Type2      string
 		BtnText    string
 		PostPath   string
+		Input2Data string
 	}
 
-	tmp := imputPage{title, imputText1, imputText2, type2, btnText, postPath}
+	tmp := imputPage{title, imputText1, imputText2, type2, btnText, postPath, input2Data}
 
 	t := template.Must(template.ParseFiles("Face/html/dobleinsert.html"))
 	t.Execute(w, tmp)

@@ -64,6 +64,16 @@
                             <input type="hidden" name="order" value="{{.Order.OrderId}}"/> 
                         </form>
                         {{end}}
+                        {{if (eq .User.Acces 2)}}
+                        <form  class="p-1" id="task" name="task" action="/works/setorder" target="_parent" method="get">   
+                            <button class="btn btn-outline-primary btn-sm" type="submit"  ><i class="bi bi-tag-fill"></i> Назначить устройства</button>
+                            <input type="hidden" name="order" value="{{.Order.OrderId}}"/> 
+                        </form>
+                        <form  class="p-1" id="task" name="task" action="/works/toship" target="_parent" method="get">   
+                            <button class="btn btn-outline-primary btn-sm" type="submit"  ><i class="bi bi-truck"></i> Отгрузка</button>
+                            <input type="hidden" name="place" value="{{.Order.Distributor}}"/> 
+                        </form>
+                        {{end}}
                     </div>
                    
                     </nav>

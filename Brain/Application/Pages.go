@@ -620,7 +620,8 @@ func (a App) SetOrderPage(w http.ResponseWriter, r *http.Request, pr httprouter.
 		a.Templ.AlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
 		return
 	}
-	a.Templ.DobleImputPage(w, "/works/setorder", "Назначить заказ/резерв", "Введите серийные номера:", "Номер заказа", "number", "Назначить заказ")
+	order := r.FormValue("order")
+	a.Templ.DobleImputPage(w, "/works/setorder", "Назначить заказ/резерв", "Введите серийные номера:", "Номер заказа", "number", "Назначить заказ", order)
 }
 
 // Страница установки места
@@ -629,7 +630,7 @@ func (a App) SetPlacePage(w http.ResponseWriter, r *http.Request, pr httprouter.
 		a.Templ.AlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
 		return
 	}
-	a.Templ.DobleImputPage(w, "/works/setplace", "Установить место", "Введите серийные номера:", "Номер места", "number", "Установить место")
+	a.Templ.DobleImputPage(w, "/works/setplace", "Установить место", "Введите серийные номера:", "Номер места", "number", "Установить место", "")
 }
 
 // Страница приемки демо
@@ -647,7 +648,8 @@ func (a App) ToShipPage(w http.ResponseWriter, r *http.Request, pr httprouter.Pa
 		a.Templ.AlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
 		return
 	}
-	a.Templ.DobleImputPage(w, "", "Отгрузка", "Введите серийные номера", "Место отгрузки", "text", "Отгрузить")
+	place := r.FormValue("place")
+	a.Templ.DobleImputPage(w, "", "Отгрузка", "Введите серийные номера", "Место отгрузки", "text", "Отгрузить", place)
 }
 
 // Страница изменения номера паллета
@@ -720,7 +722,7 @@ func (a App) ChangePassPage(w http.ResponseWriter, r *http.Request, pr httproute
 
 // Страница добавления комментария по серийным номерам
 func (a App) AddCommentToSnsBySnPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
-	a.Templ.DobleImputPage(w, "/works/addcommentbysn", "Дополнить комментарии", "Серийные номера", "Коментарий", "text", "Добавить коментарий")
+	a.Templ.DobleImputPage(w, "/works/addcommentbysn", "Дополнить комментарии", "Серийные номера", "Коментарий", "text", "Добавить коментарий", "")
 }
 
 // Страница приемка файлом
