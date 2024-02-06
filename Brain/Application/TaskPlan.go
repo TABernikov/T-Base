@@ -63,6 +63,11 @@ func (a App) CreateTaskPage(w http.ResponseWriter, r *http.Request, pr httproute
 
 // создать событие
 func (a App) CreateTask(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 1 {
+		a.Templ.AlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
+
 	var task mytypes.Task
 	task.Autor = user.UserId
 	task.Name = r.FormValue("Name")
@@ -97,6 +102,11 @@ func (a App) CreateTask(w http.ResponseWriter, r *http.Request, pr httprouter.Pa
 
 // создать задачи события
 func (a App) CreateTaskListPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 1 {
+		a.Templ.AlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
+
 	TaskId, err := strconv.Atoi(r.FormValue("TaskId"))
 	if err != nil {
 		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения номера задачи", err.Error(), "Главная", "/works/prof")
@@ -158,6 +168,11 @@ func (a App) CreateTaskListPage(w http.ResponseWriter, r *http.Request, pr httpr
 
 // редактирование событий
 func (a App) ChangeTask(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 1 {
+		a.Templ.AlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
+
 	var task mytypes.Task
 	var err error
 	task.Id, err = strconv.Atoi(r.FormValue("Id"))
@@ -165,6 +180,17 @@ func (a App) ChangeTask(w http.ResponseWriter, r *http.Request, pr httprouter.Pa
 		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка считывания Id", err.Error(), "Главная", "/works/prof")
 		return
 	}
+
+	tasks, err := a.Db.TakeTasksById(a.Ctx, task.Id)
+	task = tasks[0]
+	if err != nil {
+		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения задачи", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	if task.Autor != user.UserId {
+		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Нельзя редактировать чужую задачу", "обратитесь к администратору", "Главная", "/works/prof")
+	}
+
 	task.Priority, err = strconv.Atoi(r.FormValue("Priority"))
 	if err != nil {
 		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка считывания приоритета", err.Error(), "Главная", "/works/prof")
@@ -192,6 +218,11 @@ func (a App) ChangeTask(w http.ResponseWriter, r *http.Request, pr httprouter.Pa
 
 // Авто создание задачи из заказа
 func (a App) OrderToTask(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 1 {
+		a.Templ.AlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
+
 	orderId, err := strconv.Atoi(r.FormValue("order"))
 	if err != nil {
 		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка считывания Id", err.Error(), "Главная", "/works/prof")

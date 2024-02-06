@@ -66,6 +66,10 @@ func (a App) ReservCalendarPage(w http.ResponseWriter, r *http.Request, pr httpr
 }
 
 func (a App) CreateReservPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 3 {
+		a.Templ.AlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
 	SnsId := r.FormValue("SnsId")
 	if user.Acces != 3 {
 		a.Templ.AlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
@@ -141,6 +145,11 @@ func (a App) ChangePass(w http.ResponseWriter, r *http.Request, pr httprouter.Pa
 }
 
 func (a App) CreateReserv(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 3 {
+		a.Templ.AlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
+
 	var reserv mytypes.ReservTask
 	reserv.Autor = user.UserId
 	var err error

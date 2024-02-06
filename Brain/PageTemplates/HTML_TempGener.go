@@ -662,6 +662,13 @@ func (templ Templ) UserPage(w http.ResponseWriter, user mytypes.User) {
 		btn = Buton{`<i class="bi bi-house-fill"></i> Склад`, "/works/storage/orders"}
 		block.Btns = append(block.Btns, btn)
 		Blocks = append(Blocks, block)
+
+		block = Block{}
+		block.Title = "Демо"
+		btn = Buton{`<i class="bi bi-table"></i> Таблица Демо`, "/works/tmcdemo"}
+		block.Btns = append(block.Btns, btn)
+		Blocks = append(Blocks, block)
+
 	default:
 		block.Title = "Вас тут не ждали"
 		btn = Buton{"Идите нахуй", "/works/Logout"}

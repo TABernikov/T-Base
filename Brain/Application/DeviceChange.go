@@ -764,11 +764,20 @@ func (a App) TakeDeviceByExcel(w http.ResponseWriter, r *http.Request, pr httpro
 
 // Страница устоновки сборщика устройства
 func (a App) CreateChangeAssemblerPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 1 {
+		a.Templ.AlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
 	a.Templ.ChangeAssemblerPage(w)
 }
 
 // Установка сборщика устройства
 func (a App) ChangeAssembler(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 1 {
+		a.Templ.AlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
+
 	snString := r.FormValue("sn")
 	Sns := strings.Fields(snString)
 	if len(Sns) == 0 {

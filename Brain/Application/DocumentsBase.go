@@ -11,9 +11,9 @@ import (
 
 func DocumentsBaseRouts(a App, r *httprouter.Router) {
 	r.GET("/works/filesbase", a.authtorized(a.FilesBase))
-	r.GET("/works/doc", a.authtorized(a.CreateDocPage))
-	r.GET("/works/docs", a.authtorized(a.CreateDocsPage))
-	r.GET("/works/createdoc", a.authtorized(a.CreateDocCreatePage))
+	r.GET("/works/doc", a.authtorized(a.DocPage))
+	r.GET("/works/docs", a.authtorized(a.DocsPage))
+	r.GET("/works/createdoc", a.authtorized(a.CreateDocPage))
 	r.POST("/works/createdoc", a.authtorized(a.CreateDoc))
 	r.POST("/works/addfile", a.authtorized(a.AddDocFile))
 	r.POST("/works/deletefile", a.authtorized(a.DellDocFile))
@@ -23,7 +23,7 @@ func DocumentsBaseRouts(a App, r *httprouter.Router) {
 
 }
 
-func (a App) CreateDocsPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+func (a App) DocsPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 
 	mainDocs, err := a.DocBase.TakeDocs(a.Ctx, "main")
 	if err != nil {
@@ -45,7 +45,7 @@ func (a App) CreateDocsPage(w http.ResponseWriter, r *http.Request, pr httproute
 	a.Templ.DocsPage(w, mainDocs, otherDocs, privateDocs)
 }
 
-func (a App) CreateDocPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+func (a App) DocPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	docType := r.FormValue("type")
 	if docType == "" {
 		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Не задан тип документа", "обратитесь к администратору", "Главная", "/works/prof")
@@ -81,7 +81,7 @@ func (a App) CreateDocPage(w http.ResponseWriter, r *http.Request, pr httprouter
 	}
 }
 
-func (a App) CreateDocCreatePage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+func (a App) CreateDocPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	a.Templ.DocCreatePage(w)
 }
 
@@ -166,7 +166,6 @@ func (a App) FilesBase(w http.ResponseWriter, r *http.Request, pr httprouter.Par
 		w.Header().Add("content-disposition", `inline; filename=`+filepath)
 		http.ServeContent(w, r, p, info.ModTime(), file)
 	}
-
 }
 
 func (a App) AddDocFile(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
@@ -192,6 +191,11 @@ func (a App) AddDocFile(w http.ResponseWriter, r *http.Request, pr httprouter.Pa
 	doc, err := a.DocBase.TakeDoc(a.Ctx, docType, docId)
 	if err != nil {
 		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка получения", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	if user.Name != doc.Authtor {
+		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Доступ запрещен", "Изменять вложения может только автор", "Главная", "/works/prof")
 		return
 	}
 
@@ -225,6 +229,11 @@ func (a App) DellDocFile(w http.ResponseWriter, r *http.Request, pr httprouter.P
 	doc, err := a.DocBase.TakeDoc(a.Ctx, docType, docid)
 	if err != nil {
 		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка поиска документа", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	if user.Name != doc.Authtor {
+		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Доступ запрещен", "Изменять вложения может только автор", "Главная", "/works/prof")
 		return
 	}
 
@@ -266,6 +275,11 @@ func (a App) DellDoc(w http.ResponseWriter, r *http.Request, pr httprouter.Param
 		return
 	}
 
+	if user.Name != doc.Authtor {
+		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Доступ запрещен", "Удалить документ может только автор или администратор", "Главная", "/works/prof")
+		return
+	}
+
 	for _, file := range doc.Files {
 		err = dellDocFile(docType, file)
 		if err != nil {
@@ -298,6 +312,11 @@ func (a App) EditDocPage(w http.ResponseWriter, r *http.Request, pr httprouter.P
 		return
 	}
 
+	if user.Name != doc.Authtor {
+		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Доступ запрещен", "Изменять документ может только автор", "Главная", "/works/prof")
+		return
+	}
+
 	a.Templ.EditDocPage(w, doc, r.FormValue("id"), docType)
 }
 
@@ -314,6 +333,11 @@ func (a App) EditDoc(w http.ResponseWriter, r *http.Request, pr httprouter.Param
 	doc, err := a.DocBase.TakeDoc(a.Ctx, doctype, docid)
 	if err != nil {
 		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка поиска документа", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	if user.Name != doc.Authtor {
+		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Доступ запрещен", "Изменять документ может только автор", "Главная", "/works/prof")
 		return
 	}
 
