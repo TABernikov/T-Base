@@ -82,6 +82,10 @@ func (a App) Routs(r *httprouter.Router) {
 	ModelsRouts(a, r)
 	DocumentsBaseRouts(a, r)
 	BuildsRouts(a, r)
+
+	//r.GET("/works/printpassport", a.authtorized(a.PrintPassportPage))
+	//r.POST("/works/printpassport", a.authtorized(a.PrintPassport))
+	//r.GET("/works/printingpassport", a.authtorized(a.PrintingPassport))
 }
 
 // Проверка авторизациия

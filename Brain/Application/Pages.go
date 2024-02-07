@@ -177,3 +177,45 @@ func (a App) CreateReserv(w http.ResponseWriter, r *http.Request, pr httprouter.
 	}
 	a.Templ.AlertPage(w, 1, "Успешно", "Успешно", "Созданно", "Резерв создан", "Главная", "/works/prof")
 }
+
+//
+//
+//
+
+/*
+func (a App) PrintPassportPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+
+	a.Templ.ImputPage(w, "", "Напечатать паспорт", "Серийные номера", "Печать")
+}
+
+func (a App) PrintPassport(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+
+	snString := r.FormValue("in")
+	Sns := strings.Fields(snString)
+
+	Devices, err := a.Db.TakeCleanDeviceBySn(a.Ctx, Sns...)
+	if err != nil {
+		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения данных", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	t := template.Must(template.ParseFiles("Face/html/passportprint.html"))
+	t.Execute(w, Devices)
+}
+
+func (a App) PrintingPassport(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	type Info struct {
+		Sn   string
+		Date string
+	}
+
+	Data := Info{
+		Sn:   r.FormValue("Sn"),
+		Date: r.FormValue("Date"),
+	}
+
+	t := template.Must(template.ParseFiles("Face/html/pass/ТГК-313-48_6д-П_Руководство по установке.html"))
+	t.Execute(w, Data)
+}
+
+*/

@@ -81,74 +81,47 @@
 
 
 
-<iframe  name="o" float="left" width="100%"  scrolling="auto" frameborder="0" src="/works/device/mini?Id={{(index .Tab 0).Id}}" style="height: 34vh;"  id="o">Sorry, your browser doesn't support iframes.</iframe>
+<iframe  name="o" float="left" width="100%"  scrolling="auto" frameborder="0" src="/works/device/mini?Id={{(index .Tab 0).Id}}" style="height: 42vh;"  id="o">Sorry, your browser doesn't support iframes.</iframe>
+<div class="container-fluid">
+{{.Lable}} <button class="d.inline btn btn-outline-primary btn-sm"name="copybtn" onclick="myFunction()"><i class="bi-copy" ></i></button>
+&nbsp;<a class="d.inline btn btn-outline-success btn-sm"name="copybtn" href="/works/tmcexcell{{.ExcellLink}}"><i class="bi-file-earmark-excel" ></i></a>
+&nbsp;<a class="d.inline btn btn-outline-primary btn-sm " href="/works/tmcadvancesearch" style="width: auto;"><i class="bi bi-filter-circle"></i> Фильтр/Поиск <i class="bi bi-search"></i></a>
+&nbsp;<button class="d.inline btn btn-outline-primary btn-sm" id="deselect" style="width: auto;">Снять выделение</button>
+</div>
 
-
-    <div class="container-fluid" style="overflow-y:hidden; width: 100%;  height: 55vh;">
-    <div class="container-fluid" style="overflow-y:hidden; width: 2950px;  height: 55vh; overflow-x:hidden;">
-        <div class="" >
-                <table class="table table-hover table-striped"style = "table-layout: fixed;" >
-                  <col span="18" style="width: 150px;">
-                    <thead>
-                     {{.Lable}} <button class="d.inline btn btn-outline-primary btn-sm"name="copybtn" onclick="myFunction()"><i class="bi-copy" ></i></button>
-                     &nbsp;<a class="d.inline btn btn-outline-success btn-sm"name="copybtn" href="/works/tmcexcell{{.ExcellLink}}"><i class="bi-file-earmark-excel" ></i></a>
-                     &nbsp;<a class="d.inline btn btn-outline-primary btn-sm " href="/works/tmcadvancesearch" style="width: auto;"><i class="bi bi-filter-circle"></i> Фильтр/Поиск <i class="bi bi-search"></i></a>
-                     &nbsp;<button class="d.inline btn btn-outline-primary btn-sm" id="deselect" style="width: auto;">Снять выделение</button>
-                        <tr>
-                            <th scope="col" id = "12344">Id</th>
-                            
-                            <th scope="col">SN</th>
-                            <th scope="col">MAC</th>
-                            <th scope="col">D-Model</th>
-                            <th scope="col">Rev</th>
-                            <th scope="col">T-Model</th>
-                            <th scope="col">Имя</th>
-                            <th scope="col">Состояние</th>
-                            <th scope="col">Дата</th>
-                            <th scope="col">Заказ</th>
-                            <th scope="col">Место</th>
-                            <th scope="col">Отгрузка</th>
-                            <th scope="col">Дата отгрузки</th>
-                            <th scope="col">Место отгрузки</th>
-                            <th scope="col">Дата приемки</th>
-                            <th scope="col">Документ приемки</th>
-                            <th scope="col">Заказ приемки</th>
-                            <th scope="col">Коментарий</th>
-                            <th scope="col">Сборщик</th>
-                            
-                        </tr>
-                    </thead>
-                </table>
-        </div>
-
+    <div class="container-fluid" style="overflow-y:scroll; overflow-x: scroll; width: 100%;  height: 43vh;">
+    
+     
         <div>
-            <div class="" style="height: 45vh;  overflow-x:hidden; overflow-y:scroll; ">
+            
                 <table class="table table-hover table-striped table-bordered"style = "table-layout: fixed" id = "TMCData" >
-                  <col span="18" style="width: 150px;">
-                    <thead>
+                  <col span="19" style="width: 150px;">
+                    <thead class="table-light">
                       <tr>
-                        <th scope="col">сортировка</th>
-                        <th scope="col">сортировка</th>
-                        <th scope="col">сортировка</th>
-                        <th scope="col">сортировка</th>
-                        <th scope="col">сортировка</th>
-                        <th scope="col">сортировка</th>
-                        <th scope="col">сортировка</th>
-                        <th scope="col">сортировка</th>
-                        <th scope="col">сортировка</th>
-                        <th scope="col">сортировка</th>
-                        <th scope="col">сортировка</th>
-                        <th scope="col">сортировка</th>
-                        <th scope="col">сортировка</th>
-                        <th scope="col">сортировка</th>
-                        <th scope="col">сортировка</th>
-                        <th scope="col">сортировка</th>
-                        <th scope="col">сортировка</th>
-                        <th scope="col">сортировка</th>
-                        <th scope="col">сортировка</th>
+                        <th scope="col" id = "12344" style="position: sticky; top: 0px;">Id</th>
+                            
+                            <th scope="col" style="position: sticky; top: 0px;">SN</th>
+                            <th scope="col" style="position: sticky; top: 0px;">MAC</th>
+                            <th scope="col" style="position: sticky; top: 0px;">D-Model</th>
+                            <th scope="col" style="position: sticky; top: 0px;">Rev</th>
+                            <th scope="col" style="position: sticky; top: 0px;">T-Model</th>
+                            <th scope="col" style="position: sticky; top: 0px;">Имя</th>
+                            <th scope="col" style="position: sticky; top: 0px;">Состояние</th>
+                            <th scope="col" style="position: sticky; top: 0px;">Дата</th>
+                            <th scope="col" style="position: sticky; top: 0px;">Заказ</th>
+                            <th scope="col" style="position: sticky; top: 0px;">Место</th>
+                            <th scope="col" style="position: sticky; top: 0px;">Отгрузка</th>
+                            <th scope="col" style="position: sticky; top: 0px;">Дата отгрузки</th>
+                            <th scope="col" style="position: sticky; top: 0px;">Место отгрузки</th>
+                            <th scope="col" style="position: sticky; top: 0px;">Дата приемки</th>
+                            <th scope="col" style="position: sticky; top: 0px;">Док. приемки</th>
+                            <th scope="col" style="position: sticky; top: 0px;">Заказ приемки</th>
+                            <th scope="col" style="position: sticky; top: 0px;">Сборщик</th>
+                            <th scope="col" style="position: sticky; top: 0px;">Коментарий</th>
+                            
                       </tr>
                     </thead>
-                    <tbody>
+                    <tbody class="">
                     {{range .Tab}}
                     
                     <tr onclick="document.o.location= '/works/device/mini?Id={{.Id}}'"  class="{{if(eq .Shiped "true" )}} {{print "table-secondary"}} {{else if(eq .Condition "Собрано" )}} {{print "table-success"}} {{else if(eq .Condition "В работе" )}} {{print "table-primary"}}     {{else if(eq .Condition "Не собрано")}} {{print "table-warning"}} {{end}}">
@@ -170,17 +143,18 @@
                         <td>{{.TakenDate}}</td>
                         <td>{{.TakenDoc}}</td>
                         <td>{{.TakenOrder}}</td>
-                        <td class="text-nowrap" >{{.Comment}}</td>
                         <td>{{.Assembler}}</td>
+                        <td class="" ><textarea readonly class="form-control">{{.Comment}}</textarea> </td>
+                        
                         
                     </tr>
                     
                     {{end}}
                     </tbody>
                 </table>
-            </div>
+            
         </div>
-    </div>
+    
     </div>
     
     <script>
