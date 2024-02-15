@@ -22,6 +22,7 @@ func TMCRouts(a App, r *httprouter.Router) {
 	r.GET("/works/storage/orders", a.authtorized(a.StoragePage))
 	r.GET("/works/storage/places", a.authtorized(a.StorageByPlacePage))
 	r.GET("/works/storage/models", a.authtorized(a.StorageByTModelPage))
+	r.GET("/works/prodout", a.authtorized(a.ProdOutTablePage))
 
 	r.POST("/works/tmc", a.authtorized(a.TMCPage))
 	r.POST("/works/tmcdemo", a.authtorized(a.TMCDemoPage))
@@ -501,5 +502,47 @@ func (a App) StorageByTModelPage(w http.ResponseWriter, r *http.Request, pr http
 		}
 
 		a.Templ.StorageByTModelPage(w, storage, "Склад модели")
+	}
+}
+
+func (a App) ProdOutTablePage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	var err error
+	var fromDate time.Time
+	if r.FormValue("from") == "" {
+		fromDate = time.Date(2020, 1, 1, 1, 1, 1, 1, time.Local)
+	} else {
+		fromDate, err = time.Parse("2006-01-02", r.FormValue("from"))
+		if err != nil {
+			a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка считывания даты начала периода", err.Error(), "Главная", "/works/prof")
+			return
+		}
+	}
+
+	var toDate time.Time
+	if r.FormValue("to") == "" {
+		toDate = time.Now()
+	} else {
+		toDate, err = time.Parse("2006-01-02", r.FormValue("to"))
+		if err != nil {
+			a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка считывания даты окончания периода", err.Error(), "Главная", "/works/prof")
+			return
+		}
+	}
+
+	if r.FormValue("view") == "report" {
+		prodOut, models, dates, err := a.Db.TakeProdOutByDate(a.Ctx, fromDate, toDate)
+		if err != nil {
+			a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения данных", err.Error(), "Главная", "/works/prof")
+		}
+
+		a.Templ.ProdOutReport(w, prodOut, models, dates)
+	} else {
+
+		prodOut, models, dates, err := a.Db.TakeProdOutByModel(a.Ctx, fromDate, toDate)
+		if err != nil {
+			a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения данных", err.Error(), "Главная", "/works/prof")
+		}
+
+		a.Templ.ProdOutTable(w, prodOut, models, dates)
 	}
 }

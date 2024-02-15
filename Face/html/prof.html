@@ -4,16 +4,16 @@
     <title>T-Work</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="icon" href="Face\img\t-kom-ico.png">
+    <link rel="icon" href="Face\img\t-kom-ico 144.png">
 
     <link href="Face/html/css/bootstrap.min.css" rel="stylesheet">
     <link href="Face/html/css/style.css" rel="stylesheet">
     <link href="Face/html/css/bootstrap-icons.css" rel="stylesheet">
 
-     <!-- TODO add manifest here -->
+
   <link rel="manifest" href="Face/manifest.json">
   
-  <!-- Add to home screen for Safari on iOS -->
+
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="T-Base PWA">
@@ -43,7 +43,7 @@
           <ul class="navbar-nav me-auto mb-2 mb-lg-0">
             
             <li class="nav-item">
-              <a class="nav-link active" href="/works/prof">Профиль <i style="color: rgb(80, 80, 80);" class="bi bi-person-circle"></i></a>
+              <a class="nav-link active" href="/works/prof">Главная <i style="color: rgb(80, 80, 80);" class="bi bi-house-fill"></i></a>
             </li>
             
             
@@ -57,12 +57,13 @@
             </li>
             <a class="nav-link active" style="text-align: left;" href="/works/cal">Календарь задач <i class="bi bi-calendar-week"></i></a>
             <a class="nav-link active" style="text-align: left;" href="/works/docs">Файловое хранилище <i class="bi bi-file-earmark-text"></i></a>
-            <form id="logout" name="logout" action="/works/logout" method="post"> 
-              <a href="/works/logout" class="btn btn-outline-danger" type="submit" name="logoutBtn" >Выйти <i class="bi bi-arrow-bar-right"></i></a>
-            </form>
+            
           </ul>
           <a class="btn btn-primary" href="/works/changepass" role="button" > <i class="bi bi-key-fill"></i> Изменить пароль</a>
-
+          &nbsp;
+          <form id="logout" name="logout" action="/works/logout" method="post"> 
+            <a href="/works/logout" class="btn btn-outline-danger" type="submit" name="logoutBtn" >Выйти <i class="bi bi-arrow-bar-right"></i></a>
+          </form>
         </div>
 
       </div>
@@ -74,38 +75,15 @@
       <div class="container">
         <div class="row gy-3">
         <div class="col-12">
-          <h1 class="display-5 text-start">Профиль</h1>
-          
+          <h1 class="display-5 text-center" >Главная</h1>
+          &nbsp;
         </div>
         </div>
       </div>
 
       <div class="container">
         <div class="row gy-3">
-          <div class="col-md">
-            <div class="card">
-              <div class="card-body">
-                <table class="table">
-                  <thead>
-                    <tr>
-                      <th scope="col">Фио:</th>
-                      <th scope="col"> <div class="text-nowrap">{{.User.Name}}</div></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <th scope="row">Отдел:</th>
-                      <td>{{.User.Acces}}</td>
-                    </tr>
-                    <tr>
-                      <th scope="row">Login:</th>
-                      <td>{{.User.Login}}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
+          
 
         <div class="col">
           <div class="row gy-3 gx-3">

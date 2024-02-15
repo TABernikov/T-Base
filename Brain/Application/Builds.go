@@ -54,7 +54,7 @@ func (a App) MakeBuild(w http.ResponseWriter, r *http.Request, pr httprouter.Par
 		Amout string
 	}
 
-	buildPoints := []buildPoint{{Id: "case", Amout: "caseAmout"}, {Id: "stiker", Amout: "stikerAmout"}, {Id: "box", Amout: "boxAmout"}, {Id: "boxholder", Amout: "boxholderAmout"}, {Id: "another1", Amout: "another1Amout"}, {Id: "another2", Amout: "another2Amout"}, {Id: "another3", Amout: "another3Amout"}}
+	buildPoints := []buildPoint{{Id: "case", Amout: "caseAmout"}, {Id: "stiker", Amout: "stikerAmout"}, {Id: "box", Amout: "boxAmout"}, {Id: "boxholder", Amout: "boxholderAmout"}, {Id: "another1", Amout: "another1Amout"}, {Id: "another2", Amout: "another2Amout"}, {Id: "another3", Amout: "another3Amout"}, {Id: "another4", Amout: "another4Amout"}, {Id: "another5", Amout: "another5Amout"}}
 
 	for _, point := range buildPoints {
 		tmp := r.FormValue(point.Id)

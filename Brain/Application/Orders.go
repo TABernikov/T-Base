@@ -26,6 +26,7 @@ func OrderRouts(a App, r *httprouter.Router) {
 	r.POST("/works/createorderlist", a.authtorized(a.CreateOrderListPage))
 	r.POST("/works/setpromdate", a.authtorized(a.SetPromDate))
 	r.POST("/works/draft", a.authtorized(a.Draft))
+	r.POST("/works/setodershdate", a.authtorized(a.SetOrderShDate))
 }
 
 // Таблица заказов
@@ -260,10 +261,15 @@ func (a App) CreateOrderListPage(w http.ResponseWriter, r *http.Request, pr http
 
 	} else if r.FormValue("Action") == "Create" {
 		var newPos mytypes.OrderList
-		newPos.Model, err = strconv.Atoi(r.FormValue("TModel"))
+
+		var TModel int
+		TModelIn := r.FormValue("TModel")
+		err = a.Db.Db.QueryRow(a.Ctx, `SELECT "tModelsId" FROM "tModels" WHERE "tModels"."tModelsName" = $1`, TModelIn).Scan(&TModel)
 		if err != nil {
 			a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка создания", "Неверная модель", err.Error(), "Главная", "/works/prof")
 		}
+		newPos.Model = TModel
+
 		newPos.Amout, err = strconv.Atoi(r.FormValue("Amout"))
 		if err != nil {
 			a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка создания", "Неверное кол-во", err.Error(), "Главная", "/works/prof")
@@ -286,7 +292,15 @@ func (a App) CreateOrderListPage(w http.ResponseWriter, r *http.Request, pr http
 		a.Templ.CreateOrderListPage(w, -1, id)
 	} else if r.FormValue("Action") == "Redact" {
 		var redPos mytypes.OrderList
-		redPos.Model, err = strconv.Atoi(r.FormValue("TModel"))
+
+		var TModel int
+		TModelIn := r.FormValue("TModel")
+		err = a.Db.Db.QueryRow(a.Ctx, `SELECT "tModelsId" FROM "tModels" WHERE "tModels"."tModelsName" = $1`, TModelIn).Scan(&TModel)
+		if err != nil {
+			a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка создания", "Неверная модель", err.Error(), "Главная", "/works/prof")
+		}
+		redPos.Model = TModel
+
 		if err != nil {
 			a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка изменения", "Неверная модель", err.Error(), "Главная", "/works/prof")
 		}
@@ -352,6 +366,26 @@ func (a App) SetPromDate(w http.ResponseWriter, r *http.Request, pr httprouter.P
 		return
 	}
 	a.Templ.AlertPage(w, 1, "Готово", "Установленно", "Заказу с ID "+strconv.Itoa(order)+" назначена новая дата производства", "", "Главная", "/works/prof")
+}
+
+func (a App) SetOrderShDate(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 2 {
+		a.Templ.AlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
+
+	order, err := strconv.Atoi(r.FormValue("order"))
+	if err != nil {
+		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Номер заказа задан неверно", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	err = a.Db.SetShDate(a.Ctx, order)
+	if err != nil {
+		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка присвоения даты", "Что-то пошло не так", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	a.Templ.AlertPage(w, 1, "Готово", "Установленно", "Заказу с ID "+strconv.Itoa(order)+" назначена дата отгрузки", "", "Главная", "/works/prof")
 }
 
 // Драфт заказа

@@ -5,11 +5,18 @@
     <title>{{.Lable}}</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="icon" href="Face\img\t-kom-ico.svg">
+    <link rel="icon" href="Face\img\t-kom-ico 144.png">
 
     <link href="Face/html/css/bootstrap.min.css" rel="stylesheet">
     <link href="Face/html/css/style.css" rel="stylesheet">
     <link href="Face/html/css/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+      .tcs-select {
+      color: blueviolet;
+      font-weight: bolder;
+    }
+    </style>
 
 </head>
 <body>
@@ -32,7 +39,7 @@
              <ul class="navbar-nav me-auto mb-2 mb-lg-0">
             
             <li class="nav-item">
-              <a class="nav-link active" href="/works/prof">Профиль <i style="color: rgb(80, 80, 80);" class="bi bi-person-circle"></i></a>
+              <a class="nav-link active" href="/works/prof">Главная <i style="color: rgb(80, 80, 80);" class="bi bi-house-fill"></i></a>
             </li>
             
             
@@ -45,19 +52,17 @@
               </ul>
             </li>
             <a class="nav-link active" style="text-align: left;" href="/works/cal">Календарь задач <i class="bi bi-calendar-week"></i></a>
-            <form id="logout" name="logout" action="/works/logout" method="post"> 
-              <a href="/works/logout" class="btn btn-outline-danger" type="submit" name="logoutBtn" >Выйти <i class="bi bi-arrow-bar-right"></i></a>
-            </form>
+            
 
+              
+              </ul>
+            
+           
               &nbsp;
               <a class="btn btn-outline-primary " href="" style="width: auto;">Сложный поиск в ТМЦ <i class="bi bi-search"></i></a>
               &nbsp;
               <button class="d.inline btn btn-outline-primary btn-sm"name="copybtn" onclick="copyToClipboard()"><i class="bi-copy" ></i></button>
               &nbsp;
-              </ul>
-            
-           
-              
             
             
             <form class="d-flex" role="search" action="" method="post">
@@ -72,37 +77,55 @@
 
     </div>
   </nav>
-    <div class="container-fluid" style="overflow-y:hidden; width: 100%;">
+    <div class="container-fluid" style="overflow-y:scroll; width: 100%; height: 90vh;">
     
             
-                <table class="table table-striped table-bordered"style = "" >
-                    <tbody>
+                <table class="table table-striped table-bordered table-responsive text-nowrap table-hover"style = "" id = "TMCData" >
+                  <thead class = "table-light">
+                    <tr>
+                      <th style="position: sticky; top: 0px;">Id</th>
+                      <th style="position: sticky; top: 0px;">Имя</th>
+                      <th style="position: sticky; top: 0px;">Резервы</th>
+                      <th style="position: sticky; top: 0px;">Sn</th>
+                      <th style="position: sticky; top: 0px;">Отгрузка</th>
+                      <th style="position: sticky; top: 0px;">Дата отгрузки</th>
+                      <th style="position: sticky; top: 0px;">Место отгрузки</th>
+                      <th style="position: sticky; top: 0px;">D-Model</th>
+                      <th style="position: sticky; top: 0px;">Rev</th>
+                      <th style="position: sticky; top: 0px;">T-Model</th>
+                      <th style="position: sticky; top: 0px;">Коментарий</th>
+                    </tr>
+                  </thead>
+                  <tbody>
                     {{range .Tab}}
-                    <tr class="{{if(eq .Device.Shiped "true" )}} {{print "table-secondary"}} {{else if(eq .Device.Condition "Собрано" )}} {{print "table-success"}} {{else if(eq .Device.Condition "В работе" )}} {{print "table-primary"}} {{else if(eq .Device.Condition "Не собрано")}} {{print "table-warning"}} {{end}}" style="border-top: solid; border-top-color: rgb(100, 100, 100);">
-                      <th scope="row" style="display: flexbox;"> Id: {{.Device.Id}} <a class="btn btn-sm {{if(eq .Device.Shiped "true" )}} {{print "btn-secondary"}} {{else if(eq .Device.Condition "Собрано" )}} {{print "btn-success"}} {{else if(eq .Device.Condition "В работе" )}} {{print "btn-primary"}} {{else if(eq .Device.Condition "Не собрано")}} {{print "btn-warning"}} {{end}}" role="button" href="/works/device/mini?Id={{.Device.Id}}" style="width: 100%;">Открыть</a> </th>
-                      <td rowspan="2" style="max-width: 200px;">
-                        <div style="font-weight: bold;">Резервы :  </div>
-                        <div style="font-weight: 600;">Текущий: {{.CurrentReserv}}</div>
-                        <div style="font-weight: 600;">Следующий: {{.NextReserv}}</div>
+                    <tr class="{{if(eq .Device.Shiped "true" )}} {{print "table-secondary"}} {{else if(eq .Device.Condition "Собрано" )}} {{print "table-success"}} {{else if(eq .Device.Condition "В работе" )}} {{print "table-primary"}} {{else if(eq .Device.Condition "Не собрано")}} {{print "table-warning"}} {{end}}" >
+                      <th scope="row" style="display: flexbox;">  <a class="btn btn-sm {{if(eq .Device.Shiped "true" )}} {{print "btn-secondary"}} {{else if(eq .Device.Condition "Собрано" )}} {{print "btn-success"}} {{else if(eq .Device.Condition "В работе" )}} {{print "btn-primary"}}     {{else if(eq .Device.Condition "Не собрано")}} {{print "btn-warning"}} {{end}} text-nowrap" role="button" href="/works/device/mini?Id={{.Device.Id}}" style="width: 100%;" ><i class="bi bi-reply-fill"></i>{{.Device.Id}}</a> </th>
+                      <td>{{.Device.Name}}</td>
+                      <td>
+                        <div class="d-flex justify-content-between">
+                          <div style="font-weight: 600;" class="text-start">Текущий: {{.CurrentReserv}} &nbsp; </div>
+                          <a class="btn btn-sm {{if(eq .Device.Shiped "true" )}} {{print "btn-secondary"}} {{else if(eq .Device.Condition "Собрано" )}} {{print "btn-success"}} {{else if(eq .Device.Condition "В работе" )}} {{print "btn-primary"}} {{else if(eq .Device.Condition "Не собрано")}} {{print "btn-warning"}} {{end}} text-end" role="button" href="/works/reservcal?snsId={{.Device.Id}}"><i class="bi bi-calendar-range"></i></a>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                          <div style="font-weight: 600;" class="text-start">Следующий: {{.NextReserv}} &nbsp;</div>
+                          <a class="btn btn-sm btn-primary text-end" role="button" href="/works/createreserv?SnsId={{.Device.Id}}"><i class="bi bi-calendar-plus"></i></a>
+                        </div>
                         <div class="d-grid gap-2 d-md-block">
-                          <a class="btn btn-sm {{if(eq .Device.Shiped "true" )}} {{print "btn-secondary"}} {{else if(eq .Device.Condition "Собрано" )}} {{print "btn-success"}} {{else if(eq .Device.Condition "В работе" )}} {{print "btn-primary"}} {{else if(eq .Device.Condition "Не собрано")}} {{print "btn-warning"}} {{end}}" role="button" href="/works/reservcal?snsId={{.Device.Id}}" style="width: 83%;">Календарь резервов</a>
-                          <a class="btn btn-sm btn-primary" href="/works/createreserv?SnsId={{.Device.Id}}"  ><i class="bi bi-calendar-plus"></i></a>
+                          
+                          
                         </div>
                       </td>
-                      <td><div style="font-weight: bold;">SN:</div> {{.Device.Sn}}</td>
-                      <td><div style="font-weight: bold;">D-Model:</div> {{.Device.DModel}}</td>
-                      <td><div style="font-weight: bold;">Rev:</div> {{.Device.Rev}}</td>
-                      <td><div style="font-weight: bold;">T-Model:</div> {{.Device.TModel}}</td>
-                    </tr>
-                    <tr class="{{if(eq .Device.Shiped "true" )}} {{print "table-secondary"}} {{else if(eq .Device.Condition "Собрано" )}} {{print "table-success"}} {{else if(eq .Device.Condition "В работе" )}} {{print "table-primary"}} {{else if(eq .Device.Condition "Не собрано")}} {{print "table-warning"}} {{end}}">
-                      <td><div style="font-weight: bold;">Имя:</div> {{.Device.Name}}</td>
-                      <td><div style="font-weight: bold;">Отгрузка:</div> {{.Device.Shiped}}</td>
-                      <td><div style="font-weight: bold;">Дата отгрузки:</div> {{.Device.ShipedDate}}</td>
-                      <td><div style="font-weight: bold;">Место отгрузки:</div> {{.Device.ShippedDest}}</td>
-                      <td class="text-nowrap" ><textarea readonly style="border: 0px; background: transparent; width: 100%;" >{{.Device.Comment}} </textarea></td>
+                      <td>{{.Device.Sn}}</td>
+                      <td>{{if (eq .Device.Shiped "true")}} <i class="bi bi-truck"></i> &check; {{end}}</td>
+                      <td>{{.Device.ShipedDate}}</td>
+                      <td>{{.Device.ShippedDest}}</td>
+                      <td>{{.Device.DModel}}</td>
+                      <td>{{.Device.Rev}}</td>
+                      <td>{{.Device.TModel}}</td>
+                      <td class="text-nowrap" ><textarea readonly class="form-control form-control-sm" style="height: 10px; width: 200px;">{{.Device.Comment}} </textarea></td>
                     </tr>
                     {{end}}
-                    </tbody>
+                  </tbody>
                 </table>
             
         </div>
@@ -123,6 +146,28 @@
 
         </script>
         <script src="Face/html/js/keys.js"></script>
+        <script src="Face/html/js/tcs.bundle.js"></script>
+        <script>
+          document.addEventListener("DOMContentLoaded", function(e) {
+              var table = document.getElementById("TMCData");
+              var options = {
+                  changeTracking: true,
+                  deselectOutTableClick: false,
+                  enableChanging: false,
+                  selectClass: "tcs-select",
+              };
+              var buffer = new TableCellSelector.Buffer();
+              var tcs = new TableCellSelector(table, options, buffer);
+      
+          });
+          </script>
+          <script src="Face/html/js/tablesort.min.js"></script>
+          <script src="Face/html/js/tablesort.number.min.js"></script>
+          <script src="Face/html/js/tablesort.date.min.js"></script>
+          <script>
+            new Tablesort(document.getElementById('TMCData'));
+          </script>
+      
 </body>
 
 

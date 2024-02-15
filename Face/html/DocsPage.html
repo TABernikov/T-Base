@@ -5,7 +5,7 @@
     <title>Документы</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="icon" href="Face\img\t-kom-ico.svg">
+    <link rel="icon" href="Face\img\t-kom-ico 144.png">
 
     <link href="Face/html/css/bootstrap.min.css" rel="stylesheet">
     <link href="Face/html/css/style.css" rel="stylesheet">
@@ -30,7 +30,7 @@
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
             
               <li class="nav-item">
-                <a class="nav-link active" href="/works/prof">Профиль <i style="color: rgb(80, 80, 80);" class="bi bi-person-circle"></i></a>
+                <a class="nav-link active" href="/works/prof">Главная <i style="color: rgb(80, 80, 80);" class="bi bi-house-fill"></i></a>
               </li>
               
               
@@ -43,9 +43,7 @@
                 </ul>
               </li>
               <a class="nav-link active" style="text-align: left;" href="/works/cal">Календарь задач <i class="bi bi-calendar-week"></i></a>
-              <form id="logout" name="logout" action="/works/logout" method="post"> 
-                <a href="/works/logout" class="btn btn-outline-danger" type="submit" name="logoutBtn" >Выйти <i class="bi bi-arrow-bar-right"></i></a>
-              </form>
+              
               
             </ul>
             <a class="btn btn-primary" href="/works/createdoc" role="button" > <i class="bi bi-file-earmark-plus"></i> Новый документ</a>
@@ -62,28 +60,30 @@
           Основные
         </a>
         <div class="collapse" id="collapseMain">
-          
-          <table style="width: 100%;" class="table">
-            <tr>
-              <th>
-                Документ
-              </th>
-              <th>
-                Автор
-              </th>
-              <th>
-                Дата создания
-              </th>
-            </tr>
-            {{range .MainDocs}}
-            <tr>
-              <td><a href="/works/doc?type=main&id={{.Id}}">{{.Doc.Tatle}}</a></td>
-              <td>{{.Doc.Authtor}}</td>
-              <td>{{.Doc.CreationTime}}</td>
-            </tr>
-            {{end}}
-          </table>
-          
+          <div class="container">
+            <a class="btn btn-primary btn-sm" style="width: 100%;" href="/works/customdocs?types=komm.kigs,komm.ds">Коммутаторы</a>
+
+            <table style="width: 100%;" class="table">
+              <tr>
+                <th>
+                  Документ
+                </th>
+                <th>
+                  Автор
+                </th>
+                <th>
+                  Дата создания
+                </th>
+              </tr>
+              {{range .MainDocs}}
+              <tr>
+                <td><a href="/works/doc?type=main&id={{.Id}}">{{.Doc.Tatle}}</a></td>
+                <td>{{.Doc.Authtor}}</td>
+                <td>{{.Doc.CreationTime}}</td>
+              </tr>
+              {{end}}
+            </table>
+          </div>
         </div>
       </p>
       <p>
@@ -163,35 +163,7 @@
     <script src="Face/html/js/marked.js"></script>
 
     <script>
-      var markdownContent = `How To Use The Demo
--------------------
-
-1. Type in stuff on the left.
-2. See the live updates on the right.
-
-That's it.  Pretty simple.  There's also a drop-down option above to switch between various views:
-
-- **Preview:**  A live display of the generated HTML as it would render in a browser.
-- **HTML Source:**  The generated HTML before your browser makes it pretty.
-- **Lexer Data:**  What [marked] uses internally, in case you like gory stuff like this.
-- **Quick Reference:**  A brief run-down of how to format things using markdown.
-
-Why Markdown?
--------------
-
-It's easy.  It's not overly bloated, unlike HTML.  Also, as the creator of [markdown] says,
-
-> The overriding design goal for Markdown's
-> formatting syntax is to make it as readable
-> as possible. The idea is that a
-> Markdown-formatted document should be
-> publishable as-is, as plain text, without
-> looking like it's been marked up with tags
-> or formatting instructions.
-
-Ready to start writing?  Either start changing stuff on the left or
-[clear everything](/demo/?text=) with a simple click.
-`;
+      var markdownContent = `How To Use The Demo`;
       var container = document.getElementById('markdown-container');
       container.innerHTML =
       marked.parse(markdownContent);

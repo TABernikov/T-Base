@@ -26,6 +26,8 @@ func TaskPlanRouts(a App, r *httprouter.Router) {
 	r.POST("/works/changetask", a.authtorized(a.ChangeTask))
 	r.POST("/works/ordertotask", a.authtorized(a.OrderToTask))
 	r.POST("/works/hidetask", a.authtorized(a.HideTask))
+
+	r.GET("/works/calNew", a.authtorized(a.CalendearNewPage))
 }
 
 // Календарь с событиями
@@ -43,13 +45,16 @@ func (a App) CalendearPage(w http.ResponseWriter, r *http.Request, pr httprouter
 		}
 	}
 	if r.FormValue("look") == "List" {
-		a.Templ.CalendarListPage(w, tasks)
+		a.Templ.CalendarPage(w, tasks, "List")
 		return
 	} else if r.FormValue("look") == "Cal" {
-		a.Templ.CalendarPage(w, tasks)
+		a.Templ.CalendarPage(w, tasks, "Cal")
+		return
+	} else if r.FormValue("look") == "Jira" {
+		a.Templ.CalendarPage(w, tasks, "Jira")
 		return
 	}
-	a.Templ.CalendarPage(w, tasks)
+	a.Templ.CalendarPage(w, tasks, "Cal")
 }
 
 // Страница создания события
@@ -117,10 +122,15 @@ func (a App) CreateTaskListPage(w http.ResponseWriter, r *http.Request, pr httpr
 	} else if r.FormValue("Action") == "Create" {
 		var taskElement mytypes.TaskWorkList
 		var err error
-		taskElement.TModel, err = strconv.Atoi(r.FormValue("TModel"))
+
+		var TModel int
+		TModelIn := r.FormValue("TModel")
+		err = a.Db.Db.QueryRow(a.Ctx, `SELECT "tModelsId" FROM "tModels" WHERE "tModels"."tModelsName" = $1`, TModelIn).Scan(&TModel)
 		if err != nil {
-			a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения модели", err.Error(), "Главная", "/works/prof")
+			a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка создания", "Неверная модель", err.Error(), "Главная", "/works/prof")
 		}
+		taskElement.TModel = TModel
+
 		taskElement.Amout, err = strconv.Atoi(r.FormValue("Amout"))
 		if err != nil {
 			a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения кол-ва", err.Error(), "Главная", "/works/prof")
@@ -144,10 +154,14 @@ func (a App) CreateTaskListPage(w http.ResponseWriter, r *http.Request, pr httpr
 	} else if r.FormValue("Action") == "Redact" {
 		var taskElement mytypes.TaskWorkList
 		var err error
-		taskElement.TModel, err = strconv.Atoi(r.FormValue("TModel"))
+		var TModel int
+		TModelIn := r.FormValue("TModel")
+		err = a.Db.Db.QueryRow(a.Ctx, `SELECT "tModelsId" FROM "tModels" WHERE "tModels"."tModelsName" = $1`, TModelIn).Scan(&TModel)
 		if err != nil {
-			a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения модели", err.Error(), "Главная", "/works/prof")
+			a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка создания", "Неверная модель", err.Error(), "Главная", "/works/prof")
 		}
+		taskElement.TModel = TModel
+
 		taskElement.Amout, err = strconv.Atoi(r.FormValue("Amout"))
 		if err != nil {
 			a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения кол-ва", err.Error(), "Главная", "/works/prof")
@@ -361,4 +375,22 @@ func (a App) PlanReProdStoragePage(w http.ResponseWriter, r *http.Request, pr ht
 
 func (a App) PlanMatProdStoragePage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
 	a.Templ.PlanMatProdStoragePage(w)
+}
+
+// Новый Календарь с событиями
+func (a App) CalendearNewPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if a.Db.ChekTaks(a.Ctx) != nil {
+		log.Println(a.Db.ChekTaks(a.Ctx).Error())
+	}
+	var tasks []mytypes.TaskJs
+	var err error
+	if user.Acces == 1 {
+		tasks, err = a.Db.TakeJsTaskByReqest(a.Ctx, "WHERE complete = false ORDER BY dateend")
+		if err != nil {
+			a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+			return
+		}
+	}
+
+	a.Templ.CalendarNewPage(w, tasks)
 }

@@ -5,7 +5,7 @@
     <title>{{.Lable}}</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="icon" href="Face\img\t-kom-ico.svg">
+    <link rel="icon" href="Face\img\t-kom-ico 144.png">
 
     <link href="Face/html/css/bootstrap.min.css" rel="stylesheet">
     <link href="Face/html/css/style.css" rel="stylesheet">
@@ -14,6 +14,7 @@
     <style>
       .tcs-select {
       color: blueviolet;
+      font-weight: bolder;
     }
   </style>
 
@@ -38,7 +39,7 @@
              <ul class="navbar-nav me-auto mb-2 mb-lg-0">
             
             <li class="nav-item">
-              <a class="nav-link active" href="/works/prof">Профиль <i style="color: rgb(80, 80, 80);" class="bi bi-person-circle"></i></a>
+              <a class="nav-link active" href="/works/prof">Главная <i style="color: rgb(80, 80, 80);" class="bi bi-house-fill"></i></a>
             </li>
             
             
@@ -51,20 +52,17 @@
               </ul>
             </li>
             <a class="nav-link active" style="text-align: left;" href="/works/cal">Календарь задач <i class="bi bi-calendar-week"></i></a>
-            <form id="logout" name="logout" action="/works/logout" method="post"> 
-              <a href="/works/logout" class="btn btn-outline-danger" type="submit" name="logoutBtn" >Выйти <i class="bi bi-arrow-bar-right"></i></a>
-            </form>
 
-              &nbsp;
-              <a class="btn btn-outline-primary " href="/works/tmcadvancesearch" style="width: auto;">Сложный поиск в ТМЦ <i class="bi bi-search"></i></a>
-              &nbsp;
-              <a class="btn btn-outline-primary " href="/works/tmc{{.ExcellLink}}&Veiw=kombo" style="width: auto;">Комбинированный вид <i class="bi bi-table"></i></a>   
-              <button class="d.inline btn btn-outline-primary btn-sm"name="copybtn" onclick="copyToClipboard()"><i class="bi-copy" ></i></button>
-              &nbsp;
-              <a class="d.inline btn btn-outline-success btn-sm"name="copybtn" href="/works/tmcexcell{{.ExcellLink}}"><i class="bi-file-earmark-excel" ></i></a>
             </ul>
-            
-           
+
+            <button class="d.inline btn btn-outline-primary"name="copybtn" onclick="copyToClipboard()"><i class="bi-copy" ></i></button>
+            &nbsp;
+            <a class="d.inline btn btn-outline-success "name="copybtn" href="/works/tmcexcell{{.ExcellLink}}"><i class="bi-file-earmark-excel" ></i></a>
+            &nbsp;
+            <a class="btn btn-outline-primary " href="/works/tmcadvancesearch" style="width: auto;">Сложный поиск в ТМЦ <i class="bi bi-search"></i></a>
+            &nbsp;
+            <a class="btn btn-outline-primary " href="/works/tmc{{.ExcellLink}}&Veiw=kombo" style="width: auto;">Комбинированный вид <i class="bi bi-table"></i></a>   
+            &nbsp;
               
             
             
@@ -80,34 +78,57 @@
 
     </div>
   </nav>
-    <div class="container-fluid" style="overflow-y:hidden; width: 100%;">
+    <div class="container-fluid" style="overflow-y:scroll; width: 100%; height: 90vh;">
     
             
-                <table class="table table-striped table-bordered"style = "" id = "TMCData">
+                <table class="table table-striped table-bordered table-responsive text-nowrap table-hover"style = "" id = "TMCData">
+                  <thead class="table-light">
+                    <tr>
+                          <th scope="col" id = "12344" style="position: sticky; top: 0px;">Id</th>
+                          <th scope="col" style="position: sticky; top: 0px;">SN</th>
+                          <th scope="col" style="position: sticky; top: 0px;">MAC</th>
+                          <th scope="col" style="position: sticky; top: 0px;">D-Model</th>
+                          <th scope="col" style="position: sticky; top: 0px;">Rev</th>
+                          <th scope="col" style="position: sticky; top: 0px;">T-Model</th>
+                          <th scope="col" style="position: sticky; top: 0px;">Имя</th>
+                          <th scope="col" style="position: sticky; top: 0px;">Состояние</th>
+                          <th scope="col" style="position: sticky; top: 0px;">Дата</th>
+                          <th scope="col" style="position: sticky; top: 0px;">Заказ</th>
+                          <th scope="col" style="position: sticky; top: 0px;">Место</th>
+                          <th scope="col" style="position: sticky; top: 0px;">Отгрузка</th>
+                          <th scope="col" style="position: sticky; top: 0px;">Дата отгрузки</th>
+                          <th scope="col" style="position: sticky; top: 0px;">Место отгрузки</th>
+                          <th scope="col" style="position: sticky; top: 0px;">Дата приемки</th>
+                          <th scope="col" style="position: sticky; top: 0px;">Док. приемки</th>
+                          <th scope="col" style="position: sticky; top: 0px;">Заказ приемки</th>
+                          <th scope="col" style="position: sticky; top: 0px;">Сборщик</th>
+                          <th scope="col" style="position: sticky; top: 0px;">Коментарий</th>
+                          
+                    </tr>
+                  </thead>
                     <tbody>
                     {{range .Tab}}
-                    <tr class="{{if(eq .Shiped "true" )}} {{print "table-secondary"}} {{else if(eq .Condition "Собрано" )}} {{print "table-success"}} {{else if(eq .Condition "В работе" )}} {{print "table-primary"}}     {{else if(eq .Condition "Не собрано")}} {{print "table-warning"}} {{end}}" style="border-top: solid; border-top-color: rgb(100, 100, 100);">
-                      <th scope="row" style="display: flexbox;"> Id: {{.Id}} <a class="btn btn-sm {{if(eq .Shiped "true" )}} {{print "btn-secondary"}} {{else if(eq .Condition "Собрано" )}} {{print "btn-success"}} {{else if(eq .Condition "В работе" )}} {{print "btn-primary"}}     {{else if(eq .Condition "Не собрано")}} {{print "btn-warning"}} {{end}}" role="button" href="/works/device/mini?Id={{.Id}}" style="width: 100%; " >Открыть</a> </th>
-                      <td><div style="font-weight: bold;">SN:</div> {{.Sn}}</td>
-                      <td><div style="font-weight: bold;">MAC:</div> {{.Mac}}</td>
-                      <td><div style="font-weight: bold;">D-Model:</div> {{.DModel}}</td>
-                      <td><div style="font-weight: bold;">Rev:</div> {{.Rev}}</td>
-                      <td><div style="font-weight: bold;">T-Model:</div> {{.TModel}}</td>
-                      <td><div style="font-weight: bold;">Имя:</div> {{.Name}}</td>
-                      <td><div style="font-weight: bold;">Состояние:</div> {{.Condition}}</td>
-                      <td><div style="font-weight: bold;">Дата:</div> {{.CondDate}}</td>
-                    </tr>
-                    <tr class="{{if(eq .Shiped "true" )}} {{print "table-secondary"}} {{else if(eq .Condition "Собрано" )}} {{print "table-success"}} {{else if(eq .Condition "В работе" )}} {{print "table-primary"}}     {{else if(eq .Condition "Не собрано")}} {{print "table-warning"}} {{end}}">
-                      <td><div style="font-weight: bold;">Заказ:</div> {{.Order}} <a class="btn btn-sm {{if(eq .Shiped "true" )}} {{print "btn-secondary"}} {{else if(eq .Condition "Собрано" )}} {{print "btn-success"}} {{else if(eq .Condition "В работе" )}} {{print "btn-primary"}}     {{else if(eq .Condition "Не собрано")}} {{print "btn-warning"}} {{end}}" role="button" href="/works/order/mini?Id={{.Order}}" style="width: 100%; ">Открыть</a></td>
-                      <td><div style="font-weight: bold;">Место:</div> {{.Place}}</td>
-                      <td><div style="font-weight: bold;">Отгрузка:</div> {{.Shiped}}</td>
-                      <td><div style="font-weight: bold;">Дата отгрузки:</div> {{.ShipedDate}}</td>
-                      <td><div style="font-weight: bold;">Место отгрузки:</div> {{.ShippedDest}}</td>
-                      <td><div style="font-weight: bold;">Дата приемки:</div> {{.TakenDate}}</td>
-                      <td><div style="font-weight: bold;">Документ приемки:</div> {{.TakenDoc}}</td>
-                      <td><div style="font-weight: bold;">Заказ приемки:</div> {{.TakenOrder}}</td>
-                      <td class="text-nowrap" ><textarea readonly style="border: 0px; background: transparent; width: 100%;" >{{.Comment}} </textarea></td>
-                    </tr>
+                    <tr onclick="document.o.location= '/works/device/mini?Id={{.Id}}'"  class="{{if(eq .Shiped "true" )}} {{print "table-secondary"}} {{else if(eq .Condition "Собрано" )}} {{print "table-success"}} {{else if(eq .Condition "В работе" )}} {{print "table-primary"}}     {{else if(eq .Condition "Не собрано")}} {{print "table-warning"}} {{end}}">
+                      <th scope="row" style="display: flexbox;">  <a class="btn btn-sm {{if(eq .Shiped "true" )}} {{print "btn-secondary"}} {{else if(eq .Condition "Собрано" )}} {{print "btn-success"}} {{else if(eq .Condition "В работе" )}} {{print "btn-primary"}}     {{else if(eq .Condition "Не собрано")}} {{print "btn-warning"}} {{end}} text-nowrap" role="button" href="/works/device/mini?Id={{.Id}}" style="width: 100%;" ><i class="bi bi-reply-fill"></i>{{.Id}}</a> </th>
+                      <td>{{.Sn}}</td>
+                      <td>{{.Mac}}</td>
+                      <td>{{.DModel}}</td>
+                      <td>{{.Rev}}</td>
+                      <td>{{.TModel}}</td>
+                      <td>{{.Name}}</td>
+                      <td>{{.Condition}}</td>
+                      <td>{{.CondDate}}</td>
+                      <td><a class="btn btn-sm {{if(eq .Shiped "true" )}} {{print "btn-secondary"}} {{else if(eq .Condition "Собрано" )}} {{print "btn-success"}} {{else if(eq .Condition "В работе" )}} {{print "btn-primary"}}     {{else if(eq .Condition "Не собрано")}} {{print "btn-warning"}} {{end}}" role="button" href="/works/order/mini?Id={{.Order}}" style="width: 100%;">{{.Order}}</a></td>
+                      <td>{{.Place}}</td>
+                      <td>{{if (eq .Shiped "true")}} <i class="bi bi-truck"></i> &check; {{end}}</td>
+                      <td>{{.ShipedDate}}</td>
+                      <td>{{.ShippedDest}}</td>
+                      <td>{{.TakenDate}}</td>
+                      <td>{{.TakenDoc}}</td>
+                      <td>{{.TakenOrder}}</td>
+                      <td>{{.Assembler}}</td>
+                      <td class="" ><textarea readonly class="form-control form-control-sm" style="height: 10px; width: 200px;">{{.Comment}}</textarea> </td>
+                      
                     {{end}}
                     </tbody>
                 </table>
@@ -157,6 +178,13 @@
 
     });
     </script>
+    <script src="Face/html/js/tablesort.min.js"></script>
+    <script src="Face/html/js/tablesort.number.min.js"></script>
+    <script src="Face/html/js/tablesort.date.min.js"></script>
+    <script>
+      new Tablesort(document.getElementById('TMCData'));
+    </script>
+
 </body>
 
 

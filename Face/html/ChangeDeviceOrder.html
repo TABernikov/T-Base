@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <title>Назначить заказ/резерв</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="Face\img\t-kom-ico 144.png">
+
+    <link href="Face/html/css/bootstrap.min.css" rel="stylesheet">
+    <link href="Face/html/css/style.css" rel="stylesheet">
+    <link href="Face/html/css/bootstrap-icons.css" rel="stylesheet">
+
+</head>
+<body>
+    
+    <nav class="navbar navbar-expand-lg sticky-top navbar-light bg-light" aria-label="Fifth navbar example">
+        <div class="container-fluid">
+        
+          <a class="navbar-brand" href="/works/prof">
+            <img src="Face\img\t-kom-logo.svg" width="100" height="50" alt="" loading="lazy">
+          </a>
+  
+          <button class="navbar-toggler collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#navbarsExample05" aria-controls="navbarsExample05" aria-expanded="false" aria-label="Переключить навигацию">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+    
+          <div class="navbar-collapse collapse" id="navbarsExample05">
+  
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            
+              <li class="nav-item">
+                <a class="nav-link active" href="/works/prof">Главная <i style="color: rgb(80, 80, 80);" class="bi bi-house-fill"></i></a>
+              </li>
+              
+              
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false">Таблицы</a>
+                <ul class="dropdown-menu">
+                  <li><a class="dropdown-item" href="/works/tmc">ТМЦ <i style="color: rgb(80, 80, 80);" class="bi bi-table"></i></a></li>
+                  <li><a class="dropdown-item" href="/works/orders">Заказы <i style="color: rgb(80, 80, 80);" class="bi bi-briefcase-fill"></i></a></li>
+                  <li><a class="dropdown-item" href="/works/storage">Склад <i style="color: rgb(80, 80, 80);" class="bi bi-house-fill"></i></a></li>
+                </ul>
+              </li>
+              <a class="nav-link active" style="text-align: left;" href="/works/cal">Календарь задач <i class="bi bi-calendar-week"></i></a>
+              
+            </ul>
+  
+          </div>
+  
+        </div>
+      </nav>
+
+    <div class="container">
+    <form id="in-form" name="in-form" action="/works/setorder" method="post">
+    <div class="container">
+        <div class="row mt-3">    
+            
+            <div class="col-8">
+              <div class="row mb-3">
+                <label for="in2" class="form-lable"> Введите серийные номера:</label>
+              </div>
+              <div class="row mb-3">
+                  <textarea class="form-control" type="in1" id="in1" name="in1"  placeholder="" ></textarea>
+              </div>
+                
+            </div>
+            <div class="col-3 offset-1">
+              <div class="row mb-3">
+                <div class="row mb-3">
+                  <label for="in2" class="form-lable"> Номер заказа</label>
+                </div>
+                <div class="row mb-3">
+                  <select class="form-select" name="in2" id="in2">
+                    <option selected value="">Выберите</option>
+                    <option value = "1">Доступно</option>
+                    <option value = "2">Доступно не собранно</option>
+                    <option value = "3">Демо</option>
+                    <option value = "4">ЗИП</option>
+                    <option value = "5">Ремонт</option>
+                    <option value = "8">Списаные</option>
+                    {{range .Orders}}
+                    <option value="{{.OrderId}}"> {{.OrderId}} - {{.Name}} (#{{.Id1C}} - {{.OrderDate}})</option>
+                    {{end}}
+                  </select>
+                </div>
+              </div>
+              <div class="row mb-3">
+                <button type="submit" class="btn btn-primary">Назначить заказ</button>
+              </div>
+            </div>
+        </div>
+    
+    </div>
+    </form>
+    </div>
+
+    <script src="Face/html/js/bootstrap.bundle.js"></script>
+    <script src="Face/html/js/keys.js"></script>
+</body>
+
+
+</html>

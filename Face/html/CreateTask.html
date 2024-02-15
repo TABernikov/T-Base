@@ -2,10 +2,10 @@
 <html lang="ru">
 
 <head>
-    <title>Поиск в ТМЦ</title>
+    <title>Создать задачу</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="icon" href="Face\img\t-kom-ico.svg">
+    <link rel="icon" href="Face\img\t-kom-ico 144.png">
 
     <link href="Face/html/css/bootstrap.min.css" rel="stylesheet">
     <link href="Face/html/css/style.css" rel="stylesheet">
@@ -30,7 +30,7 @@
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
             
               <li class="nav-item">
-                <a class="nav-link active" href="/works/prof">Профиль <i style="color: rgb(80, 80, 80);" class="bi bi-person-circle"></i></a>
+                <a class="nav-link active" href="/works/prof">Главная <i style="color: rgb(80, 80, 80);" class="bi bi-house-fill"></i></a>
               </li>
               
               
@@ -43,9 +43,7 @@
                 </ul>
               </li>
               <a class="nav-link active" style="text-align: left;" href="/works/cal">Календарь задач <i class="bi bi-calendar-week"></i></a>
-              <form id="logout" name="logout" action="/works/logout" method="post"> 
-                <a href="/works/logout" class="btn btn-outline-danger" type="submit" name="logoutBtn" >Выйти <i class="bi bi-arrow-bar-right"></i></a>
-              </form>
+              
             </ul>
   
           </div>
@@ -61,7 +59,7 @@
             <label for="1C" class="form-label">Имя</label>
             <div class=" input-group mb-3">
               <span class="input-group-text">#</span>
-              <input type="text" class="form-control" placeholder="Имя" name="Name" id="Name">
+              <input required type="text" class="form-control" placeholder="Имя" name="Name" id="Name">
             </div>
             <label for="Name" class="form-label">Описание(не обязательно)</label>
             <div class=" input-group mb-3">
@@ -71,24 +69,30 @@
             <label for="Req" class="form-label">Дата начала</label>
             <div class=" input-group mb-3">
               <span class="input-group-text">Start</span>
-              <input type="date" class="form-control" placeholder="Дата начала" name="Start" id="Start">
+              <input required type="date" class="form-control" placeholder="Дата начала" name="Start" id="Start">
             </div>
           </div>
           <div class="col mb-3" style="min-width: 350px;">
             <label for="Customer" class="form-label">Приоритет</label>
             <div class=" input-group mb-3">
               <span class="input-group-text">!</span>
-              <input type="number" class="form-control" placeholder="число" name="Priority" id="Priority">
+              <select required class="form-select" name="Priority" id="Priority" onchange="SelectedPrior()">
+                <option value="5">Сверх высокий</option>
+                <option value="10">Высокий</option>
+                <option selected value="20">Обычный</option>
+                <option value="30">Низкий</option>
+                <option value="50">Очень низкий</option>
+              </select>
             </div>
             <label for="Partner" class="form-label">Цвет</label>
             <div class=" input-group mb-3">
               <span class="input-group-text">C</span>
-              <input type="color" value="#0d6efd" class="form-control form-control-color" name="Color" id="Color">
+              <input required type="color" value="#0d6efd" class="form-control form-control-color" name="Color" id="Color">
             </div>
             <label for="Distributor" class="form-label">Дата завершения</label>
             <div class=" input-group mb-3">
               <span class="input-group-text">End</span>
-              <input type="date" class="form-control" name="End" id="End">
+              <input required type="date" class="form-control" name="End" id="End">
             </div>
           </div>
         </div>
@@ -96,6 +100,35 @@
           <button class="btn btn-primary" type="submit" style="width: 100%;">Создать</button>
       </form>
     </div>
+
+    <script>
+      function SelectedPrior(){
+        var prior = document.getElementById("Priority").value;
+        var color = document.getElementById("Color");
+        console.log(prior);
+        switch (prior) {
+          case "5":
+            color.value = "#CB4335";
+            break;
+          case "10":
+            color.value = "#F39C12";
+            break;
+          case "20":
+            color.value = "#0d6efd";
+            break;
+          case "30":
+            color.value = "#6DA7FD";
+            break;
+          case "50":
+            color.value = "#999999";
+          default:
+            break;
+        }
+        console.log(color.value);
+        
+      }
+
+    </script>
 
     <script src="Face/html/js/bootstrap.bundle.js"></script>
     <script src="Face/html/js/keys.js"></script>

@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ru">
+
+<head>
+    <title>Календарь</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="Face\img\t-kom-ico 144.png">
+
+    <link rel="stylesheet" href="https://uicdn.toast.com/calendar/latest/toastui-calendar.min.css" />
+
+    
+
+</head>
+<body>
+  <div id="calendar" style="height: 600px;"></div>
+
+
+  <!-- with CDN and browser environment namespace -->
+<script src="https://uicdn.toast.com/calendar/latest/toastui-calendar.ie11.min.js"></script>
+<script>
+  const Calendar = tui.Calendar;
+</script>
+
+<script>
+  const container = document.getElementById('calendar');
+const options = {
+  defaultView: 'week',
+  usageStatistics: false,
+  week :  weekops = {
+          startDayOfWeek: 1,
+          dayNames: ["Воскресенье", "Понидельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"],
+          narrowWeekend: true,
+          workweek: false,
+          eventView: false,
+          taskView: ['task'],
+          
+        },
+
+  
+};
+
+const calendar = new Calendar(container, options);
+</script>
+    
+</body>
+
+
+</html>

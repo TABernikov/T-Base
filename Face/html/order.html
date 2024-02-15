@@ -2,15 +2,20 @@
 <html lang="ru">
 
 <head>
-    <title>order</title>
+    <title>Заказ {{.Order.OrderId}}</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="icon" href="Face\img\t-kom-ico.svg">
+    <link rel="icon" href="Face\img\t-kom-ico 144.png">
 
     <link href="Face/html/css/bootstrap.min.css" rel="stylesheet">
     <link href="Face/html/css/style.css" rel="stylesheet">
     <link href="Face/html/css/bootstrap-icons.css" rel="stylesheet">
-
+    <style>
+        .tcs-select {
+        font-weight: bolder;
+        color: blueviolet;
+      }
+    </style>
 </head>
 <body>
     
@@ -72,6 +77,10 @@
                         <form  class="p-1" id="task" name="task" action="/works/toship" target="_parent" method="get">   
                             <button class="btn btn-outline-primary btn-sm" type="submit"  ><i class="bi bi-truck"></i> Отгрузка</button>
                             <input type="hidden" name="place" value="{{.Order.Distributor}}"/> 
+                        </form>
+                        <form  class="p-1" id="task" name="task" action="/works/setodershdate" target="_parent" method="post">   
+                            <button class="btn btn-outline-danger btn-sm" type="submit"  ><i class="bi bi-cart-check"></i> Закрыть</button>
+                            <input type="hidden" name="order" value="{{.Order.OrderId}}"/> 
                         </form>
                         {{end}}
                     </div>
@@ -166,7 +175,6 @@
                             {{if .List}}<button class="nav-link active" id="nav-list-tab" data-bs-toggle="tab" data-bs-target="#nav-list" type="button" role="tab" aria-controls="nav-list" aria-selected="true">Состав заказа</button>{{end}}
                             {{if .Status}} <button class="nav-link" id="nav-st-tab" data-bs-toggle="tab" data-bs-target="#nav-st" type="button" role="tab" aria-controls="nav-st" aria-selected="false" tabindex="-1">Статус</button> {{end}}
                             {{if .Reservs}}<button class="nav-link" id="nav-res-tab" data-bs-toggle="tab" data-bs-target="#nav-res" type="button" role="tab" aria-controls="nav-res" aria-selected="false" tabindex="-1">Резерв <a target = "_parent" type="button" class="btn btn-sm btn-outline-info"  href="/works/tmc?Search=Raw&Order={{.Order.OrderId}}">Открыть в ТМЦ</a></button>{{end}}
-                            
                         </div>
                     </nav>
 
@@ -174,7 +182,7 @@
                         {{if .List}}
                         <div class="tab-pane fade active show" id="nav-list" role="tabpanel" aria-labelledby="nav-list-tab">
                             <div class="container-fluid" style="height: 80vh; overflow-y: scroll;">
-                                <table class="table table-striped">
+                                <table class="table table-striped" id="3">
                                     <thead>
                                         <tr>
                                             <th scope="col">Модель</th>
@@ -203,7 +211,7 @@
                         <div class="tab-pane fade" id="nav-res" role="tabpanel" aria-labelledby="nav-res-tab">
                             
                             <div class="container-fluid" style="height: 80vh; overflow-y: scroll;">
-                                <table class="table table-striped">
+                                <table class="table table-striped" id="2">
                                     <thead>
                                         <tr>
                                             <th scope="col">Модель</th>
@@ -221,7 +229,7 @@
                                             <td>{{.Name}}</td>
                                             <td>{{.Amout}}</td>
                                             <td>{{.Condition}}</td>
-                                            <td>{{.Shipped}}</td>
+                                            <td>{{if eq .Shipped true}}<i class="bi bi-truck"></i> &check; {{else}} Нет {{end}}</td>
                                         </tr>
                                         {{end}}
                                     </tbody>
@@ -233,7 +241,7 @@
                         <div class="tab-pane fade" id="nav-st" role="tabpanel" aria-labelledby="nav-st-tab">
                             
                             <div class="container-fluid" style="height: 80vh; overflow-y: scroll;">
-                                <table class="table table-striped">
+                                <table class="table table-striped" id="1">
                                     <thead>
                                         <tr>
                                             <th scope="col">Модель</th>
@@ -273,6 +281,70 @@
     
 <script src="Face/html/js/bootstrap.bundle.js"></script>
 <script src="Face/html/js/keys.js"></script>
+
+<script src="Face/html/js/tablesort.min.js"></script>
+        <script src="Face/html/js/tablesort.number.min.js"></script>
+        <script src="Face/html/js/tablesort.date.min.js"></script>
+        <script>
+          new Tablesort(document.getElementById('1'));
+          new Tablesort(document.getElementById('2'));
+          new Tablesort(document.getElementById('3'));
+        </script>
+
+<script src="Face/html/js/tcs.bundle.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function(e) {
+      var table = document.getElementById("1");
+      var options = {
+          changeTracking: true,
+          deselectOutTableClick: false,
+          enableChanging: false,
+          selectClass: "tcs-select",
+      };
+      var buffer = new TableCellSelector.Buffer();
+      var tcs = new TableCellSelector(table, options, buffer);
+      document.getElementById("deselect").onclick = function (e) {
+          e.preventDefault();
+          var res = tcs.deselect();
+          console.log("deselect = " + res);
+      };
+
+  });
+  document.addEventListener("DOMContentLoaded", function(e) {
+      var table = document.getElementById("2");
+      var options = {
+          changeTracking: true,
+          deselectOutTableClick: false,
+          enableChanging: false,
+          selectClass: "tcs-select",
+      };
+      var buffer = new TableCellSelector.Buffer();
+      var tcs = new TableCellSelector(table, options, buffer);
+      document.getElementById("deselect").onclick = function (e) {
+          e.preventDefault();
+          var res = tcs.deselect();
+          console.log("deselect = " + res);
+      };
+
+  });
+  document.addEventListener("DOMContentLoaded", function(e) {
+      var table = document.getElementById("3");
+      var options = {
+          changeTracking: true,
+          deselectOutTableClick: false,
+          enableChanging: false,
+          selectClass: "tcs-select",
+      };
+      var buffer = new TableCellSelector.Buffer();
+      var tcs = new TableCellSelector(table, options, buffer);
+      document.getElementById("deselect").onclick = function (e) {
+          e.preventDefault();
+          var res = tcs.deselect();
+          console.log("deselect = " + res);
+      };
+
+  });
+  </script>
 </body>
 
 

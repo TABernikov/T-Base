@@ -460,7 +460,7 @@ func ReadNewDevice(path string, base Storage.Base) ([]mytypes.DeviceRaw, error, 
 				Name:        rows[i][0],
 				Shiped:      false,
 				TakenDate:   time.Now(),
-				CondDate:    time.Now(),
+				CondDate:    time.Date(2000, 1, 1, 1, 1, 1, 1, time.Local),
 				ShippedDest: "",
 				ShipedDate:  time.Date(2000, 1, 1, 1, 1, 1, 1, time.Local),
 			}

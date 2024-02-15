@@ -223,8 +223,10 @@ type BuildClean struct {
 }
 
 type TModel struct {
-	Id   int
-	Name string
+	Id    int
+	Name  string
+	KigId string
+	DsId  string
 }
 
 type DModel struct {
@@ -335,6 +337,7 @@ type DraftClean struct {
 
 type Document struct {
 	Id           primitive.ObjectID `bson:"_id"`
+	DocType      string             `bson:"docType"`
 	Tatle        string             `bson:"tatle"`
 	Authtor      string             `bson:"authtor"`
 	CreationTime time.Time          `bson:"creationTime"`

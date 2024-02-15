@@ -5,7 +5,7 @@
     <title>Создание сборки</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="icon" href="Face\img\t-kom-ico.svg">
+    <link rel="icon" href="Face\img\t-kom-ico 144.png">
 
     <link href="Face/html/css/bootstrap.min.css" rel="stylesheet">
     <link href="Face/html/css/style.css" rel="stylesheet">
@@ -30,7 +30,7 @@
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
             
               <li class="nav-item">
-                <a class="nav-link active" href="/works/prof">Профиль <i style="color: rgb(80, 80, 80);" class="bi bi-person-circle"></i></a>
+                <a class="nav-link active" href="/works/prof">Главная <i style="color: rgb(80, 80, 80);" class="bi bi-house-fill"></i></a>
               </li>
               
               
@@ -43,9 +43,7 @@
                 </ul>
               </li>
               <a class="nav-link active" style="text-align: left;" href="/works/cal">Календарь задач <i class="bi bi-calendar-week"></i></a>
-              <form id="logout" name="logout" action="/works/logout" method="post"> 
-                <a href="/works/logout" class="btn btn-outline-danger" type="submit" name="logoutBtn" >Выйти <i class="bi bi-arrow-bar-right"></i></a>
-              </form>
+              
             </ul>
   
           </div>
@@ -59,7 +57,7 @@
         <div class="row">
           <div class="col mb-3" style="min-width: 350px;">
             <label for="Amout" class="form-label">Модель D-Link</label>
-            <div class=" input-group mb-3">
+            <div class=" input-group mb-2">
               <input type="text" class="form-control" placeholder="Из" name="DModel" id="DModel" onchange="resetIfInvalid(this)" list="modelListD" required>
               <datalist id="modelListD">
                 <option selected value=""></option>
@@ -69,7 +67,7 @@
               </datalist> 
             </div>
             <label for="Name" class="form-label">Модель T-Kom</label>
-            <div class=" input-group mb-3">
+            <div class=" input-group mb-1">
               <input type="text" class="form-control" placeholder="В" name="TModel" id="TModel" onchange="resetIfInvalid(this)" list="modelListT" required>
               <datalist id="modelListT">
                 <option selected value=""></option>
@@ -83,7 +81,7 @@
         <div class="row">
           <div class="col mb-3" style="min-width: 350px;">
             <label class="form-label">Крышка</label>
-            <div class=" input-group mb-3">
+            <div class=" input-group mb-1">
               <select class="form-select" name="case" id="case" required>
                 <option selected value="-1">Выберите</option>
                 <option value="-1">Нет</option>
@@ -97,7 +95,7 @@
           </div>
           <div class="col mb-3" style="min-width: 350px;">
             <label class="form-label">Ф. Наклейка</label>
-            <div class=" input-group mb-3">
+            <div class=" input-group mb-1">
               <select class="form-select" name="stiker" id="stiker" required>
                 <option selected value="-1">Выберите</option>
                 <option value="-1">Нет</option>
@@ -113,7 +111,7 @@
         <div class="row">
           <div class="col mb-3" style="min-width: 350px;">
             <label class="form-label">Коробка</label>
-            <div class=" input-group mb-3">
+            <div class=" input-group mb-1">
               <select class="form-select" name="box" id="box" required>
                 <option selected value="-1">Выберите</option>
                 <option value="-1">Нет</option>
@@ -127,7 +125,7 @@
           </div>
           <div class="col mb-3" style="min-width: 350px;">
             <label class="form-label">Демпферы</label>
-            <div class=" input-group mb-3">
+            <div class=" input-group mb-1">
               <select class="form-select" name="boxholder" id="boxholder" required>
                 <option selected value="-1">Выберите</option>
                 <option value="-1">Нет</option>
@@ -143,7 +141,7 @@
         <div class="row">
           <div class="col mb-3" style="min-width: 350px;">
             <label class="form-label">Другое1</label>
-            <div class=" input-group mb-3">
+            <div class=" input-group mb-1">
               <select class="form-select" name="another1" id="another1" required>
                 <option selected value="-1">Выберите</option>
                 <option value="-1">Нет</option>
@@ -159,7 +157,7 @@
         <div class="row">
           <div class="col mb-3" style="min-width: 350px;">
             <label class="form-label">Другое2</label>
-            <div class=" input-group mb-3">
+            <div class=" input-group mb-1">
               <select class="form-select" name="another2" id="another2" required>
                 <option selected value="-1">Выберите</option>
                 <option value="-1">Нет</option>
@@ -175,7 +173,7 @@
         <div class="row">
           <div class="col mb-3" style="min-width: 350px;">
             <label class="form-label">Другое3</label>
-            <div class=" input-group mb-3">
+            <div class=" input-group mb-1">
               <select class="form-select" name="another3" id="another3" required>
                 <option selected value="-1">Выберите</option>
                 <option value="-1">Нет</option>
@@ -185,6 +183,38 @@
               </select>
               <span class="input-group-text">Кол-во:</span>
               <input type="number" class="form-control" placeholder="Кол-во" value="1" name="another3Amout" id="another3Amout" >
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col mb-3" style="min-width: 350px;">
+            <label class="form-label">Другое4</label>
+            <div class=" input-group mb-1">
+              <select class="form-select" name="another4" id="another4" required>
+                <option selected value="-1">Выберите</option>
+                <option value="-1">Нет</option>
+                {{range .AnotherList}}
+                <option value="{{.Id}}">{{.Name}}</option>
+                {{end}}
+              </select>
+              <span class="input-group-text">Кол-во:</span>
+              <input type="number" class="form-control" placeholder="Кол-во" value="1" name="another4Amout" id="another4Amout" >
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col mb-3" style="min-width: 350px;">
+            <label class="form-label">Другое5</label>
+            <div class=" input-group mb-1">
+              <select class="form-select" name="another5" id="another5" required>
+                <option selected value="-1">Выберите</option>
+                <option value="-1">Нет</option>
+                {{range .AnotherList}}
+                <option value="{{.Id}}">{{.Name}}</option>
+                {{end}}
+              </select>
+              <span class="input-group-text">Кол-во:</span>
+              <input type="number" class="form-control" placeholder="Кол-во" value="1" name="another5Amout" id="another5Amout" >
             </div>
           </div>
         </div>

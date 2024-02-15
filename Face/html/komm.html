@@ -2,10 +2,10 @@
 <html lang="ru">
 
 <head>
-    <title>komm</title>
+    <title>{{.Device.Name}}</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="icon" href="Face\img\t-kom-ico.svg">
+    <link rel="icon" href="Face\img\t-kom-ico 144.png">
 
     <link href="Face/html/css/bootstrap.min.css" rel="stylesheet">
     <link href="Face/html/css/style.css" rel="stylesheet">
@@ -103,7 +103,7 @@
                             <tbody>
                                 <tr>
                                     <th>Отгрузка:</th>
-                                    <td>{{.Device.Shiped}}</td>
+                                    <td>{{if (eq .Device.Shiped "true")}} <i class="bi bi-truck"></i> &check; {{end}}</td>
                                     <th>Заказ приёмки:</th>
                                     <td>{{.Device.TakenOrder}}</td>
 

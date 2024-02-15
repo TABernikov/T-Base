@@ -4,6 +4,9 @@ import (
 	"T-Base/Brain/mytypes"
 	"net/http"
 	"os"
+	"strconv"
+	"strings"
+	"time"
 
 	"github.com/julienschmidt/httprouter"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -20,6 +23,9 @@ func DocumentsBaseRouts(a App, r *httprouter.Router) {
 	r.POST("/works/deletedoc", a.authtorized(a.DellDoc))
 	r.POST("/works/editdocpage", a.authtorized(a.EditDocPage))
 	r.POST("/works/editdoc", a.authtorized(a.EditDoc))
+	r.POST("/works/changetmodelkig", a.authtorized(a.ChangeTModelKig))
+	r.POST("/works/changetmodelds", a.authtorized(a.ChangeTModelDs))
+	r.GET("/works/customdocs", a.authtorized(a.DocsCustomPage))
 
 }
 
@@ -43,6 +49,41 @@ func (a App) DocsPage(w http.ResponseWriter, r *http.Request, pr httprouter.Para
 	}
 
 	a.Templ.DocsPage(w, mainDocs, otherDocs, privateDocs)
+}
+
+func (a App) DocsCustomPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	typesString := r.FormValue("types")
+	if typesString == "" {
+		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Не заданы типы документов", "", "Главная", "/works/prof")
+		return
+	}
+	types := strings.Split(typesString, ",")
+
+	docsByTypes := [][]mytypes.Document{}
+
+	for _, t := range types {
+		if t == "" {
+			continue
+		}
+		var docs []mytypes.Document
+		err := error(nil)
+		if t == "private" {
+			docs, err = a.DocBase.TakeDocsByUser(a.Ctx, t, user)
+			if err != nil {
+				a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Не удалось получить документы", err.Error(), "Главная", "/works/prof")
+				return
+			}
+		} else {
+			docs, err = a.DocBase.TakeDocs(a.Ctx, t)
+			if err != nil {
+				a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Не удалось получить документы", err.Error(), "Главная", "/works/prof")
+				return
+			}
+		}
+
+		docsByTypes = append(docsByTypes, docs)
+	}
+	a.Templ.CustomDocsPage(w, docsByTypes...)
 }
 
 func (a App) DocPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
@@ -96,7 +137,7 @@ func (a App) CreateDoc(w http.ResponseWriter, r *http.Request, pr httprouter.Par
 		acces = []string{user.Login}
 	}
 
-	err := a.DocBase.NewDoc(a.Ctx, docType, docName, user, docContent, acces)
+	_, err := a.DocBase.NewDoc(a.Ctx, docType, docName, user, docContent, acces)
 	if err != nil {
 		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Не удалось создать документ", err.Error(), "Главная", "/works/prof")
 		return
@@ -106,12 +147,6 @@ func (a App) CreateDoc(w http.ResponseWriter, r *http.Request, pr httprouter.Par
 
 // выводит файл из франилища
 func (a App) FilesBase(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
-	filepath := r.FormValue("filepath")
-	if filepath == "" {
-		w.Header()["Date"] = nil
-		http.Error(w, "Ошибка 404. Файл не найден", 404)
-		return
-	}
 
 	docType := r.FormValue("type")
 	if docType == "" {
@@ -135,11 +170,21 @@ func (a App) FilesBase(w http.ResponseWriter, r *http.Request, pr httprouter.Par
 		return
 	}
 
-	p := "Files/DocStor/" + docType + "/" + filepath
+	filepath := r.FormValue("filepath")
+	if filepath == "" && len(doc.Files) == 0 {
+		w.Header()["Date"] = nil
+		http.Error(w, "Ошибка 404. Файл не найден 1", 404)
+		return
+
+	} else if filepath == "" && len(doc.Files) > 0 {
+		filepath = doc.Files[0]
+	}
+
+	p := "Files/DocStor/" + strings.ReplaceAll(docType, ".", "/") + "/" + filepath
 	file, err := os.Open(p)
 	if err != nil {
 		w.Header()["Date"] = nil
-		http.Error(w, "Ошибка 404. Файл не найден", 404)
+		http.Error(w, "Ошибка 404. Файл не найден 2", 404)
 		return
 	}
 	defer file.Close()
@@ -147,7 +192,7 @@ func (a App) FilesBase(w http.ResponseWriter, r *http.Request, pr httprouter.Par
 	info, err := file.Stat()
 	if err != nil {
 		w.Header()["Date"] = nil
-		http.Error(w, "Ошибка 404. Файл не найден", 404)
+		http.Error(w, "Ошибка 404. Файл не найден 3", 404)
 		return
 	}
 
@@ -350,4 +395,107 @@ func (a App) EditDoc(w http.ResponseWriter, r *http.Request, pr httprouter.Param
 	}
 
 	a.Templ.AlertPage(w, 1, "Успех", "Успех", "Документ обновлен", "", "Главная", "/works/prof")
+}
+
+func (a App) ChangeTModelKig(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 1 {
+		a.Templ.AlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
+
+	src, hdr, err := r.FormFile("newFile")
+	if err != nil {
+		a.Templ.AlertPage(w, 5, "Ошбка загрузки", "Ошбка загрузки", "Непредвиденная ошибка загрузки", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	defer src.Close()
+
+	tmodelId, err := strconv.Atoi(r.FormValue("modelId"))
+	if err != nil {
+		a.Templ.AlertPage(w, 5, "Ошбка загрузки", "Ошбка загрузки", "Неверный ID модели", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	tmodels, err := a.Db.TakeTModelsById(a.Ctx, tmodelId)
+	if err != nil {
+		a.Templ.AlertPage(w, 5, "Ошбка поиска модели", "Ошбка поиска модели", "!!!", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	tmodel := tmodels[0]
+
+	acces := []string{}
+	user.Name = "Берников Т. А."
+	hdr.Filename = "Паспорт для " + strings.ReplaceAll(tmodel.Name, "/", "_") + " от " + time.Now().Format("02.01.2006 15.04.05") + hdr.Filename
+	file, fileName, err := takeDocFile(src, hdr, "komm.kigs")
+	if err != nil {
+		a.Templ.AlertPage(w, 5, "Ошбка записи файла", "Ошбка записи файла", "!!!", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	file.Close()
+	docid, err := a.DocBase.NewDoc(a.Ctx, "komm.kigs", "Паспорт для "+tmodel.Name+" от "+time.Now().Format("02.01.2006 15:04:05"), user, "", acces, fileName)
+	if err != nil {
+		a.Templ.AlertPage(w, 5, "Ошбка создания документа", "Ошбка создания документа", "!!!", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	err = a.Db.ChangeTModelKig(a.Ctx, tmodelId, docid.Hex())
+	if err != nil {
+		a.Templ.AlertPage(w, 5, "Ошбка изменения паспорта модели", "Ошбка изменения паспорта модели", "!!!", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	a.Templ.AlertPage(w, 1, "Успех", "Успех", "Паспорт обновлен", "", "Главная", "/works/prof")
+}
+
+func (a App) ChangeTModelDs(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	if user.Acces != 1 {
+		a.Templ.AlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
+		return
+	}
+
+	src, hdr, err := r.FormFile("newFile")
+	if err != nil {
+		a.Templ.AlertPage(w, 5, "Ошбка загрузки", "Ошбка загрузки", "Непредвиденная ошибка загрузки", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	defer src.Close()
+
+	tmodelId, err := strconv.Atoi(r.FormValue("modelId"))
+	if err != nil {
+		a.Templ.AlertPage(w, 5, "Ошбка загрузки", "Ошбка загрузки", "Неверный ID модели", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	tmodels, err := a.Db.TakeTModelsById(a.Ctx, tmodelId)
+	if err != nil {
+		a.Templ.AlertPage(w, 5, "Ошбка поиска модели", "Ошбка поиска модели", "!!!", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	tmodel := tmodels[0]
+
+	acces := []string{}
+	realname := user.Name
+	user.Name = "Берников Т. А."
+	hdr.Filename = "Даташит для " + strings.ReplaceAll(tmodel.Name, "/", "_") + " от " + time.Now().Format("02.01.2006 15.04.05") + hdr.Filename
+	file, fileName, err := takeDocFile(src, hdr, "komm.ds")
+	if err != nil {
+		a.Templ.AlertPage(w, 5, "Ошбка записи файла", "Ошбка записи файла", "!!!", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	file.Close()
+	docid, err := a.DocBase.NewDoc(a.Ctx, "komm.ds", "Даташит для "+tmodel.Name+" от "+time.Now().Format("02.01.2006 15:04:05"), user, "Документ добавлен : **"+realname+"**", acces, fileName)
+	if err != nil {
+		a.Templ.AlertPage(w, 5, "Ошбка создания документа", "Ошбка создания документа", "!!!", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	err = a.Db.ChangeTModelDs(a.Ctx, tmodelId, docid.Hex())
+	if err != nil {
+		a.Templ.AlertPage(w, 5, "Ошбка изменения даташита модели", "Ошбка изменения даташита модели", "!!!", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	a.Templ.AlertPage(w, 1, "Успех", "Успех", "Даташит обновлен", "", "Главная", "/works/prof")
+
 }

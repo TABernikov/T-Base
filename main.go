@@ -12,6 +12,7 @@ import (
 const (
 	mainIp       = "192.168.0.139:2020"
 	testIp       = "127.0.0.1:8080"
+	testGlobalIp = "192.168.0.139:2021"
 	mainPostgres = "tbase"
 	testPostgres = "tbasetestingdata"
 )

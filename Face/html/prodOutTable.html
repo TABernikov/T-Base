@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="ru">
+
+<head>
+    <title>Выход с производства</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="Face\img\t-kom-ico 144.png">
+
+    <link href="Face/html/css/bootstrap.min.css" rel="stylesheet">
+    <link href="Face/html/css/style.css" rel="stylesheet">
+    <link href="Face/html/css/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+      .tcs-select {
+      color: blueviolet;
+      font-weight: bolder;
+    }
+  </style>
+
+</head>
+<body>
+    
+  <nav class="navbar navbar-expand-lg sticky-top navbar-light bg-light" aria-label="Fifth navbar example">
+    <div class="container-fluid">
+      
+          <a class="navbar-brand" href="/works/prof">
+            <img style="height: 6vh;" src="Face\img\t-kom-logo.svg" width="100" height="50" alt="" loading="lazy">
+          </a>
+
+          
+
+          <button class="navbar-toggler collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#navbarsExample05" aria-controls="navbarsExample05" aria-expanded="false" aria-label="Переключить навигацию">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          
+          <div class="navbar-collapse collapse" id="navbarsExample05">
+            
+             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            
+            <li class="nav-item">
+              <a class="nav-link active" href="/works/prof">Главная <i style="color: rgb(80, 80, 80);" class="bi bi-house-fill"></i></a>
+            </li>
+            
+            
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false">Таблицы</a>
+              <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="/works/tmc">ТМЦ <i style="color: rgb(80, 80, 80);" class="bi bi-table"></i></a></li>
+                <li><a class="dropdown-item" href="/works/orders">Заказы <i style="color: rgb(80, 80, 80);" class="bi bi-briefcase-fill"></i></a></li>
+                <li><a class="dropdown-item" href="/works/storage">Склад <i style="color: rgb(80, 80, 80);" class="bi bi-house-fill"></i></a></li>
+              </ul>
+            </li>
+            <a class="nav-link active" style="text-align: left;" href="/works/cal">Календарь задач <i class="bi bi-calendar-week"></i></a>              
+            </ul>
+
+            <a class = "btn btn-primary" href="/works/prodout?view=report">Отчет</a>
+            &nbsp;
+            <form class="d-flex" role="search" action="/works/prodout" method="get">
+              <div class="input-group">
+                <input type="hidden" name="view" value="table">
+                <span class="input-group-text">С:</span>
+                <input class="form-control" type="date" id="from" name="from">
+                <span class="input-group-text">По:</span>
+                <input class="form-control" type="date" id="to" name="to">
+                <button class="btn btn-outline-success" type="submit">Открыть</button>
+              </div>
+            </form>
+          </div>
+    </div>
+  </nav>
+
+
+    <div class="container-fluid" style="overflow-y:scroll; width: 100%; height: 90vh;">
+    
+            
+                <table class="table table-striped table-bordered table-responsive table-hover text-nowrap table-sm"style = "" id = "ProdOutData">
+                  <thead class="table-light" style="font-size: small;">
+                    <tr id = "heders">
+                      <th style="text-align: right; font-size: xx-large;">
+                        #
+                      </th>
+                      {{range .Dates}}
+                      <th  scope="col" style="position: sticky; top: 0px; "><span style="writing-mode: vertical-lr; transform: rotate(180deg);" >{{.}}</span></th>
+                      {{end}}
+                    </tr>
+                  </thead>
+                    <tbody>
+                      {{range .Models}}
+                      <tr id = "{{.}}" >
+                        <th class="table-light" style="position: sticky; left: -10px; font-size: smaller;">
+                          {{.}}
+                        </th>
+                        {{range $.Dates}}
+                        <td id = "{{.}}" style="text-align: center;">
+                          
+                        </td>
+                        {{end}}
+
+                      </tr>
+                      {{end}}
+                   
+                    </tbody>
+                </table>
+            
+        </div>
+    </div>
+    </div>
+
+  <script>
+   
+  
+
+  </script>
+    
+  <script src="Face/html/js/bootstrap.bundle.js"></script>
+  <script src="Face/html/js/keys.js"></script>
+
+  <script src="Face/html/js/tcs.bundle.js"></script>
+  <script>
+  document.addEventListener("DOMContentLoaded", function(e) {
+      var table = document.getElementById("ProdOutData");
+      var options = {
+          changeTracking: true,
+          deselectOutTableClick: false,
+          enableChanging: false,
+          selectClass: "tcs-select",
+      };
+      var buffer = new TableCellSelector.Buffer();
+      var tcs = new TableCellSelector(table, options, buffer);
+
+      var table = document.getElementById('ProdOutData')
+      rows = table.rows
+      
+      {{range $model, $dateMap := .ProdOut}};
+      row = rows.namedItem({{$model}});
+      cells = row.cells;
+      {{range $date, $count := $dateMap}}
+      cell = cells.namedItem({{$date}});
+      cell.innerText = '{{$count}}';
+      {{if or (eq $model "Все")  (eq $date "Все")}}
+      cell.className = 'table-info';
+      cell.style.fontWeight = "bolder";
+      {{else}}
+      cell.className = 'table-success';
+      cell.style.fontWeight = "bold";
+      {{end}}
+      
+      {{end}}
+      {{end}}
+  });
+  </script>
+</body>
+
+
+</html>

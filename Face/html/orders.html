@@ -5,12 +5,17 @@
     <title>{{.Lable}}</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="icon" href="Face\img\t-kom-ico.svg">
+    <link rel="icon" href="Face\img\t-kom-ico 144.png">
 
     <link href="Face/html/css/bootstrap.min.css" rel="stylesheet">
     <link href="Face/html/css/style.css" rel="stylesheet">
     <link href="Face/html/css/bootstrap-icons.css" rel="stylesheet">
-
+    <style>
+      .tcs-select {
+      font-weight: bolder;
+      color: blueviolet;
+    }
+  </style>
 </head>
 <body>
     
@@ -30,7 +35,7 @@
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
             
           <li class="nav-item">
-            <a class="nav-link active" href="/works/prof">Профиль <i style="color: rgb(80, 80, 80);" class="bi bi-person-circle"></i></a>
+            <a class="nav-link active" href="/works/prof">Главная <i style="color: rgb(80, 80, 80);" class="bi bi-house-fill"></i></a>
           </li>
           
           
@@ -43,9 +48,7 @@
             </ul>
           </li>
           <a class="nav-link active" style="text-align: left;" href="/works/cal">Календарь задач <i class="bi bi-calendar-week"></i></a>
-          <form id="logout" name="logout" action="/works/logout" method="post"> 
-            <a href="/works/logout" class="btn btn-outline-danger" type="submit" name="logoutBtn" >Выйти <i class="bi bi-arrow-bar-right"></i></a>
-          </form>
+          
         </ul>
 
         
@@ -65,67 +68,91 @@
 
 
 <iframe  name="o" float="left" width="100%"  scrolling="auto" frameborder="0" src="/works/order/mini?Id={{(index .Tab 0).OrderId}}" style="height: 34vh;"  id="o">Sorry, your browser doesn't support iframes.</iframe>
+<div class="container-fluid">
+  <a class="d.inline btn btn-outline-success btn-sm"name="copybtn" href="/works/shortordersexcell{{.ExcellLink}}"><i class="bi-file-earmark-excel" ></i>Кратко</a>
+  &nbsp;<a class="d.inline btn btn-outline-success btn-sm"name="copybtn" href="/works/ordersexcell{{.ExcellLink}}"><i class="bi-file-earmark-excel" ></i>Подробно</a>
+  &nbsp;<button class="d.inline btn btn-outline-primary btn-sm" id="deselect" style="width: auto;">Снять выделение</button>
+</div>
 
+<div class="container-fluid" style="overflow-y:scroll; overflow-x: scroll; width: 100%;  height: 52vh;">
+    
+     
+  <div>
+      
+          <table class="table table-hover table-striped table-bordered table-responsive"style = "" id = "OrderData" >
+            <col span="12" style="width: max-content;">
+            <thead class="text-nowrap table-light" style="position: sticky; top: 0px;">
+              <tr>
+                  <th scope="col">Id</th>
+                  <th scope="col">№1С</th>
+                  <th scope="col">Менеджер</th>
+                  <th scope="col">Дата заказа</th>
+                  <th scope="col">Заказчик</th>
+                  <th scope="col">Партнер</th>
+                  <th scope="col">Дистрибьютор</th>
+                  <th scope="col">Требуемая дата</th>
+                  <th scope="col">Обащаная дата</th>
+                  <th scope="col">Дата отгрузки</th>
+                  <th scope="col">Статус</th>
+                  <th scope="col">Имя</th>
+                  
+              </tr>
+            </thead>
+              <tbody>
+              {{range .Tab}}
+              
+              <tr class="" onclick="document.o.location= '/works/order/mini?Id={{.OrderId}}'">
+                  <td scope="row"  > <a class="btn btn-sm btn-outline-info" role="button" href="/works/order/mini?Id={{.OrderId}}" style="width: 100%; " >{{.OrderId}}</a> </th>
+                  <td>{{.Id1C}}</td>
+                  <td class="text-nowrap">{{.Meneger}}</td>
+                  <td>{{.OrderDate}}</td>
+                  <td style="max-width: 300px;"  >{{.Customer}}</td>
+                  <td>{{.Partner}}</td>
+                  <td>{{.Distributor}}</td>
+                  <td>{{.ReqDate}}</td>
+                  <td>{{.PromDate}}</td>
+                  <td>{{.ShDate}}</td>
+                  <td>{{if (eq .IsAct "true")}} Активен {{else}} Закрыт {{end}}</td>
+                  <td>{{.Name}}</td>   
+              </tr>
+              
+              {{end}}
+              </tbody>
+          </table>
+      
+  </div>
 
-    <div class="container-fluid" style="overflow-y:hidden; width: 100%;  height: 50%;">
-    <div class="container-fluid" style="overflow-y:hidden; width: 2800px;  height: 55vh; overflow-x:hidden;">
-        <div class="" >
-                <table class="table table-hover table-striped"style = "table-layout: fixed;" >
-                  <col span="12" style="width: 150px;">
-                  <a class="d.inline btn btn-outline-success btn-sm"name="copybtn" href="/works/shortordersexcell{{.ExcellLink}}"><i class="bi-file-earmark-excel" ></i>Кратко</a>
-                  &nbsp;<a class="d.inline btn btn-outline-success btn-sm"name="copybtn" href="/works/ordersexcell{{.ExcellLink}}"><i class="bi-file-earmark-excel" ></i>Подробно</a>
-                    <thead>
-                        <tr>
-                            <th scope="col">Id</th>
-                            <th scope="col">№1С</th>
-                            <th scope="col">Менеджер</th>
-                            <th scope="col">Дата заказа</th>
-                            <th scope="col">Заказчик</th>
-                            <th scope="col">Партнер</th>
-                            <th scope="col">Дистрибьютор</th>
-                            <th scope="col">Требуемая дата</th>
-                            <th scope="col">Обащаная дата</th>
-                            <th scope="col">Дата отгрузки</th>
-                            <th scope="col">Статус</th>
-                            <th scope="col">Имя</th>
-                            
-                        </tr>
-                    </thead>
-                </table>
-        </div>
+</div>
+<script src="Face/html/js/tcs.bundle.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function(e) {
+      var table = document.getElementById("OrderData");
+      var options = {
+          changeTracking: true,
+          deselectOutTableClick: false,
+          enableChanging: false,
+          selectClass: "tcs-select",
+      };
+      var buffer = new TableCellSelector.Buffer();
+      var tcs = new TableCellSelector(table, options, buffer);
+      document.getElementById("deselect").onclick = function (e) {
+          e.preventDefault();
+          var res = tcs.deselect();
+          console.log("deselect = " + res);
+      };
 
-        <div>
-            <div class="" style="height: 45vh;  overflow-x:hidden; overflow-y:scroll; ">
-                <table class="table table-hover table-striped table-bordered"style = "table-layout: fixed" >
-                  <col span="12" style="width: 150px;">
-                    <tbody>
-                    {{range .Tab}}
-                    
-                    <tr class="">
-                        <th scope="row" onclick="document.o.location= '/works/order/mini?Id={{.OrderId}}'" >&nbsp;{{.OrderId}} <a class="btn btn-sm btn-outline-info" role="button" href="/works/order/mini?Id={{.OrderId}}" style="width: 100%; " >Открыть</a> </th>
-                        <td onclick="document.o.location= '/works/order/mini?Id={{.OrderId}}'" >{{.Id1C}}</td>
-                        <td onclick="document.o.location= '/works/order/mini?Id={{.OrderId}}'" >{{.Meneger}}</td>
-                        <td onclick="document.o.location= '/works/order/mini?Id={{.OrderId}}'" >{{.OrderDate}}</td>
-                        <td onclick="document.o.location= '/works/order/mini?Id={{.OrderId}}'" >{{.Customer}}</td>
-                        <td onclick="document.o.location= '/works/order/mini?Id={{.OrderId}}'" >{{.Partner}}</td>
-                        <td onclick="document.o.location= '/works/order/mini?Id={{.OrderId}}'" >{{.Distributor}}</td>
-                        <td onclick="document.o.location= '/works/order/mini?Id={{.OrderId}}'" >{{.ReqDate}}</td>
-                        <td onclick="document.o.location= '/works/order/mini?Id={{.OrderId}}'" >{{.PromDate}}</td>
-                        <td onclick="document.o.location= '/works/order/mini?Id={{.OrderId}}'" >{{.ShDate}}</td>
-                        <td onclick="document.o.location= '/works/order/mini?Id={{.OrderId}}'" >{{.IsAct}}</td>
-                        <td onclick="document.o.location= '/works/order/mini?Id={{.OrderId}}'" >{{.Name}}</td>   
-                    </tr>
-                    
-                    {{end}}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-    </div>
+  });
+  </script>
         <script src="Face/html/js/bootstrap.bundle.js"></script>
         <script src="Face/html/js/keys.js"></script>
+        <script src="Face/html/js/tablesort.min.js"></script>
+        <script src="Face/html/js/tablesort.number.min.js"></script>
+        <script src="Face/html/js/tablesort.date.min.js"></script>
+        <script>
+          new Tablesort(document.getElementById('OrderData'));
+        </script>
 </body>
 
 
 </html>
+

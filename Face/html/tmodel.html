@@ -5,7 +5,7 @@
     <title>Модель {{.Model.Name}}</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="icon" href="Face\img\t-kom-ico.svg">
+    <link rel="icon" href="Face\img\t-kom-ico 144.png">
 
     <link href="Face/html/css/bootstrap.min.css" rel="stylesheet">    
     <link href="Face/html/css/style.css" rel="stylesheet">
@@ -30,7 +30,7 @@
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
             
           <li class="nav-item">
-            <a class="nav-link active" href="/works/prof">Профиль <i style="color: rgb(80, 80, 80);" class="bi bi-person-circle"></i></a>
+            <a class="nav-link active" href="/works/prof">Главная <i style="color: rgb(80, 80, 80);" class="bi bi-house-fill"></i></a>
           </li>
           
           
@@ -43,9 +43,7 @@
             </ul>
           </li>
           <a class="nav-link active" style="text-align: left;" href="/works/cal">Календарь задач <i class="bi bi-calendar-week"></i></a>
-          <form id="logout" name="logout" action="/works/logout" method="post"> 
-            <a href="/works/logout" class="btn btn-outline-danger" type="submit" name="logoutBtn" >Выйти <i class="bi bi-arrow-bar-right"></i></a>
-          </form>
+          
         </ul>
       </div>
 
@@ -62,9 +60,7 @@
               <caption>Информация о модели:</caption>
                 <tbody>
                     
-                    <tr>
-                      
-                    </tr>
+                
                     <tr>
                       <th>
                         Наименование
@@ -73,12 +69,32 @@
                         <h5>{{.Model.Name}}</h5>
                       </td>
                     </tr>
-                    <th>
-                      Id
-                    </th>
-                    <td>
-                      {{.Model.Id}}
-                    </td>
+                    <tr>
+                      <th>
+                        Id
+                      </th>
+                      <td>
+                        {{.Model.Id}}
+                      </td>
+                    </tr>
+                    <tr>
+                      <th>
+                        Паспорт
+                      </th>
+                      <td>
+                        <button class="btn btn-primary btn-sm" onclick=openNewKig()>Изменить</button>
+                        {{if(ne .Model.KigId "" )}}<a class="btn btn-primary btn-sm" href="/works/filesbase?id={{.Model.KigId}}&type=komm.kigs">Открыть</a> {{end}}
+                      </td>
+                    </tr>
+                    <tr>
+                      <th>
+                        Даташит
+                      </th>
+                      <td>
+                        <button class="btn btn-primary btn-sm" onclick=openNewDS()>Изменить</button>
+                        {{if(ne .Model.DsId "" )}}<a class="btn btn-primary btn-sm" href="/works/filesbase?id={{.Model.DsId}}&type=komm.ds">Открыть</a> {{end}}
+                      </td>
+                    </tr>
                 </tbody>
             </table>
           </div>
@@ -107,7 +123,65 @@
           </div>
 
         </div>
+
+        <div class="modal fade" id="NewKig" tabindex="-1" aria-labelledby="ModalLabel" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="ModalLabel">Загрузить новый паспорт</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <div class="mb-3">
+                  <form method="post" action="/works/changetmodelkig" enctype="multipart/form-data">
+                    <input type="hidden" name="modelId" id="modelId" value="{{.Model.Id}}">
+                    
+                    <div class=" input-group mb-3">
+                      <input type="file" accept=".pdf" class="form-control" name="newFile" id="newFile" >
+                      <button type="submit" class="btn btn-primary" onclick="">Загрузить</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal fade" id="NewDS" tabindex="-1" aria-labelledby="ModalLabel" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="ModalLabel">Загрузить новый даташит</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <div class="mb-3">
+                  <form method="post" action="/works/changetmodelds" enctype="multipart/form-data">
+                    <input type="hidden" name="modelId" id="modelId" value="{{.Model.Id}}">
+                    
+                    <div class=" input-group mb-3">
+                      <input type="file" accept=".pdf" class="form-control" name="newFile" id="newFile" >
+                      <button type="submit" class="btn btn-primary" onclick="">Загрузить</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
+
+        <script>
+        function openNewKig() {
+          var myModal = new bootstrap.Modal(document.getElementById('NewKig'));
+          myModal.show();
+        }
+        function openNewDS() {
+          var myModal = new bootstrap.Modal(document.getElementById('NewDS'));
+          myModal.show();
+        }
+        </script>
         <script src="Face/html/js/bootstrap.bundle.js"></script>
         <script src="Face/html/js/keys.js"></script>
 </body>

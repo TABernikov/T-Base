@@ -5,23 +5,23 @@
     <title>Календарь</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="icon" href="Face\img\t-kom-ico.svg">
+    <link rel="icon" href="Face\img\t-kom-ico 144.png">
 
     <link href="Face/html/css/bootstrap.min.css" rel="stylesheet">
     <link href="Face/html/css/style.css" rel="stylesheet">
     <link href="Face/html/css/bootstrap-icons.css" rel="stylesheet">
-    <script src='Face\html\js\cal.index.global.min.js'></script>
+    <script src='Face\html\js\index.global.min.js'></script>
     <script src='Face\html\js\cal.biootstrap.index.global.min.js'></script>
     <script src='Face\html\js\cal.ru.js'></script>
     <style>
 
     </style>
     <script>
-
+        var calendar
         document.addEventListener('DOMContentLoaded', function () {
           var calendarEl = document.getElementById('calendar');
         
-          var calendar = new FullCalendar.Calendar(calendarEl, {
+            calendar = new FullCalendar.Calendar(calendarEl, {
             themeSystem: 'bootstrap5',
             locale :'ru',
             firstDay: 1,
@@ -32,27 +32,72 @@
               day: 'День',
               year: 'Год'
             },
-            
+
+            views: {
+              monthJira: {
+                type: 'resourceTimeline',
+                duration: { month: 1 },
+                slotMinWidth : 75,
+                slotLabelFormat:{weekday: 'short',  day: 'numeric', omitCommas: true},
+              },
+              yearJira: {
+                type: 'resourceTimeline',
+                duration: { year: 1 },
+                slotMinWidth : 75,
+                slotLabelFormat:{month: 'numeric',  day: 'numeric', omitCommas: true},
+              }
+            },
+
             expandRows: true,
             height: 'auto',
             headerToolbar: {
               left: 'prev,next today',
               center: 'title',
-              right: 'dayGridMonth,multiMonthYear'
+              right: '{{if eq .View "Jira"}}monthJira,yearJira{{else if eq .View "List"}}listWeek,listMonth{{else if eq .View "Cal"}}dayGridWeek,dayGridMonth,multiMonthYear{{end}}'
             },
-            initialView: 'dayGridMonth',
+            initialView: '{{if eq .View "Jira"}}monthJira{{else if eq .View "List"}}listWeek{{else if eq .View "Cal"}}dayGridMonth{{end}}',
             selectable: true,
             nowIndicator: true,
+            eventOrder: "prior",
+            resourceOrder: "prior",
+
+            
+            multiMonthMaxColumns : 2,
+
+            
+
+
+
+
+            
+            resources: [
+            {{range .Tasks}}
+            {
+              id: '{{.Id}}',
+              title: '{{.Name}}',
+              prior: {{.Priority}} 
+            },
+            {{end}}
+            ],
+
+
+            
+
              
             events: [
-              {{range .}}
+              {{range .Tasks}}
               {
-                title: '{{.Name}} #{{.Id}}',
+                resourceId: '{{.Id}}',
+                title: {{if eq $.View "Jira"}}''{{else}}'{{.Name}} #{{.Id}}'{{end}},
                 url: "/works/task?Id={{.Id}}",
                 description: '{{.Description}}',
                 start: '{{.DateStart}}',
                 end: '{{.DateEnd}}',
-                color: '{{.Color}}'
+                color: '{{.Color}}',
+                allDay: true,
+                prior: {{.Priority}}
+                
+
               },
               {{end}}
               
@@ -96,27 +141,41 @@
                 </ul>
               </li>
               <a class="nav-link active" style="text-align: left;" href="/works/cal">Календарь задач <i class="bi bi-calendar-week"></i></a>
-              <form id="logout" name="logout" action="/works/logout" method="post"> 
-                <a href="/works/logout" class="btn btn-outline-danger" type="submit" name="logoutBtn" >Выйти <i class="bi bi-arrow-bar-right"></i></a>
-              </form>
+              
             </ul>
             <a class="btn btn-primary" href="/works/createtask"><i class="bi bi-calendar-plus"></i></a>
             &nbsp;
+            {{if eq .View "Jira"}}
             <a class="btn btn-primary" href="/works/cal?look=List" role="button" > <i class="bi bi-list-ul"></i> Вид списка</a>
+            <a class="btn btn-primary" href="/works/cal?look=Cal" role="button" > <i class="bi bi-list-ul"></i> Cal</a>
+            {{else if eq .View "List"}}
+            <a class="btn btn-primary" href="/works/cal?look=Cal" role="button" > <i class="bi bi-list-ul"></i> Cal</a>
+            <a class="btn btn-primary" href="/works/cal?look=Jira" role="button" > <i class="bi bi-list-ul"></i> Jira</a>
+            {{else if eq .View "Cal"}}
+            <a class="btn btn-primary" href="/works/cal?look=List" role="button" > <i class="bi bi-list-ul"></i> Вид списка</a>
+            <a class="btn btn-primary" href="/works/cal?look=Jira" role="button" > <i class="bi bi-list-ul"></i> Jira</a>
+            {{end}}
+            
+            
 
           </div>
   
         </div>
     </nav>
+    &nbsp;
     
-    <div class="container-xxl">
+    <div class="{{if eq .View "Jira"}}container-fluid{{else if eq .View "List"}}container-xxl{{else if eq .View "Cal"}}container-xxl{{end}}" >
       <div class="row">
         <div class="col">
          <div id='calendar'></div>
         </div>
       </div>
     </div>
-    
+
+
+    <script>
+      
+    </script>
 
     <script src="Face/html/js/bootstrap.bundle.js"></script>
     <script src="Face/html/js/keys.js"></script>

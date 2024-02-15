@@ -95,8 +95,8 @@ func (a App) SetOrderPage(w http.ResponseWriter, r *http.Request, pr httprouter.
 		a.Templ.AlertPage(w, 5, "Ошбка доступа", "Ошбка доступа", "У вас не доступа к этой функции", "обратитесь к администратору", "Главная", "/works/prof")
 		return
 	}
-	order := r.FormValue("order")
-	a.Templ.DobleImputPage(w, "/works/setorder", "Назначить заказ/резерв", "Введите серийные номера:", "Номер заказа", "number", "Назначить заказ", order)
+	orderId := r.FormValue("order")
+	a.Templ.ChangeDeviceOrder(w, orderId)
 }
 
 // Назначение резерва
@@ -500,7 +500,7 @@ func (a App) BuildAceptPage(w http.ResponseWriter, r *http.Request, pr httproute
 		for _, element := range build.BuildList {
 			matInWork[element.MatId] = matInWork[element.MatId] - element.Amout
 			if matInWork[element.MatId] < 0 {
-				a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Недостаточно материалов", "", "Главная", "/works/prof")
+				a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Недостаточно материалов ID: "+strconv.Itoa(element.MatId), "", "Главная", "/works/prof")
 				return
 			}
 		}

@@ -601,6 +601,248 @@ func (base Base) TakeStorageByTModelClean(ctx context.Context, fullReqest string
 	return storage, nil
 }
 
+// Отчет о выходе с производства по моделям
+// Выходная мапа [модель][дата]кол-во
+func (base Base) TakeProdOutByModel(ctx context.Context, dateStart time.Time, dateEnd time.Time) (prodOut map[string]map[string]int, models []string, dates []string, err error) {
+
+	qq := `SELECT name FROM public.sns WHERE condition = 1 AND "condDate" BETWEEN $1 AND $2 GROUP BY name ORDER BY name;`
+
+	rows, err := base.Db.Query(ctx, qq, dateStart, dateEnd)
+	if err != nil {
+		return
+	}
+
+	for rows.Next() {
+		var name string
+		err = rows.Scan(&name)
+		if err != nil {
+			return
+		}
+		models = append(models, name)
+	}
+	models = append(models, "Все")
+
+	qq = `SELECT "condDate" FROM public.sns WHERE condition = 1 AND "condDate" BETWEEN $1 AND $2 GROUP BY "condDate" ORDER BY "condDate";`
+
+	rows, err = base.Db.Query(ctx, qq, dateStart, dateEnd)
+	if err != nil {
+		return
+	}
+
+	for rows.Next() {
+		var date time.Time
+		err = rows.Scan(&date)
+		if err != nil {
+			return
+		}
+		dateStr := date.Format("02.01.2006")
+		dates = append(dates, dateStr)
+	}
+	dates = append(dates, "Все")
+
+	qq = `SELECT name, "condDate", COUNT(sn) FROM public.sns
+	WHERE condition = 1 AND "condDate" BETWEEN $1 AND $2
+	GROUP BY name, "condDate" ORDER BY name, "condDate";`
+
+	prodOut = make(map[string]map[string]int)
+
+	rows, err = base.Db.Query(ctx, qq, dateStart, dateEnd)
+	if err != nil {
+		return
+	}
+
+	for rows.Next() {
+		var date time.Time
+		var name string
+		var count int
+		err = rows.Scan(&name, &date, &count)
+		if err != nil {
+			return
+		}
+		dateStr := date.Format("02.01.2006")
+		if prodOut[name] == nil {
+			prodOut[name] = make(map[string]int)
+		}
+		prodOut[name][dateStr] = count
+	}
+
+	//сумма по дням
+	qq = `SELECT "condDate", COUNT(sn) FROM public.sns
+	WHERE condition = 1 AND "condDate" BETWEEN $1 AND $2
+	GROUP BY "condDate" ORDER BY "condDate";`
+
+	rows, err = base.Db.Query(ctx, qq, dateStart, dateEnd)
+	if err != nil {
+		return
+	}
+
+	prodOut["Все"] = make(map[string]int)
+	for rows.Next() {
+		var date time.Time
+		var count int
+		err = rows.Scan(&date, &count)
+		if err != nil {
+			return
+		}
+		dateStr := date.Format("02.01.2006")
+		prodOut["Все"][dateStr] = count
+	}
+
+	//сумма по моделям
+	qq = `SELECT name, COUNT(sn) FROM public.sns
+	WHERE condition = 1 AND "condDate" BETWEEN $1 AND $2
+	GROUP BY name ORDER BY name;`
+
+	rows, err = base.Db.Query(ctx, qq, dateStart, dateEnd)
+	if err != nil {
+		return
+	}
+
+	for rows.Next() {
+		var name string
+		var count int
+		err = rows.Scan(&name, &count)
+		if err != nil {
+			return
+		}
+		prodOut[name]["Все"] = count
+	}
+
+	qq = `SELECT COALESCE(COUNT(sn), 0::int) FROM public.sns WHERE condition = 1 AND "condDate" BETWEEN $1 AND $2;`
+
+	var count int
+	err = base.Db.QueryRow(ctx, qq, dateStart, dateEnd).Scan(&count)
+	if err != nil {
+		return
+	}
+
+	prodOut["Все"]["Все"] = count
+
+	return
+
+}
+
+// Отчет о выходе с производства по датам
+// Выходная мапа [дата][модель]кол-во
+func (base Base) TakeProdOutByDate(ctx context.Context, dateStart time.Time, dateEnd time.Time) (prodOut map[string]map[string]int, models []string, dates []string, err error) {
+
+	qq := `SELECT name FROM public.sns WHERE condition = 1 AND "condDate" BETWEEN $1 AND $2 GROUP BY name ORDER BY name;`
+
+	rows, err := base.Db.Query(ctx, qq, dateStart, dateEnd)
+	if err != nil {
+		return
+	}
+
+	for rows.Next() {
+		var name string
+		err = rows.Scan(&name)
+		if err != nil {
+			return
+		}
+		models = append(models, name)
+	}
+	models = append(models, "Все")
+
+	qq = `SELECT "condDate" FROM public.sns WHERE condition = 1 AND "condDate" BETWEEN $1 AND $2 GROUP BY "condDate" ORDER BY "condDate";`
+
+	rows, err = base.Db.Query(ctx, qq, dateStart, dateEnd)
+	if err != nil {
+		return
+	}
+
+	for rows.Next() {
+		var date time.Time
+		err = rows.Scan(&date)
+		if err != nil {
+			return
+		}
+		dateStr := date.Format("02.01.2006")
+		dates = append(dates, dateStr)
+	}
+	dates = append(dates, "Все")
+
+	qq = `SELECT "condDate", name, COUNT(sn) FROM public.sns
+	WHERE condition = 1 AND "condDate" BETWEEN $1 AND $2
+	GROUP BY "condDate", name ORDER BY "condDate", name;`
+
+	prodOut = make(map[string]map[string]int)
+
+	rows, err = base.Db.Query(ctx, qq, dateStart, dateEnd)
+	if err != nil {
+		return
+	}
+
+	for rows.Next() {
+		var date time.Time
+		var name string
+		var count int
+		err = rows.Scan(&date, &name, &count)
+		if err != nil {
+			return
+		}
+		dateStr := date.Format("02.01.2006")
+		if prodOut[dateStr] == nil {
+			prodOut[dateStr] = make(map[string]int)
+		}
+		prodOut[dateStr][name] = count
+	}
+
+	//сумма по дням
+	qq = `SELECT "condDate", COUNT(sn) FROM public.sns
+	WHERE condition = 1 AND "condDate" BETWEEN $1 AND $2
+	GROUP BY "condDate" ORDER BY "condDate";`
+
+	rows, err = base.Db.Query(ctx, qq, dateStart, dateEnd)
+	if err != nil {
+		return
+	}
+
+	for rows.Next() {
+		var date time.Time
+		var count int
+		err = rows.Scan(&date, &count)
+		if err != nil {
+			return
+		}
+		dateStr := date.Format("02.01.2006")
+		prodOut[dateStr]["Все"] = count
+	}
+
+	//сумма по моделям
+	qq = `SELECT name, COUNT(sn) FROM public.sns
+	WHERE condition = 1 AND "condDate" BETWEEN $1 AND $2
+	GROUP BY name ORDER BY name;`
+
+	rows, err = base.Db.Query(ctx, qq, dateStart, dateEnd)
+	if err != nil {
+		return
+	}
+
+	prodOut["Все"] = make(map[string]int)
+	for rows.Next() {
+		var name string
+		var count int
+		err = rows.Scan(&name, &count)
+		if err != nil {
+			return
+		}
+		prodOut["Все"][name] = count
+	}
+
+	qq = `SELECT COALESCE(COUNT(sn), 0::int) FROM public.sns WHERE condition = 1 AND "condDate" BETWEEN $1 AND $2;`
+
+	var count int
+	err = base.Db.QueryRow(ctx, qq, dateStart, dateEnd).Scan(&count)
+	if err != nil {
+		return
+	}
+
+	prodOut["Все"]["Все"] = count
+
+	return
+
+}
+
 //////////////////////////////
 
 // Функции получения заказов//
@@ -1338,6 +1580,19 @@ func (base Base) SetPromDate(ctx context.Context, order int, date time.Time) err
 		return fmt.Errorf("no row edits")
 	}
 	return err
+}
+
+func (base Base) SetShDate(ctx context.Context, order int) error {
+	qq := `UPDATE public.orders
+	SET "shDate"=CURRENT_DATE, "isAct" = false
+	WHERE "orderId"=$1`
+
+	res, err := base.Db.Exec(ctx, qq, order)
+	if res.RowsAffected() == 0 {
+		return fmt.Errorf("ни один заказ не изменен")
+	}
+	return err
+
 }
 
 ///////////////
@@ -2314,14 +2569,14 @@ func (base Base) TakeTModelsById(ctx context.Context, Ids ...int) ([]mytypes.TMo
 	var TModel mytypes.TModel
 
 	if len(Ids) == 0 {
-		qq := `SELECT "tModelsId", "tModelsName" FROM public."tModels" ORDER BY "tModelsName";`
+		qq := `SELECT "tModelsId", "tModelsName", kigid, ds FROM public."tModels" ORDER BY "tModelsName";`
 
 		rows, err := base.Db.Query(ctx, qq)
 		if err != nil {
 			return nil, err
 		}
 		for rows.Next() {
-			err := rows.Scan(&TModel.Id, &TModel.Name)
+			err := rows.Scan(&TModel.Id, &TModel.Name, &TModel.KigId, &TModel.DsId)
 			if err != nil {
 				return TModels, err
 			}
@@ -2329,10 +2584,10 @@ func (base Base) TakeTModelsById(ctx context.Context, Ids ...int) ([]mytypes.TMo
 		}
 
 	} else {
-		qq := `SELECT "tModelsId", "tModelsName" FROM public."tModels" WHERE "tModelsId" = $1 ORDER BY "tModelsName";`
+		qq := `SELECT "tModelsId", "tModelsName", kigid, ds FROM public."tModels" WHERE "tModelsId" = $1 ORDER BY "tModelsName";`
 
 		for _, a := range Ids {
-			err := base.Db.QueryRow(ctx, qq, a).Scan(&TModel.Id, &TModel.Name)
+			err := base.Db.QueryRow(ctx, qq, a).Scan(&TModel.Id, &TModel.Name, &TModel.KigId, &TModel.DsId)
 			if err != nil {
 				return TModels, err
 			}
@@ -2379,6 +2634,26 @@ func (base Base) ChangeDefBuild(ctx context.Context, dModelId int, newBuild int)
 	qq := `UPDATE public."dModels" SET "build" = $1 WHERE "dModelsId" = $2;`
 
 	_, err := base.Db.Exec(ctx, qq, newBuild, dModelId)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (base Base) ChangeTModelKig(ctx context.Context, tModelId int, newKigId string) error {
+	qq := `UPDATE public."tModels" SET kigid = $1 WHERE "tModelsId" = $2;`
+
+	_, err := base.Db.Exec(ctx, qq, newKigId, tModelId)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (base Base) ChangeTModelDs(ctx context.Context, tModelId int, newDsId string) error {
+	qq := `UPDATE public."tModels" SET ds = $1 WHERE "tModelsId" = $2;`
+
+	_, err := base.Db.Exec(ctx, qq, newDsId, tModelId)
 	if err != nil {
 		return err
 	}
@@ -2605,7 +2880,7 @@ func (base Base) TakeRelevantTaskByTModel(ctx context.Context, model int) (taskI
 	"taskWorkList".id, "taskWorkList"."taskId"
 	FROM public."taskWorkList"
 	LEFT JOIN tasks on "taskWorkList"."taskId" = tasks.id
-	WHERE amout > done AND complete = false AND datestart <= CURRENT_DATE AND dateend >= CURRENT_DATE AND tmodel = $1
+	WHERE complete = false And amout > done AND complete = false AND datestart <= CURRENT_DATE AND dateend >= CURRENT_DATE AND tmodel = $1
 	ORDER BY priority`
 	err = base.Db.QueryRow(ctx, qq, model).Scan(&taskElementId, &taskId)
 	return

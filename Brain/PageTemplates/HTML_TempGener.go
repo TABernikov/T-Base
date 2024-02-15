@@ -3,6 +3,7 @@ package PageTempl
 import (
 	"T-Base/Brain/Storage"
 	"context"
+	"log"
 	"time"
 
 	"T-Base/Brain/mytypes"
@@ -10,6 +11,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	TextTempl "text/template"
 )
 
 // Объект генератора
@@ -426,7 +428,6 @@ func (templ Templ) CreateOrderPage(w http.ResponseWriter) {
 // Генерация страницы создания состава заказа
 func (templ Templ) CreateOrderListPage(w http.ResponseWriter, ListId int, orderId int) {
 	type idChoise struct {
-		Id   int
 		Name string
 	}
 	type TakeForm struct {
@@ -444,14 +445,14 @@ func (templ Templ) CreateOrderListPage(w http.ResponseWriter, ListId int, orderI
 
 	var choise idChoise
 	var tmodelList []idChoise
-	rows, err := templ.Db.Db.Query(templ.ctx, `SELECT "tModelsId", "tModelsName" FROM public."tModels";`)
+	rows, err := templ.Db.Db.Query(templ.ctx, `SELECT "tModelsName" FROM public."tModels";`)
 	if err != nil {
 		templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
 		return
 	}
 
 	for rows.Next() {
-		err := rows.Scan(&choise.Id, &choise.Name)
+		err := rows.Scan(&choise.Name)
 		if err != nil {
 			templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
 			return
@@ -538,6 +539,8 @@ func (templ Templ) UserPage(w http.ResponseWriter, user mytypes.User) {
 		btn = Buton{`<i class="bi bi-reply-fill"></i> Вернуть на склад`, "/works/returntostorage"}
 		block.Btns = append(block.Btns, btn)
 		btn = Buton{`<i class="bi bi-person-fill-down"></i> Установить сборщика`, "/works/changeassembler"}
+		block.Btns = append(block.Btns, btn)
+		btn = Buton{`<i class="bi bi-table"></i> Отчет выпуска`, "/works/prodout"}
 		block.Btns = append(block.Btns, btn)
 		Blocks = append(Blocks, block)
 
@@ -1035,9 +1038,14 @@ func (templ Templ) MatEventPage(w http.ResponseWriter, events []mytypes.MatEvent
 }
 
 // Генерация страницы календаря
-func (templ Templ) CalendarPage(w http.ResponseWriter, tasks []mytypes.TaskJs) {
+func (templ Templ) CalendarPage(w http.ResponseWriter, tasks []mytypes.TaskJs, calView string) {
+	type Cal struct {
+		Tasks []mytypes.TaskJs
+		View  string
+	}
+	tmp := Cal{Tasks: tasks, View: calView}
 	t := template.Must(template.ParseFiles("Face/html/calendar.html"))
-	t.Execute(w, tasks)
+	t.Execute(w, tmp)
 }
 
 // Генерация страницы календаря (список)
@@ -1057,7 +1065,6 @@ func (templ Templ) CreateTaskPage(w http.ResponseWriter) {
 // Генерация страницы создания состава задачи
 func (templ Templ) CreateTaskListPage(w http.ResponseWriter, taskId int, redElementId int) {
 	type idChoise struct {
-		Id   int
 		Name string
 	}
 	type TakeForm struct {
@@ -1078,13 +1085,13 @@ func (templ Templ) CreateTaskListPage(w http.ResponseWriter, taskId int, redElem
 
 	var choise idChoise
 	var tmodelList []idChoise
-	rows, err := templ.Db.Db.Query(templ.ctx, `SELECT "tModelsId", "tModelsName" FROM public."tModels";`)
+	rows, err := templ.Db.Db.Query(templ.ctx, `SELECT "tModelsName" FROM public."tModels";`)
 	if err != nil {
 		templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
 		return
 	}
 	for rows.Next() {
-		err := rows.Scan(&choise.Id, &choise.Name)
+		err := rows.Scan(&choise.Name)
 		if err != nil {
 			templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
 			return
@@ -1844,4 +1851,117 @@ func (templ Templ) ChangeAssemblerPage(w http.ResponseWriter) {
 
 	t := template.Must(template.ParseFiles("Face/html/changeAssembler.html"))
 	t.Execute(w, Assemblers)
+}
+
+func (templ Templ) CustomDocsPage(w http.ResponseWriter, docsByTypes ...[]mytypes.Document) {
+	type DocAndId struct {
+		Doc mytypes.Document
+		Id  string
+	}
+
+	type DocsByType struct {
+		Docs     []DocAndId
+		Type     string
+		TypeName string
+	}
+
+	Docs := []DocsByType{} // все документы на странице сгруппированные по типу
+
+	for _, docsByType := range docsByTypes { // Проходим по всем типам документов
+		if len(docsByType) == 0 {
+			continue
+		}
+		var TypeDocsAndId []DocAndId // Все документы одного типа
+		for _, doc := range docsByType {
+			strinId := doc.Id.Hex()
+			TypeDocsAndId = append(TypeDocsAndId, DocAndId{Doc: doc, Id: strinId})
+		}
+		docType := docsByType[0].DocType
+		var TypeName string
+		switch docType {
+		case "main":
+			TypeName = "Основные"
+		case "private":
+			TypeName = "Личные"
+		case "other":
+			TypeName = "Другие"
+		case "komm.kigs":
+			TypeName = "Паспорта"
+		case "komm.ds":
+			TypeName = "Даташиты"
+		default:
+			TypeName = "Неизвестный тип"
+		}
+		docTypeName := TypeName
+		log.Println(docType)
+		Docs = append(Docs, DocsByType{Docs: TypeDocsAndId, Type: docType, TypeName: docTypeName})
+	}
+
+	t := TextTempl.Must(TextTempl.ParseFiles("Face/html/DocsPageCustom.html"))
+	t.Execute(w, Docs)
+}
+
+func (templ Templ) ProdOutTable(w http.ResponseWriter, prodOut map[string]map[string]int, models []string, dates []string) {
+	type Table struct {
+		ProdOut map[string]map[string]int
+		Models  []string
+		Dates   []string
+	}
+	table := Table{ProdOut: prodOut, Models: models, Dates: dates}
+
+	t := template.Must(template.ParseFiles("Face/html/prodOutTable.html"))
+	t.Execute(w, table)
+}
+
+func (templ Templ) ProdOutReport(w http.ResponseWriter, prodOut map[string]map[string]int, models []string, dates []string) {
+	type Table struct {
+		ProdOut   map[string]map[string]int
+		Models    []string
+		Dates     []string
+		Increment func(int) int
+	}
+	table := Table{ProdOut: prodOut, Models: models, Dates: dates, Increment: func(i int) int { return i + 1 }}
+
+	t := template.Must(template.ParseFiles("Face/html/prodOutReport.html"))
+	t.Execute(w, table)
+}
+
+func (templ Templ) ChangeDeviceOrder(w http.ResponseWriter, orderId string) {
+	type Page struct {
+		ReqOrder string
+		Orders   []mytypes.OrderClean
+	}
+
+	var orders []mytypes.OrderClean
+
+	qq := `SELECT "orderId", name, "1СName", "orderDate" FROM public.orders WHERE "isAct" = true;`
+
+	rows, err := templ.Db.Db.Query(templ.ctx, qq)
+	if err != nil {
+		templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения данных", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	for rows.Next() {
+		var order mytypes.OrderClean
+		var orderDate time.Time
+		err := rows.Scan(&order.OrderId, &order.Name, &order.Id1C, &orderDate)
+		if err != nil {
+			templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения данных", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		order.OrderDate = orderDate.Format("02.01.2006")
+		orders = append(orders, order)
+	}
+
+	Tmp := Page{ReqOrder: orderId, Orders: orders}
+
+	t := template.Must(template.ParseFiles("Face/html/ChangeDeviceOrder.html"))
+	t.Execute(w, Tmp)
+}
+
+// Генерация страницы НОВОГО календаря
+func (templ Templ) CalendarNewPage(w http.ResponseWriter, tasks []mytypes.TaskJs) {
+	t := template.Must(template.ParseFiles("Face/html/calendarNew.html"))
+	t.Execute(w, tasks)
 }

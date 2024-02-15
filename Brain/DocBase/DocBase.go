@@ -23,8 +23,9 @@ func NewDocBase() (*DocBase, error) {
 	return &DocBase{Db: database}, err
 }
 
-func (base DocBase) NewDoc(ctx context.Context, DocType string, name string, user mytypes.User, content string, access []string, files ...string) error {
+func (base DocBase) NewDoc(ctx context.Context, DocType string, name string, user mytypes.User, content string, access []string, files ...string) (primitive.ObjectID, error) {
 	collection := base.Db.Collection(DocType)
+	var id primitive.ObjectID
 
 	type DocToIn struct {
 		Tatle        string    `bson:"tatle"`
@@ -33,6 +34,7 @@ func (base DocBase) NewDoc(ctx context.Context, DocType string, name string, use
 		Content      string    `bson:"content"`
 		Access       []string  `bson:"access"`
 		Files        []string  `bson:"files"`
+		Type         string    `bson:"docType"`
 	}
 
 	if files == nil {
@@ -46,14 +48,17 @@ func (base DocBase) NewDoc(ctx context.Context, DocType string, name string, use
 		Content:      content,
 		Access:       access,
 		Files:        files,
+		Type:         DocType,
 	}
 
-	_, err := collection.InsertOne(ctx, doc)
+	res, err := collection.InsertOne(ctx, doc)
 	if err != nil {
-		return err
+		return id, err
 	}
 
-	return nil
+	id = res.InsertedID.(primitive.ObjectID)
+
+	return id, nil
 }
 
 func (base DocBase) TakeDocs(ctx context.Context, DocType string) ([]mytypes.Document, error) {
@@ -71,6 +76,10 @@ func (base DocBase) TakeDocs(ctx context.Context, DocType string) ([]mytypes.Doc
 		return docs, err
 	}
 
+	for i := 0; i < len(res); i++ {
+		res[i].DocType = DocType
+	}
+
 	return res, nil
 
 }
@@ -83,6 +92,7 @@ func (base DocBase) TakeDoc(ctx context.Context, DocType string, id primitive.Ob
 	if err != nil {
 		return doc, err
 	}
+	doc.DocType = DocType
 	return doc, nil
 }
 
@@ -99,6 +109,10 @@ func (base DocBase) TakeDocsByUser(ctx context.Context, DocType string, user myt
 	err = cursor.All(ctx, &res)
 	if err != nil {
 		return docs, err
+	}
+
+	for i := 0; i < len(res); i++ {
+		res[i].DocType = DocType
 	}
 
 	return res, nil

@@ -5,7 +5,7 @@
     <title>{{.Lable}}</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="icon" href="Face\img\t-kom-ico.svg">
+    <link rel="icon" href="Face\img\t-kom-ico 144.png">
 
     <link href="Face/html/css/bootstrap.min.css" rel="stylesheet">
     <link href="Face/html/css/style.css" rel="stylesheet">
@@ -37,7 +37,7 @@
              <ul class="navbar-nav me-auto mb-2 mb-lg-0">
             
             <li class="nav-item">
-              <a class="nav-link active" href="/works/prof">Профиль <i style="color: rgb(80, 80, 80);" class="bi bi-person-circle"></i></a>
+              <a class="nav-link active" href="/works/prof">Главная <i style="color: rgb(80, 80, 80);" class="bi bi-house-fill"></i></a>
             </li>
             
             
@@ -50,19 +50,17 @@
               </ul>
             </li>
             <a class="nav-link active" style="text-align: left;" href="/works/cal">Календарь задач <i class="bi bi-calendar-week"></i></a>
-            <form id="logout" name="logout" action="/works/logout" method="post"> 
-              <a href="/works/logout" class="btn btn-outline-danger" type="submit" name="logoutBtn" >Выйти <i class="bi bi-arrow-bar-right"></i></a>
-            </form>
+            
 
-              &nbsp;
-              <a class="btn btn-outline-primary " href="/works/tmcadvancesearch" style="width: auto;">Сложный поиск в ТМЦ <i class="bi bi-search"></i></a>
-              &nbsp;
-              
-              <a class="btn btn-outline-primary " href="/works/tmc{{.ExcellLink}}&Veiw=table" style="width: auto;">Табличный вид <i class="bi bi-table"></i></a>  
+               
               
             </ul>
             
-           
+            <a class="btn btn-outline-primary " href="/works/tmcadvancesearch" style="width: auto;">Сложный поиск в ТМЦ <i class="bi bi-search"></i></a>
+            &nbsp;
+            
+            <a class="btn btn-outline-primary " href="/works/tmc{{.ExcellLink}}&Veiw=table" style="width: auto;">Табличный вид <i class="bi bi-table"></i></a>
+            &nbsp;
               
             
             
@@ -94,8 +92,8 @@
      
         <div>
             
-                <table class="table table-hover table-striped table-bordered"style = "table-layout: fixed" id = "TMCData" >
-                  <col span="19" style="width: 150px;">
+                <table class="table table-hover table-striped table-bordered table-responsive text-nowrap table-sm"style = "" id = "TMCData" >
+                  <col span="19" style="width: max-content;">
                     <thead class="table-light">
                       <tr>
                         <th scope="col" id = "12344" style="position: sticky; top: 0px;">Id</th>
@@ -125,8 +123,7 @@
                     {{range .Tab}}
                     
                     <tr onclick="document.o.location= '/works/device/mini?Id={{.Id}}'"  class="{{if(eq .Shiped "true" )}} {{print "table-secondary"}} {{else if(eq .Condition "Собрано" )}} {{print "table-success"}} {{else if(eq .Condition "В работе" )}} {{print "table-primary"}}     {{else if(eq .Condition "Не собрано")}} {{print "table-warning"}} {{end}}">
-                        <th scope="row" style="display: flexbox;"> &nbsp;{{.Id}} <a class="btn btn-sm {{if(eq .Shiped "true" )}} {{print "btn-secondary"}} {{else if(eq .Condition "Собрано" )}} {{print "btn-success"}} {{else if(eq .Condition "В работе" )}} {{print "btn-primary"}}     {{else if(eq .Condition "Не собрано")}} {{print "btn-warning"}} {{end}}" role="button" href="/works/device/mini?Id={{.Id}}" style="width: 100%; " ><i class="bi bi-eye-fill"></i><i class="bi bi-reply-fill"></i></a> </th>
-                        
+                        <th scope="row" style="display: flexbox;">  <a class="btn btn-sm {{if(eq .Shiped "true" )}} {{print "btn-secondary"}} {{else if(eq .Condition "Собрано" )}} {{print "btn-success"}} {{else if(eq .Condition "В работе" )}} {{print "btn-primary"}}     {{else if(eq .Condition "Не собрано")}} {{print "btn-warning"}} {{end}} text-nowrap" role="button" href="/works/device/mini?Id={{.Id}}" style="width: 100%;" ><i class="bi bi-reply-fill"></i>{{.Id}}</a> </th>
                         <td>{{.Sn}}</td>
                         <td>{{.Mac}}</td>
                         <td>{{.DModel}}</td>
@@ -135,16 +132,16 @@
                         <td>{{.Name}}</td>
                         <td>{{.Condition}}</td>
                         <td>{{.CondDate}}</td>
-                        <td>{{.Order}} <a class="btn btn-sm {{if(eq .Shiped "true" )}} {{print "btn-secondary"}} {{else if(eq .Condition "Собрано" )}} {{print "btn-success"}} {{else if(eq .Condition "В работе" )}} {{print "btn-primary"}}     {{else if(eq .Condition "Не собрано")}} {{print "btn-warning"}} {{end}}" role="button" href="/works/order/mini?Id={{.Order}}" style="width: 100%; ">Открыть</a></td>
+                        <td><a class="btn btn-sm {{if(eq .Shiped "true" )}} {{print "btn-secondary"}} {{else if(eq .Condition "Собрано" )}} {{print "btn-success"}} {{else if(eq .Condition "В работе" )}} {{print "btn-primary"}}     {{else if(eq .Condition "Не собрано")}} {{print "btn-warning"}} {{end}}" role="button" href="/works/order/mini?Id={{.Order}}" style="width: 100%;">{{.Order}}</a></td>
                         <td>{{.Place}}</td>
-                        <td>{{.Shiped}}</td>
+                        <td>{{if (eq .Shiped "true")}} <i class="bi bi-truck"></i> &check; {{end}}</td>
                         <td>{{.ShipedDate}}</td>
                         <td>{{.ShippedDest}}</td>
                         <td>{{.TakenDate}}</td>
                         <td>{{.TakenDoc}}</td>
                         <td>{{.TakenOrder}}</td>
                         <td>{{.Assembler}}</td>
-                        <td class="" ><textarea readonly class="form-control">{{.Comment}}</textarea> </td>
+                        <td class="" ><textarea readonly class="form-control form-control-sm" style="height: 10px; width: 200px;">{{.Comment}}</textarea> </td>
                         
                         
                     </tr>
