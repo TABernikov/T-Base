@@ -51,7 +51,7 @@
         </div>
     </nav>
 
-    <div class="container-fluid" >
+    <div class="container" >
       <table class="table table-striped">
           <thead>
               <tr>
@@ -98,7 +98,7 @@
               {{if(eq .RedElement.Id -1 )}} <span class="input-group-text"><i class="bi-plus-lg"></i></span> <input type="hidden" name="ListId" value="-1" />
               {{else}} <span class="input-group-text">{{.RedElement.Id}}</span> <input type="hidden" name="ListId" value="{{.RedElement.Id}}" /> {{end}}
               
-              <input required class="form-select" name="TModel" type="text" list="tmodellist" placeholder="Не выбрано" onchange="resetIfInvalid(this)" {{if(eq .ListId -1 )}} {{else}} value="{{.RedElement.Model}}" {{end}}></input>
+              <input required class="form-select" name="TModel" type="text" list="tmodellist" placeholder="Не выбрано" onchange="resetIfInvalid(this)" {{if(eq .RedElement.Id -1 )}} {{else}} value="{{.RedElement.TModel}}" {{end}}></input>
               <datalist id="tmodellist">
                 <option  value=""></option>
                 {{range .TModels}}

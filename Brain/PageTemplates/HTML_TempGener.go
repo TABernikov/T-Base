@@ -509,6 +509,8 @@ func (templ Templ) UserPage(w http.ResponseWriter, user mytypes.User) {
 		block.Btns = append(block.Btns, btn)
 		btn = Buton{`<i class="bi bi-house-fill-cutout"></i> Склад материалов`, "/works/storage/mats"}
 		block.Btns = append(block.Btns, btn)
+		btn = Buton{`<i class="bi bi-pencil-fill"></i> Коментарий по Sn`, "/works/addcommentbysn"}
+		block.Btns = append(block.Btns, btn)
 
 		Blocks = append(Blocks, block)
 
@@ -1964,4 +1966,15 @@ func (templ Templ) ChangeDeviceOrder(w http.ResponseWriter, orderId string) {
 func (templ Templ) CalendarNewPage(w http.ResponseWriter, tasks []mytypes.TaskJs) {
 	t := template.Must(template.ParseFiles("Face/html/calendarNew.html"))
 	t.Execute(w, tasks)
+}
+
+func (templ Templ) TestTable(w http.ResponseWriter) {
+	Devices, err := templ.Db.TakeCleanDeviceByRequest(templ.ctx, "LIMIT 500")
+	if err != nil {
+		templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения данных", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	t := template.Must(template.ParseFiles("Face/html/TestTable.html"))
+	t.Execute(w, Devices)
 }

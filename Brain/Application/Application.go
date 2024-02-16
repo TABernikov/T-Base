@@ -73,6 +73,8 @@ func (a App) Routs(r *httprouter.Router) {
 	r.POST("/works/changepass", a.authtorized(a.ChangePass))
 	r.POST("/works/createreserv", a.authtorized(a.CreateReserv))
 
+	r.GET("/works/test", a.authtorized(a.TestTablePage))
+
 	TMCRouts(a, r)
 	DeviceChangeRouts(a, r)
 	OrderRouts(a, r)

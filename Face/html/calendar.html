@@ -37,18 +37,25 @@
               monthJira: {
                 type: 'resourceTimeline',
                 duration: { month: 1 },
-                slotMinWidth : 75,
+                slotMinWidth : 0,
                 slotLabelFormat:{weekday: 'short',  day: 'numeric', omitCommas: true},
+                weekends: false,
               },
               yearJira: {
                 type: 'resourceTimeline',
                 duration: { year: 1 },
-                slotMinWidth : 75,
+                slotMinWidth : 0,
                 slotLabelFormat:{month: 'numeric',  day: 'numeric', omitCommas: true},
-              }
+              },
+              
+
+
             },
 
+            
             expandRows: true,
+            dayMaxEventRows: 10,
+            
             height: 'auto',
             headerToolbar: {
               left: 'prev,next today',
@@ -88,7 +95,7 @@
               {{range .Tasks}}
               {
                 resourceId: '{{.Id}}',
-                title: {{if eq $.View "Jira"}}''{{else}}'{{.Name}} #{{.Id}}'{{end}},
+                title: {{if eq $.View "Jira"}}''{{else}}' #{{.Id}}'{{end}},
                 url: "/works/task?Id={{.Id}}",
                 description: '{{.Description}}',
                 start: '{{.DateStart}}',
@@ -128,7 +135,7 @@
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
             
               <li class="nav-item">
-                <a class="nav-link active" href="/works/prof">Профиль <i style="color: rgb(80, 80, 80);" class="bi bi-person-circle"></i></a>
+                <a class="nav-link active" href="/works/prof">Главная <i style="color: rgb(80, 80, 80);" class="bi bi-house-fill"></i></a>
               </li>
               
               
@@ -140,8 +147,8 @@
                   <li><a class="dropdown-item" href="/works/storage">Склад <i style="color: rgb(80, 80, 80);" class="bi bi-house-fill"></i></a></li>
                 </ul>
               </li>
-              <a class="nav-link active" style="text-align: left;" href="/works/cal">Календарь задач <i class="bi bi-calendar-week"></i></a>
-              
+              <a class="nav-link active" style="text-align: left;" href="/works/tasks">Задачи <i class="bi bi-list-ul"></i></a>
+
             </ul>
             <a class="btn btn-primary" href="/works/createtask"><i class="bi bi-calendar-plus"></i></a>
             &nbsp;
@@ -164,7 +171,7 @@
     </nav>
     &nbsp;
     
-    <div class="{{if eq .View "Jira"}}container-fluid{{else if eq .View "List"}}container-xxl{{else if eq .View "Cal"}}container-xxl{{end}}" >
+    <div class="{{if eq .View "Jira"}}container-fluid{{else if eq .View "List"}}container-xxl{{else if eq .View "Cal"}}container-fluid{{end}}" >
       <div class="row">
         <div class="col">
          <div id='calendar'></div>

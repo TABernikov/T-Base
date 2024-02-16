@@ -6,57 +6,197 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" href="Face\img\t-kom-ico 144.png">
 
+    
     <link href="Face/html/css/bootstrap.min.css" rel="stylesheet">
     <link href="Face/html/css/style.css" rel="stylesheet">
     <link href="Face/html/css/bootstrap-icons.css" rel="stylesheet">
+    <link href="Face/html/css/tui-grid.min.css" rel="stylesheet">
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://uicdn.toast.com/tui.time-picker/v2.0.3/tui-time-picker.css"
+    />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://uicdn.toast.com/tui.date-picker/v4.1.0/tui-date-picker.css"
+    />
+  </head>
     <style>
-        .tcs-select {
-        font-weight: bolder;
-        color: blueviolet;
-}
+      .tui-grid-row-even{
+        > .red.tui-grid-cell {
+          background-color: #f8e0e0;
+        }
+        > .gray.tui-grid-cell {
+          background-color: #E2E3E5; 
+        }
+        > .green.tui-grid-cell {
+          background-color: #D1E7DD;
+        }
+        > .blue.tui-grid-cell {
+          background-color: #e0e0f8;
+        }
+        > .yelow.tui-grid-cell {
+          background-color: #FFF3CD;
+        }
+      }
+      .tui-grid-row-odd{
+        > .red.tui-grid-cell {
+          background-color: #f8e0e0;
+        }
+        > .gray.tui-grid-cell {
+          background-color: #D7D8DA; 
+        }
+        > .green.tui-grid-cell {
+          background-color: #C7DBD2;
+        }
+        > .blue.tui-grid-cell {
+          background-color: #e0e0f8;
+        }
+        > .yelow.tui-grid-cell {
+          background-color: #F2E7C3;
+        }
+      }
     </style>
 </head>
 <body>
-  <table class="tcs table table-hover table-striped table-bordered" id="tcs-table">
-    <thead class="thead-dark">
-      <tr>
-        <th scope="col">#</th>
-        <th scope="col">First</th>
-        <th scope="col">Last</th>
-        <th scope="col">Handle</th>
-      </tr>
-    </thead>
-    <tbody>
-      <script>
-        for (let i = 1; i <= 100; i++) {
-          document.write("<tr class='table-" + (i % 2 === 0 ? "primary" : "primary") + "'>");
-          document.write("<th scope='row'>" + i + "</th>");
-          document.write("<td>First name " + i + "</td>");
-          document.write("<td>Last name " + i + "</td>");
-          document.write("<td>Handle " + i + "</td>");
-          document.write("</tr>");
-        }
-      </script>
-    </tbody>
-  </table>
+  <div class="container-fuild" style="height: 50vh; width: 95%;">
+
+    <div id="grid"></div>
+    
+  </div>
+
   
+  
+
+  <!--
+
+
+
+  
+
+  -->
+
+  <script src="https://uicdn.toast.com/tui.time-picker/v2.0.3/tui-time-picker.js"></script>
+  <script src="https://uicdn.toast.com/tui.date-picker/v4.1.0/tui-date-picker.js"></script>
+  <script src="Face/html/js/tui-grid.min.js"></script>
+
+  <script>
+
+  function formatDate(inputDate) {
+  const dateParts = inputDate.split('-');
+  const year = dateParts[0];
+  const month = dateParts[1];
+  const day = dateParts[2];
+  return `${day}-${month}-${year}`;
+}
+
+
+
+
+    const Grid = tui.Grid;
+    const instance = new Grid({
+    el: document.getElementById('grid'), // Container element
+
+    bodyHeight: "fitToParent",
+    className: "my-table-class",
+
+    
+    columnOptions: {
+        resizable: true
+      },
+
+
+
+    columns: [
+      { header: 'Id', name: 'id', sortable: true, filter: {type:'text',showClearBtn: true,operator: 'OR'}},
+      { header: 'SN', name: 'sn', sortable: true, filter: {type:'text',showClearBtn: true,operator: 'OR'}},
+      { header: 'MAC', name: 'mac', sortable: true, filter: {type:'text',showClearBtn: true,operator: 'OR'}},
+      { header: 'D-Model', name: 'dmodel', sortable: true, filter: 'select'},
+      { header: 'Rev', name: 'rev', sortable: true, filter: 'select'},
+      { header: 'T-Model', name: 'tmodel', sortable: true, filter: 'select'},
+      { header: 'Имя', name: 'name', sortable: true},
+      { header: 'Состояние', name: 'condition', sortable: true, filter: 'select'},
+      { header: 'Дата', name: 'condDate', sortable: true, 
+        filter: {
+          type: 'date',
+          options: {
+            format: 'dd.MM.yyyy'
+          }
+        },
+        formater: formatDate,
+
+
+      },
+      { header: 'Заказ', name: 'order', sortable: true},
+      { header: 'Место', name: 'place', sortable: true},
+      { header: 'Отгрузка', name: 'shipped', sortable: true, filter: 'select'},
+      { header: 'Дата отгрузки', name: 'shippedDate', sortable: true},
+      { header: 'Место отгрузки', name: 'shippedDest', sortable: true},
+      { header: 'Дата приемки', name: 'takenDate', sortable: true},
+      { header: 'Док. приемки', name: 'takenDoc', sortable: true, filter: {type:'text',showClearBtn: true,operator: 'OR'}},
+      { header: 'Заказ приемки', name: 'takenOrder', sortable: true, filter: {type:'text',showClearBtn: true,operator: 'OR'}},
+      { header: 'Сборщик', name: 'assembler', sortable: true, filter: 'select'},
+      { header: 'Коментарий', name: 'comment', sortable: true, filter: {type:'text',showClearBtn: true,operator: 'OR'}},
+      
+    ],
+    data: [
+    {{range .}}
+      {
+        id: {{.Id}},
+        sn: {{.Sn}},
+        mac: {{.Mac}},
+        dmodel: {{.DModel}},
+        rev: {{.Rev}},
+        tmodel: {{.TModel}},
+        name: {{.Name}},
+        condition: {{.Condition}},
+        condDate: '2012-04-21T18:25:43-05:00',
+        order: {{.Order}},
+        place: {{.Place}},
+        shipped: {{.Shiped}},
+        shippedDate: {{.ShipedDate}},
+        shippedDest: {{.ShippedDest}},
+        takenDate: {{.TakenDate}},
+        takenDoc: {{.TakenDoc}},
+        takenOrder: {{.TakenOrder}},
+        comment: {{.Comment}},
+        assembler: {{.Assembler}},
+        _attributes: { className: { row: ['{{if(eq .Shiped "true" )}} {{print "gray"}} {{else if(eq .Condition "Собрано" )}} {{print "green"}} {{else if(eq .Condition "В работе" )}} {{print "blue"}}     {{else if(eq .Condition "Не собрано")}} {{print "yelow"}} {{end}}'] } }
+      
+      },
+      {{end}}
+    ]
+  });
+
+
+  Grid.applyTheme('striped', {
+    cell: {
+      normal: {
+        border: '#D1D2D4',
+        showVerticalBorder: true,
+        showHorizontalBorder: true
+      },
+      header: {
+        
+      },
+      selectedHeader: {
+        
+      }
+    }
+  });
+
+
+
+  </script>
+
+
   <script src="Face/html/js/bootstrap.bundle.js"></script>
   <script src="Face/html/js/keys.js"></script>
 
-  <script src="Face/html/js/tcs.bundle.js"></script>
-  <script>
-    document.addEventListener("DOMContentLoaded", function(e) {
-        var table = document.getElementById("tcs-table");
-        var options = {
-            changeTracking: true,
-            deselectOutTableClick: false,
-            enableChanging: true,
-            selectClass: "tcs-select",
-        };
-        var buffer = new TableCellSelector.Buffer();
-        var tcs = new TableCellSelector(table, options, buffer);
-
-    });
-    </script>
+  
 </body>
 </html>
+
+
+

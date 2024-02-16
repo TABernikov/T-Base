@@ -85,6 +85,20 @@
 
     <script src="Face/html/js/bootstrap.bundle.js"></script>
     <script src="Face/html/js/keys.js"></script>
+
+    <script>
+      var textarea = document.getElementsByTagName('textarea')[0];
+
+      textarea.addEventListener('keydown', resize);
+
+      function resize() {
+      var el = this;
+      setTimeout(function() {
+        el.style.cssText = 'height:auto;';
+        el.style.cssText = 'height:' + el.scrollHeight + 'px';
+      }, 1);
+      }
+    </script>
 </body>
 
 

@@ -30,25 +30,25 @@ type DeviceRaw struct {
 
 // структура устройства для вывода пользователю
 type DeviceClean struct {
-	Id          int
-	Sn          string
-	Mac         string
-	DModel      string
-	Rev         string
-	TModel      string
-	Name        string
-	Condition   string
-	CondDate    string
-	Order       string
-	Place       int
-	Shiped      string
-	ShipedDate  string
-	ShippedDest string
-	TakenDate   string
-	TakenDoc    string
-	TakenOrder  string
-	Comment     string
-	Assembler   string
+	Id          int    `json:"id"`
+	Sn          string `json:"sn"`
+	Mac         string `json:"mac"`
+	DModel      string `json:"dmodel"`
+	Rev         string `json:"rev"`
+	TModel      string `json:"tmodel"`
+	Name        string `json:"name"`
+	Condition   string `json:"condition"`
+	CondDate    string `json:"condDate"`
+	Order       string `json:"order"`
+	Place       int    `json:"place"`
+	Shiped      string `json:"shipped"`
+	ShipedDate  string `json:"shippedDate"`
+	ShippedDest string `json:"shippedDest"`
+	TakenDate   string `json:"takenDate"`
+	TakenDoc    string `json:"takenDoc"`
+	TakenOrder  string `json:"takenOrder"`
+	Comment     string `json:"comment"`
+	Assembler   string `json:"assembler"`
 }
 
 // Структура пользователя

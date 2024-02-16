@@ -78,6 +78,10 @@ func (a App) CreateReservPage(w http.ResponseWriter, r *http.Request, pr httprou
 	a.Templ.CreateReservPage(w, SnsId)
 }
 
+func (a App) TestTablePage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	a.Templ.TestTable(w)
+}
+
 //////////////////////
 
 // Обработчики POST //

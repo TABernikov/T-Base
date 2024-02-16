@@ -255,7 +255,7 @@
                                     </thead>
                                     <tbody>
                                         {{range .Status}}
-                                        <tr>
+                                        <tr class = "{{if eq .Amout .Shipped}} table-success {{else if eq .Amout .Reserved}} table-warning {{else if eq .Amout .Done}} table-primary {{else if lt .Amout .Reserved}} table-danger{{end}} ">
                                             <td>{{.Model}}</td>
                                             <td>{{.Amout}}</td>
                                             <td>{{.Reserved}}</td>
