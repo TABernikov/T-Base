@@ -14,11 +14,15 @@
     
 
     <link href="Face/node_modules/handsontable/dist/handsontable.full.min.css" rel="stylesheet">
-    
+  
 
     <style>
-      .red{
-        background-color: #f50000;
+
+      td.green-even{
+      background-color: #D1E7DD; 
+      }
+      td.green-odd{
+      background-color: #C7DBD2;
       }
       .tui-grid-row-even{
         > .red.tui-grid-cell {
@@ -215,21 +219,21 @@ var hot = new Handsontable(container, {
   
 });
 
-hot.updateSettings({
-    cells: function(row, col) {
-      var cellProperties = {};
 
-      if (hot.getDataAtCell(hot.toVisualRow(row), 7) == 'Собрано') {
-        cellProperties.className = 'red';
-      } 
-
-      return cellProperties;
-    },
-  });
 });
 
 function safeHtmlRenderer(instance, td, row, col, prop, value, cellProperties) {
-  td.innerHTML = value;
+  if (instance.getDataAtCell(instance.toVisualRow(row), 7) == 'Собрано') {
+    if (row % 2 == 0) {
+      td.className = 'green-even';
+    }else{
+      td.className = 'green-odd';
+    }
+    td.innerHTML = value;
+  }else {
+    td.innerHTML = value;
+  } 
+  
 }
 
 
