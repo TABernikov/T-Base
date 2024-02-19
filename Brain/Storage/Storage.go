@@ -1768,33 +1768,33 @@ func (base Base) InsertMat(ctx context.Context, name string, matType int) error 
 }
 
 // Добавить новый материал (приемка)
-func (base Base) AddMat(ctx context.Context, name string, name1c string, price int, amout int, place int) error {
+func (base Base) AddMat(ctx context.Context, name string, name1c string, price int, amout int, place int) (int, error) {
 	var nameId int
 	qq := `SELECT "matNameId" FROM public."matsName" WHERE "name" = $1;`
 	err := base.Db.QueryRow(ctx, qq, name).Scan(&nameId)
 	if err != nil {
-		return err
+		return -1, err
 	}
 
 	qq = `UPDATE public.mats SET amout=amout + $4 WHERE name = $1 AND "1CName" = $2 AND price = $3;`
 	res, err := base.Db.Exec(ctx, qq, nameId, name1c, price, amout)
 	done := int(res.RowsAffected())
 	if err != nil {
-		return err
+		return -1, err
 	}
 	if done != 1 {
 		if done == 0 {
 			qq := `INSERT INTO public.mats( "1CName", amout, name, price) VALUES ($1, $2, $3, $4);`
 			res, err = base.Db.Exec(ctx, qq, name1c, amout, nameId, price)
 			if err != nil {
-				return err
+				return -1, err
 			}
 			done = int(res.RowsAffected())
 			if done != 1 {
-				return fmt.Errorf("критическая ошибка")
+				return -1, fmt.Errorf("критическая ошибка")
 			}
 		} else {
-			return fmt.Errorf("критическая ошибка")
+			return -1, fmt.Errorf("критическая ошибка")
 		}
 
 	}
@@ -1803,15 +1803,15 @@ func (base Base) AddMat(ctx context.Context, name string, name1c string, price i
 	qq = `SELECT "matId" FROM public.mats WHERE name = $1 AND "1CName" = $2 AND price = $3;`
 	err = base.Db.QueryRow(ctx, qq, nameId, name1c, price).Scan(&matId)
 	if err != nil {
-		return err
+		return -1, err
 	}
 
 	err = base.SetMatPlace(ctx, matId, place)
 	if err != nil {
-		return err
+		return -1, err
 	}
 
-	return nil
+	return matId, nil
 }
 
 // Добавление нового места хранения материалу

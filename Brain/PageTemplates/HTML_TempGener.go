@@ -1969,7 +1969,7 @@ func (templ Templ) CalendarNewPage(w http.ResponseWriter, tasks []mytypes.TaskJs
 }
 
 func (templ Templ) TestTable(w http.ResponseWriter) {
-	Devices, err := templ.Db.TakeCleanDeviceByRequest(templ.ctx, "LIMIT 500")
+	Devices, err := templ.Db.TakeCleanDeviceByRequest(templ.ctx, "")
 	if err != nil {
 		templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения данных", err.Error(), "Главная", "/works/prof")
 		return

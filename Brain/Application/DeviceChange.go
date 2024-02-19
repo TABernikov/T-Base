@@ -379,6 +379,13 @@ func (a App) TakeDeviceByModel(w http.ResponseWriter, r *http.Request, pr httpro
 		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка внесения усройств", "Было внесено "+strconv.Itoa(i)+" из "+strconv.Itoa(len(Sns)), errString, "Главная", "/works/prof")
 		return
 	}
+
+	logCount := a.Db.AddDeviceEventBySn(a.Ctx, 1, "Принято на склад", user.UserId, Sns...)
+	if logCount != len(Sns) {
+		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка записи логов", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
 	a.Templ.AlertPage(w, 1, "Готово", "Готово", "Все устройства внесены", "Отличная работа", "Главная", "/works/prof")
 }
 
@@ -756,6 +763,17 @@ func (a App) TakeDeviceByExcel(w http.ResponseWriter, r *http.Request, pr httpro
 		return
 	} else if insertCount > len(devices) {
 		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	var Ids []int
+	for _, device := range devices {
+		Ids = append(Ids, device.Id)
+	}
+
+	logCount := a.Db.AddDeviceEventById(a.Ctx, 1, "Принято на склад", user.UserId, Ids...)
+	if logCount != len(Ids) {
+		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка записи логов", err.Error(), "Главная", "/works/prof")
 		return
 	}
 

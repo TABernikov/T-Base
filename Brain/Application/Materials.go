@@ -99,7 +99,7 @@ func (a App) TakeMat(w http.ResponseWriter, r *http.Request, pr httprouter.Param
 		return
 	}
 
-	err = a.Db.AddMat(a.Ctx, name, name1c, price, amout, place)
+	matId, err := a.Db.AddMat(a.Ctx, name, name1c, price, amout, place)
 	if err != nil {
 		if err.Error() == "критическая ошибка" {
 			a.Templ.AlertPage(w, 5, "Ошибка", "КРИТИЧЕСКАЯ ОШИБКА !!!", "ОБРАТИТЕСЬ К АДМИНЕСТРАТОРУ ДЛЯ ВНЕСЕНИЯ ИСПРАВЛЕНИЙ", err.Error(), "Главная", "/works/prof")
@@ -107,6 +107,12 @@ func (a App) TakeMat(w http.ResponseWriter, r *http.Request, pr httprouter.Param
 			a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка внесения", err.Error(), "Главная", "/works/prof")
 			return
 		}
+	}
+
+	err = a.Db.AddMatLog(a.Ctx, matId, amout, 2, "Приемка на склад", user.UserId)
+	if err != nil {
+		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка записи логов", err.Error(), "Главная", "/works/prof")
+		return
 	}
 
 	a.Templ.AlertPage(w, 1, "Готово", "Готово", "Успешно", "Отличная работа", "Главная", "/works/prof")
