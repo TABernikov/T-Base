@@ -36,7 +36,7 @@ func (a App) TMCPage(w http.ResponseWriter, r *http.Request, pr httprouter.Param
 
 	link = "?"
 	if r.FormValue("Search") == "" {
-		devices, err = a.Db.TakeCleanDeviceByRequest(a.Ctx, "LIMIT 1000")
+		devices, err = a.Db.TakeCleanDeviceByRequest(a.Ctx, "WHERE shiped = false")
 		if err != nil {
 			a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
 		}

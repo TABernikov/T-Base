@@ -1,0 +1,46 @@
+.even{
+        
+    > td.red {
+      background-color: #f8e0e0;
+      color: black;
+    }
+    > td.gray {
+      background-color: #E2E3E5; 
+      color: black;
+    }
+    > td.green {
+      background-color: #D1E7DD;
+      color: black;
+    }
+    > td.blue {
+      background-color: #e0e0f8;
+      color: black;
+    }
+    > td.yellow {
+      background-color: #FFF3CD;
+      color: black;
+    }
+  }
+
+  .odd{
+    > td.red {
+      background-color: #f8e0e0;
+      color: black;
+    }
+    > td.gray {
+      background-color: #D7D8DA;
+      color: black; 
+    }
+    > .green {
+      background-color: #C7DBD2;
+      color: black;
+    }
+    > td.blue {
+      background-color: #e0e0f8;
+      color: black;
+    }
+    > td.yellow {
+      background-color: #F2E7C3;
+      color: black;
+    }
+  }

@@ -8,148 +8,28 @@
 
     
     <link href="Face/html/css/bootstrap.min.css" rel="stylesheet">
-    <link href="Face/html/css/style.css" rel="stylesheet">
     <link href="Face/html/css/bootstrap-icons.css" rel="stylesheet">
-
-    
-
     <link href="Face/node_modules/handsontable/dist/handsontable.full.min.css" rel="stylesheet">
+    <link href="Face/html/css/style.css" rel="stylesheet">
   
 
-    <style>
 
-      td.green-even{
-      background-color: #D1E7DD; 
-      }
-      td.green-odd{
-      background-color: #C7DBD2;
-      }
-      .tui-grid-row-even{
-        > .red.tui-grid-cell {
-          background-color: #f8e0e0;
-        }
-        > .gray.tui-grid-cell {
-          background-color: #E2E3E5; 
-        }
-        > .green.tui-grid-cell {
-          background-color: #D1E7DD;
-        }
-        > .blue.tui-grid-cell {
-          background-color: #e0e0f8;
-        }
-        > .yelow.tui-grid-cell {
-          background-color: #FFF3CD;
-        }
-      }
-      .tui-grid-row-odd{
-        > .red.tui-grid-cell {
-          background-color: #f8e0e0;
-        }
-        > .gray.tui-grid-cell {
-          background-color: #D7D8DA; 
-        }
-        > .green.tui-grid-cell {
-          background-color: #C7DBD2;
-        }
-        > .blue.tui-grid-cell {
-          background-color: #e0e0f8;
-        }
-        > .yelow.tui-grid-cell {
-          background-color: #F2E7C3;
-        }
-      }
-
-      
-    </style>
 
     
 </head>
 <body>
   
 
-  <div class="container-fuild" style="height: 45vh; width: 95%;">
+  <div class="container-fuild" style="height: 45vh; width: 100%;">
 
-    <div id="grid2"></div>
+    <div id="grid"></div>
     
   </div>
 
-
-  
-  
-
-  <!--
-
-
-
-  
-
-  -->
-
+  <iframe  name="o" float="left" width="100%"  scrolling="auto" frameborder="0" src="" style="height: 42vh;"  id="o">Sorry, your browser doesn't support iframes.</iframe>
 
   <script>
-
-
-    function compareDates(date1, date2) {
-      const [day1, month1, year1] = date1.split('.');
-      const [day2, month2, year2] = date2.split('.');
-      const formattedDate1 = new Date(`${year1}-${month1}-${day1}`).getTime();
-      const formattedDate2 = new Date(`${year2}-${month2}-${day2}`).getTime();
-
-      return formattedDate1 - formattedDate2;
-
-    }
-
-   
-
-
-
-
-
-    
-
-
-  </script>
-
-<script type="text/javascript" src="Face/node_modules/handsontable/dist/handsontable.full.min.js"></script>
-<script type="text/javascript" src="Face/node_modules/handsontable/dist/languages/ru-RU.min.js"></script>
-
-<script>
-  document.addEventListener("DOMContentLoaded", function() {
-const container = document.getElementById('grid2');
-var hot = new Handsontable(container, {
-  language: 'ru-RU',
-
-  columns: [
-    {title: 'id', type: 'text', data: 'id', renderer: safeHtmlRenderer},
-    {title: 'sn', type: 'text', data: 'sn', renderer: safeHtmlRenderer},
-    {title: 'mac', type: 'text', data: 'mac', renderer: safeHtmlRenderer},
-    {title: 'dmodel', type: 'text', data: 'dmodel', renderer: safeHtmlRenderer},
-    {title: 'rev', type: 'text', data: 'rev', renderer: safeHtmlRenderer},
-    {title: 'tmodel', type: 'text', data: 'tmodel', renderer: safeHtmlRenderer},
-    {title: 'name', type: 'text', data: 'name', renderer: safeHtmlRenderer},
-    {title: 'condition', type: 'text', data: 'condition', renderer: safeHtmlRenderer},
-    {title: 'condDate', type: 'date', data: 'condDate', renderer: safeHtmlRenderer},
-    {title: 'order', type: 'text', data: 'order', renderer: safeHtmlRenderer},
-    {title: 'place', type: 'text', data: 'place', renderer: safeHtmlRenderer},
-    {title: 'shipped', type: 'text', data: 'shipped', renderer: safeHtmlRenderer},
-    {title: 'shippedDate', type: 'date', data: 'shippedDate', renderer: safeHtmlRenderer},
-    {title: 'shippedDest', type: 'text', data: 'shippedDest', renderer: safeHtmlRenderer},
-    {title: 'takenDate', type: 'date', data: 'takenDate', renderer: safeHtmlRenderer},
-    {title: 'takenDoc', type: 'text', data: 'takenDoc', renderer: safeHtmlRenderer},
-    {title: 'takenOrder', type: 'text', data: 'takenOrder', renderer: safeHtmlRenderer},
-    {title: 'comment', type: 'text', data: 'comment', renderer: safeHtmlRenderer},
-    {title: 'assembler', type: 'text', data: 'assembler', renderer: safeHtmlRenderer},
-  ],
- 
-  hiddenColumns: {indicators: true,},
-  hiddenRows: true,
-
-  manualColumnMove: true,
-  manualColumnFreeze: true,
-  manualColumnResize: true,
-
-  
-  data: [
+   var datasource = [
   {{range .}}
       {
         id: {{.Id}},
@@ -175,69 +55,135 @@ var hot = new Handsontable(container, {
       },
       {{end}}
      
-  ],
+  ]
 
-  
-  filters: true,
-  dropdownMenu: ['filter_by_condition', 'filter_by_value', 'filter_action_bar'],
-  columnSorting: true,
-  dateFormat: 'DD.MM.YYYY',
-  readOnly: true,
-  rowHeaders: true,
-  height: '100%',
-  autoWrapRow: true,
-  autoWrapCol: true,
-  contextMenu: {
-    callback(key, selection, clickEvent) {
-      // Common callback for all options
-      console.log(key, selection, clickEvent);
-    },
-    items: {
-      copy: 'copy',hidecol: 'hidden_columns_hide', showcol: 'hidden_columns_show', hiderow :'hidden_rows_hide', showrow: 'hidden_rows_show', freezcol: 'freeze_column', unfreezcol: 'unfreeze_column',
-      scv: {
-        name: 'Экспорт в CSV',
-        callback(key, selection, clickEvent) { // Callback for specific option
-          const exportPlugin = hot.getPlugin('exportFile');
+  var dataColumns = [
+  {title: 'id', type: 'text', data: 'id', renderer: 'customStylesRenderer'}, // 0
+    {title: 'sn', type: 'text', data: 'sn', renderer: 'customStylesRenderer'}, //1
+    {title: 'mac', type: 'text', data: 'mac', renderer: 'customStylesRenderer'}, //2
+    {title: 'dmodel', type: 'text', data: 'dmodel', renderer: 'customStylesRenderer'}, //3
+    {title: 'rev', type: 'text', data: 'rev', renderer: 'customStylesRenderer'}, //4
+    {title: 'tmodel', type: 'text', data: 'tmodel', renderer: 'customStylesRenderer'}, //5
+    {title: 'name', type: 'text', data: 'name', renderer: 'customStylesRenderer'}, //6
+    {title: 'condition', type: 'text', data: 'condition', renderer: 'customStylesRenderer'}, //7
+    {title: 'condDate', type: 'date', data: 'condDate', renderer: 'customStylesRenderer'}, //8
+    {title: 'order', type: 'text', data: 'order', renderer: 'customStylesRenderer'},//9
+    {title: 'place', type: 'text', data: 'place', renderer: 'customStylesRenderer'},//10
+    {title: 'shipped', type: 'text', data: 'shipped', renderer: 'customStylesRenderer'},//11
+    {title: 'shippedDate', type: 'date', data: 'shippedDate', renderer: 'customStylesRenderer'},//12
+    {title: 'shippedDest', type: 'text', data: 'shippedDest', renderer: 'customStylesRenderer'},//13
+    {title: 'takenDate', type: 'date', data: 'takenDate', renderer: 'customStylesRenderer'},//14
+    {title: 'takenDoc', type: 'text', data: 'takenDoc', renderer: 'customStylesRenderer'},//15
+    {title: 'takenOrder', type: 'text', data: 'takenOrder', renderer: 'customStylesRenderer'},//16
+    {title: 'comment', type: 'text', data: 'comment', renderer: 'customStylesRenderer'},//17
+    {title: 'assembler', type: 'text', data: 'assembler', renderer: 'customStylesRenderer'},//18
+  ]
 
-          exportPlugin.downloadFile('csv', {
-          bom: true,
-          columnDelimiter: ';',
-          columnHeaders: true,
-          exportHiddenColumns: false,
-          exportHiddenRows: false,
-          fileExtension: 'csv',
-          filename: 'Экспорт [DD].[MM].[YYYY]',
-          mimeType: 'text/csv',
-          rowDelimiter: '\r\n',
-          rowHeaders: true
-        });
-        }
-      },
+  function customRender(instance, td, row, column, prop, value, cellProperties) {
+  if (td && td.parentNode) {
+    var tr = td.parentNode
+    var btncolor = ''
+    td.parentNode.className = (row % 2 === 0 ? 'even' : 'odd');
+
+    if (instance.getDataAtRow(row)[11] == 'true') {
+      td.className += ' gray';
+      btncolor = 'btn-secondary'
+    }else if (instance.getDataAtRow(row)[7] == 'Собрано') {
+      td.className += ' green';
+      btncolor = 'btn-success'
+    }else if (instance.getDataAtRow(row)[7] == 'Не собрано') {
+      td.className += ' yellow';
+      btncolor = 'btn-warning'
+    } else if (instance.getDataAtRow(row)[7] == 'В работе') {
+      td.className += ' blue';
+      btncolor = 'btn-primary'
+    } else {
+      td.className += ' red';
+      btncolor = 'btn-danger'
     }
-  },
-  licenseKey: 'non-commercial-and-evaluation' // for non-commercial use only
-  
-});
-
-
-});
-
-function safeHtmlRenderer(instance, td, row, col, prop, value, cellProperties) {
-  if (instance.getDataAtCell(instance.toVisualRow(row), 7) == 'Собрано') {
-    if (row % 2 == 0) {
-      td.className = 'green-even';
-    }else{
-      td.className = 'green-odd';
+  }
+  switch (column) {
+  case 9:
+    td.innerHTML = `<div style = "text-align: center"> <a class="btn btn-sm btn-primary ${btncolor}" style="color: ${btncolor == 'btn-warning' ? '#000' : 'white'}; width: 80%; font-size: smaller;" role="button" href="/works/order/mini?Id=${value}" target="_blank">${value}</a></div>`;
+    break;
+  case 0: 
+    td.innerHTML = `<div style = "text-align: center"> <a class="btn btn-sm btn-primary ${btncolor}" style="color: ${btncolor == 'btn-warning' ? '#000' : 'white'}; width: 90%; font-size: smaller;" role="button" href="/works/device/mini?Id=${value}" target="_blank"><i class="bi bi-reply-fill"></i>${value}</a></div>`;
+    break;
+  case 11:
+    if (value == 'true') {
+      td.innerHTML = '<i class="bi bi-truck"></i> &check;'
+    } else {
+      td.innerHTML = ''
     }
+    break;
+  case 17:
+    td.innerHTML = `<textarea readonly class="form-control form-control-sm" style="height: 10px; width: 200px;">${value}</textarea>`
+    break;
+  default:
     td.innerHTML = value;
-  }else {
-    td.innerHTML = value;
-  } 
-  
+  }
+  td.addEventListener('click', () => {
+    document.o.location= '/works/device/mini?Id=' + instance.getDataAtRow(row)[0];
+  });
 }
+  </script>
+
+<script type="text/javascript" src="Face/node_modules/handsontable/dist/handsontable.full.min.js"></script>
+<script type="text/javascript" src="Face/node_modules/handsontable/dist/languages/ru-RU.min.js"></script>
 
 
+<script>
 
+    Handsontable.renderers.registerRenderer('customStylesRenderer', customRender);
+
+    container = document.getElementById('grid');
+    var hot = new Handsontable(container, {
+    language: 'ru-RU',
+    columns: dataColumns,
+    hiddenColumns: {indicators: true,},
+    hiddenRows: true,
+    manualColumnMove: true,
+    manualColumnFreeze: true,
+    manualColumnResize: true,
+    data: datasource,
+    filters: true,
+    dropdownMenu: ['filter_by_condition', 'filter_by_value', 'filter_action_bar'],
+    columnSorting: true,
+    dateFormat: 'DD.MM.YYYY',
+    readOnly: true,
+    rowHeaders: true,
+    height: '100%',
+    autoWrapRow: true,
+    autoWrapCol: true,
+    contextMenu: {
+        callback(key, selection, clickEvent) {
+        console.log(key, selection, clickEvent);
+        },
+        items: {
+        copy: 'copy',hidecol: 'hidden_columns_hide', showcol: 'hidden_columns_show', hiderow :'hidden_rows_hide', showrow: 'hidden_rows_show', freezcol: 'freeze_column', unfreezcol: 'unfreeze_column',
+        scv: {
+            name: 'Экспорт в CSV',
+            callback(key, selection, clickEvent) {
+            const exportPlugin = hot.getPlugin('exportFile');
+
+            exportPlugin.downloadFile('csv', {
+            bom: true,
+            columnDelimiter: ';',
+            columnHeaders: true,
+            exportHiddenColumns: false,
+            exportHiddenRows: false,
+            fileExtension: 'csv',
+            filename: 'Экспорт [DD].[MM].[YYYY]',
+            mimeType: 'text/csv',
+            rowDelimiter: '\r\n',
+            rowHeaders: true
+            });
+            }
+        },
+        }
+    },
+    licenseKey: 'non-commercial-and-evaluation'
+    });
 </script>
 
   <script src="Face/html/js/bootstrap.bundle.js"></script>

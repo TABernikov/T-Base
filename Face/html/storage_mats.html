@@ -10,6 +10,7 @@
     <link href="Face/html/css/bootstrap.min.css" rel="stylesheet">
     <link href="Face/html/css/style.css" rel="stylesheet">
     <link href="Face/html/css/bootstrap-icons.css" rel="stylesheet">
+    <link href="Face/node_modules/handsontable/dist/handsontable.full.min.css" rel="stylesheet">
 
 </head>
 <body>
@@ -75,60 +76,9 @@
             </div>
         </nav>
         <div>
-          <table class="table table-bordered table-hover table-striped table-sm">
-              <thead class="table-light" style="position: sticky; top: 76px;">
-                  <tr>
-                    <th scope="col">
-                        ID
-                    </th>
-                    <th scope="col">
-                        Наименование
-                    </th>
-                    <th scope="col">
-                        1C
-                    </th>
-                    <th scope="col">
-                      Цена
-                    </th>
-                    <th scope="col">
-                      Кол-во
-                    </th>
-                    <th scope="col">
-                      Места хранения
-                    </th>
-                    <th scope="col">
-                      Тип
-                    </th>
-                  </tr>
-              </thead>
-              <tbody>
-                  {{range .Mats}}
-                  <tr {{if eq $.User.Acces 2}}ondblclick="openModal('{{.Name}}','{{.Id}}')" {{else}}ondblclick="openEvents('{{.Id}}','{{.Name}}')" {{end}}>
-                      <td>
-                        {{.Id}}
-                      </td>
-                      <td>
-                        {{.Name}}
-                      </td>
-                      <td>
-                        {{.Name1C}}
-                      </td>
-                      <td>
-                        {{.Price}}
-                      </td>
-                      <td>
-                        {{.Amout}} ({{.InWork}})
-                      </td>
-                      <td>
-                        {{range .Places}} {{.}}, {{end}}
-                      </td>
-                      <td>
-                        {{.Type}} 
-                      </td>
-                  </tr>
-                  {{end}}
-              </tbody>
-          </table>
+          <div class="container" style="width: 100%; height: 80vh;">
+            <div id="table"></div>
+          </div>
         </div>
 
         <!-- Всплывающее окно -->
@@ -176,6 +126,116 @@
 
       <script src="Face/html/js/bootstrap.bundle.js"></script>
       <script src="Face/html/js/keys.js"></script>
+
+      <script>
+
+        var container = document.getElementById('table');
+      
+        var datasource = [
+       {{range .Mats}}
+           {
+             id:  {{.Id}},
+             name: {{.Name}},
+             name1c: {{.Name1C}},
+             price: {{.Price}},
+             amout: '{{.Amout}} ({{.InWork}})',
+             place: '{{range .Places}} {{.}}, {{end}}',
+             type: {{.Type}},
+           
+           },
+           {{end}}
+          
+       ]
+      
+       var dataColumns = [
+        {title: 'ID', type: 'text', data: 'id', renderer: 'customStylesRenderer'},                      //0
+        {title: 'Наименование', type: 'text', data: 'name', renderer: 'customStylesRenderer'},                      //1
+        {title: '1C', type: 'text', data: 'name1c', renderer: 'customStylesRenderer'},                    //2
+        {title: 'Цена', type: 'text', data: 'price', renderer: 'customStylesRenderer'},              //3
+        {title: 'Кол-во', type: 'text', data: 'amout', renderer: 'customStylesRenderer'},                    //4
+        {title: 'Места хранения', type: 'text', data: 'place', renderer: 'customStylesRenderer'},              //5
+        {title: 'Тип', type: 'text', data: 'type', renderer: 'customStylesRenderer'},                   //6
+       ]
+      
+       var hiddenCol = []
+      
+       function customRender(instance, td, row, column, prop, value, cellProperties) {
+        if (td && td.parentNode) {
+          var tr = td.parentNode;
+          id = instance.getDataAtRow(row)[0];
+          name = instance.getDataAtRow(row)[1];
+          
+
+          td.addEventListener('dblclick', () => {
+          {{if eq .User.Acces 2}}openModal(name,id); {{else}}openEvents(id,name); {{end}}
+          });
+        }
+        td.innerHTML = value;
+       
+        
+      }
+      </script>
+      
+      <script type="text/javascript" src="Face/node_modules/handsontable/dist/handsontable.full.min.js"></script>
+      <script type="text/javascript" src="Face/node_modules/handsontable/dist/languages/ru-RU.min.js"></script>
+      
+      
+      <script>
+      
+        Handsontable.renderers.registerRenderer('customStylesRenderer', customRender);
+        con = container
+        colData = dataColumns
+        source = datasource
+        hidden = hiddenCol
+        
+        var hot = new Handsontable(con, {
+        language: 'ru-RU',
+        columns: colData,
+        hiddenColumns: {indicators: true, columns: hidden},
+        hiddenRows: true,
+        manualColumnMove: true,
+        manualColumnFreeze: true,
+        manualColumnResize: true,
+        data: source,
+        filters: true,
+        dropdownMenu: ['filter_by_condition', 'filter_by_value', 'filter_action_bar'],
+        columnSorting: true,
+        dateFormat: 'DD.MM.YYYY',
+        readOnly: true,
+        rowHeaders: true,
+        height: '100%',
+        autoWrapRow: true,
+        autoWrapCol: true,
+        contextMenu: {
+          callback(key, selection, clickEvent) {
+            console.log(key, selection, clickEvent);
+          },
+          items: {
+            copy: 'copy',hidecol: 'hidden_columns_hide', showcol: 'hidden_columns_show', hiderow :'hidden_rows_hide', showrow: 'hidden_rows_show', freezcol: 'freeze_column', unfreezcol: 'unfreeze_column',
+            scv: {
+                name: 'Экспорт в CSV',
+                callback(key, selection, clickEvent) {
+                const exportPlugin = hot.getPlugin('exportFile');
+      
+                exportPlugin.downloadFile('csv', {
+                bom: true,
+                columnDelimiter: ';',
+                columnHeaders: true,
+                exportHiddenColumns: false,
+                exportHiddenRows: false,
+                fileExtension: 'csv',
+                filename: 'Экспорт [DD].[MM].[YYYY]',
+                mimeType: 'text/csv',
+                rowDelimiter: '\r\n',
+                rowHeaders: true
+                });
+                }
+            },
+            
+        },},
+        licenseKey: 'non-commercial-and-evaluation'
+        });
+      </script>
 
         
 </body>

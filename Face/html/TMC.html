@@ -2,20 +2,16 @@
 <html lang="ru">
 
 <head>
-    <title>{{.Lable}}</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="icon" href="Face\img\t-kom-ico 144.png">
+  <title>{{.Lable}}</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="Face\img\t-kom-ico 144.png">
 
-    <link href="Face/html/css/bootstrap.min.css" rel="stylesheet">
-    <link href="Face/html/css/style.css" rel="stylesheet">
-    <link href="Face/html/css/bootstrap-icons.css" rel="stylesheet">
-    <style>
-        .tcs-select {
-        font-weight: bolder;
-        color: blueviolet;
-      }
-    </style>
+  <link href="Face/html/css/bootstrap.min.css" rel="stylesheet">
+  <link href="Face/html/css/style.css" rel="stylesheet">
+  <link href="Face/html/css/bootstrap-icons.css" rel="stylesheet">
+  <link href="Face/node_modules/handsontable/dist/handsontable.full.min.css" rel="stylesheet">
+
 </head>
 <body>
     
@@ -79,124 +75,200 @@
 
 
 
-<iframe  name="o" float="left" width="100%"  scrolling="auto" frameborder="0" src="/works/device/mini?Id={{(index .Tab 0).Id}}" style="height: 42vh;"  id="o">Sorry, your browser doesn't support iframes.</iframe>
-<div class="container-fluid">
-{{.Lable}} <button class="d.inline btn btn-outline-primary btn-sm"name="copybtn" onclick="myFunction()"><i class="bi-copy" ></i></button>
-&nbsp;<a class="d.inline btn btn-outline-success btn-sm"name="copybtn" href="/works/tmcexcell{{.ExcellLink}}"><i class="bi-file-earmark-excel" ></i></a>
-&nbsp;<a class="d.inline btn btn-outline-primary btn-sm " href="/works/tmcadvancesearch" style="width: auto;"><i class="bi bi-filter-circle"></i> Фильтр/Поиск <i class="bi bi-search"></i></a>
-&nbsp;<button class="d.inline btn btn-outline-primary btn-sm" id="deselect" style="width: auto;">Снять выделение</button>
-</div>
+  <iframe  name="o" float="left" width="100%"  scrolling="auto" frameborder="0" src="/works/device/mini?Id={{(index .Tab 0).Id}}" style="height: 42vh;"  id="o">Sorry, your browser doesn't support iframes.</iframe>
+  <div class="container-fluid">
+    {{.Lable}} <button class="d.inline btn btn-outline-primary btn-sm"name="copybtn" onclick="myFunction()"><i class="bi-copy" ></i></button>
+    &nbsp;<a class="d.inline btn btn-outline-success btn-sm"name="copybtn" href="/works/tmcexcell{{.ExcellLink}}"><i class="bi-file-earmark-excel" ></i></a>
+    &nbsp;<a class="d.inline btn btn-outline-primary btn-sm " href="/works/tmcadvancesearch" style="width: auto;"><i class="bi bi-filter-circle"></i> Фильтр/Поиск <i class="bi bi-search"></i></a>
+    &nbsp;<button class="d.inline btn btn-outline-primary btn-sm" id="deselect" style="width: auto;">Снять выделение</button>
+  </div>
 
-    <div class="container-fluid" style="overflow-y:scroll; overflow-x: scroll; width: 100%;  height: 43vh;">
+  <div class="container-fluid" style="overflow-y:scroll; overflow-x: scroll; width: 100%;  height: 43vh;">
+    <div id="TMCData"></div>
+  </div>
     
+<script>
+function myFunction() {
+const el = document.createElement('textarea');
+el.value = "{{.SnString}}";
+el.setAttribute('readonly', '');
+el.style.position = 'absolute';
+el.style.left = '-9999px';
+document.body.appendChild(el);
+el.select();
+document.execCommand('copy');
+document.body.removeChild(el);
+}
+</script>
+<script src="Face/html/js/bootstrap.bundle.js"></script>
+<script src="Face/html/js/keys.js"></script>
+
+
+<script>
+
+  var container = document.getElementById('TMCData');
+
+  var datasource = [
+ {{range .Tab}}
+     {
+       id: {{.Id}},
+       sn: {{.Sn}},
+       mac: {{.Mac}},
+       dmodel: {{.DModel}},
+       rev: {{.Rev}},
+       tmodel: {{.TModel}},
+       name: {{.Name}},
+       condition: {{.Condition}},
+       condDate: {{.CondDate}},
+       order: {{.Order}},
+       place: {{.Place}},
+       shipped: {{.Shiped}},
+       shippedDate: {{.ShipedDate}},
+       shippedDest: {{.ShippedDest}},
+       takenDate: {{.TakenDate}},
+       takenDoc: {{.TakenDoc}},
+       takenOrder: {{.TakenOrder}},
+       comment: {{.Comment}},
+       assembler: {{.Assembler}},
      
-        <div>
-            
-                <table class="table table-hover table-striped table-bordered table-responsive text-nowrap table-sm"style = "" id = "TMCData" >
-                  <col span="19" style="width: max-content;">
-                    <thead class="table-light">
-                      <tr>
-                        <th scope="col" id = "12344" style="position: sticky; top: 0px;">Id</th>
-                        <th scope="col" style="position: sticky; top: 0px;">SN</th>
-                        <th scope="col" style="position: sticky; top: 0px;">MAC</th>
-                        <th scope="col" style="position: sticky; top: 0px;">D-Model</th>
-                        <th scope="col" style="position: sticky; top: 0px;">Rev</th>
-                        <th scope="col" style="position: sticky; top: 0px;">T-Model</th>
-                        <th scope="col" style="position: sticky; top: 0px;">Имя</th>
-                        <th scope="col" style="position: sticky; top: 0px;">Состояние</th>
-                        <th scope="col" style="position: sticky; top: 0px;">Дата</th>
-                        <th scope="col" style="position: sticky; top: 0px;">Заказ</th>
-                        <th scope="col" style="position: sticky; top: 0px;">Место</th>
-                        <th scope="col" style="position: sticky; top: 0px;">Отгрузка</th>
-                        <th scope="col" style="position: sticky; top: 0px;">Дата отгрузки</th>
-                        <th scope="col" style="position: sticky; top: 0px;">Место отгрузки</th>
-                        <th scope="col" style="position: sticky; top: 0px;">Дата приемки</th>
-                        <th scope="col" style="position: sticky; top: 0px;">Док. приемки</th>
-                        <th scope="col" style="position: sticky; top: 0px;">Заказ приемки</th>
-                        <th scope="col" style="position: sticky; top: 0px;">Сборщик</th>
-                        <th scope="col" style="position: sticky; top: 0px;">Коментарий</th>
-                            
-                      </tr>
-                    </thead>
-                    <tbody class="">
-                    {{range .Tab}}
-                    
-                    <tr onclick="document.o.location= '/works/device/mini?Id={{.Id}}'"  class="{{if(eq .Shiped "true" )}} {{print "table-secondary"}} {{else if(eq .Condition "Собрано" )}} {{print "table-success"}} {{else if(eq .Condition "В работе" )}} {{print "table-primary"}}     {{else if(eq .Condition "Не собрано")}} {{print "table-warning"}} {{end}}">
-                        <th scope="row" style="display: flexbox;">  <a class="btn btn-sm {{if(eq .Shiped "true" )}} {{print "btn-secondary"}} {{else if(eq .Condition "Собрано" )}} {{print "btn-success"}} {{else if(eq .Condition "В работе" )}} {{print "btn-primary"}}     {{else if(eq .Condition "Не собрано")}} {{print "btn-warning"}} {{end}} text-nowrap" role="button" href="/works/device/mini?Id={{.Id}}" style="width: 100%;" ><i class="bi bi-reply-fill"></i>{{.Id}}</a> </th>
-                        <td>{{.Sn}}</td>
-                        <td>{{.Mac}}</td>
-                        <td>{{.DModel}}</td>
-                        <td>{{.Rev}}</td>
-                        <td>{{.TModel}}</td>
-                        <td>{{.Name}}</td>
-                        <td>{{.Condition}}</td>
-                        <td>{{.CondDate}}</td>
-                        <td><a class="btn btn-sm {{if(eq .Shiped "true" )}} {{print "btn-secondary"}} {{else if(eq .Condition "Собрано" )}} {{print "btn-success"}} {{else if(eq .Condition "В работе" )}} {{print "btn-primary"}}     {{else if(eq .Condition "Не собрано")}} {{print "btn-warning"}} {{end}}" role="button" href="/works/order/mini?Id={{.Order}}" style="width: 100%;">{{.Order}}</a></td>
-                        <td>{{.Place}}</td>
-                        <td>{{if (eq .Shiped "true")}} <i class="bi bi-truck"></i> &check; {{end}}</td>
-                        <td>{{.ShipedDate}}</td>
-                        <td>{{.ShippedDest}}</td>
-                        <td>{{.TakenDate}}</td>
-                        <td>{{.TakenDoc}}</td>
-                        <td>{{.TakenOrder}}</td>
-                        <td>{{.Assembler}}</td>
-                        <td class="" ><textarea readonly class="form-control form-control-sm" style="height: 10px; width: 200px;">{{.Comment}}</textarea> </td>
-                        
-                        
-                    </tr>
-                    
-                    {{end}}
-                    </tbody>
-                </table>
-            
-        </div>
+     },
+     {{end}}
     
-    </div>
-    
-    <script>
-      function myFunction() {
-        const el = document.createElement('textarea');
-        el.value = "{{.SnString}}";
-        el.setAttribute('readonly', '');
-        el.style.position = 'absolute';
-        el.style.left = '-9999px';
-        document.body.appendChild(el);
-        el.select();
-        document.execCommand('copy');
-        document.body.removeChild(el);
-      }
-      </script>
-        <script src="Face/html/js/bootstrap.bundle.js"></script>
-        <script src="Face/html/js/keys.js"></script>
-       
+ ]
 
-        <script src="Face/html/js/tcs.bundle.js"></script>
-  <script>
-    document.addEventListener("DOMContentLoaded", function(e) {
-        var table = document.getElementById("TMCData");
-        var options = {
-            changeTracking: true,
-            deselectOutTableClick: false,
-            enableChanging: false,
-            selectClass: "tcs-select",
-        };
-        var buffer = new TableCellSelector.Buffer();
-        var tcs = new TableCellSelector(table, options, buffer);
-        document.getElementById("deselect").onclick = function (e) {
-            e.preventDefault();
-            var res = tcs.deselect();
-            console.log("deselect = " + res);
-        };
+ var dataColumns = [
+  {title: 'Id', type: 'text', data: 'id', renderer: 'customStylesRenderer'},                      //0
+  {title: 'Sn', type: 'text', data: 'sn', renderer: 'customStylesRenderer'},                      //1
+  {title: 'MAC', type: 'text', data: 'mac', renderer: 'customStylesRenderer'},                    //2
+  {title: 'DModel', type: 'text', data: 'dmodel', renderer: 'customStylesRenderer'},              //3
+  {title: 'Rev', type: 'text', data: 'rev', renderer: 'customStylesRenderer'},                    //4
+  {title: 'TModel', type: 'text', data: 'tmodel', renderer: 'customStylesRenderer'},              //5
+  {title: 'Имя', type: 'text', data: 'name', renderer: 'customStylesRenderer'},                   //6
+  {title: 'Состояние', type: 'text', data: 'condition', renderer: 'customStylesRenderer'},        //7
+  {title: 'Дата сборки', type: 'date', data: 'condDate', renderer: 'customStylesRenderer'},       //8
+  {title: 'Заказ', type: 'text', data: 'order', renderer: 'customStylesRenderer'},                //9
+  {title: 'Место', type: 'text', data: 'place', renderer: 'customStylesRenderer'},                //10
+  {title: 'Отгрузка', type: 'text', data: 'shipped', renderer: 'customStylesRenderer'},           //11
+  {title: 'Дата отгрузки', type: 'date', data: 'shippedDate', renderer: 'customStylesRenderer'},  //12
+  {title: 'Место отгрузки', type: 'text', data: 'shippedDest', renderer: 'customStylesRenderer'}, //13
+  {title: 'Дата приемки', type: 'date', data: 'takenDate', renderer: 'customStylesRenderer'},     //14
+  {title: 'Документ приемки', type: 'text', data: 'takenDoc', renderer: 'customStylesRenderer'},  //15
+  {title: 'Заказ приемки', type: 'text', data: 'takenOrder', renderer: 'customStylesRenderer'},   //16
+  {title: 'Комментарий', type: 'text', data: 'comment', renderer: 'customStylesRenderer'},        //17
+  {title: 'Сборщик', type: 'text', data: 'assembler', renderer: 'customStylesRenderer'},          //18
+ ]
 
-    });
-    </script>
+ var hiddenCol = [15, 16]
 
-    <script src="Face/html/js/tablesort.min.js"></script>
-    <script src="Face/html/js/tablesort.number.min.js"></script>
-    <script src="Face/html/js/tablesort.date.min.js"></script>
-    <script>
-      new Tablesort(document.getElementById('TMCData'));
-    </script>
+ function customRender(instance, td, row, column, prop, value, cellProperties) {
+ if (td && td.parentNode) {
+   var tr = td.parentNode
+   var btncolor = ''
+   td.parentNode.className = (row % 2 === 0 ? 'even' : 'odd');
+
+   if (instance.getDataAtRow(row)[11] == 'true') {
+     td.className += ' gray';
+     btncolor = 'btn-secondary'
+   }else if (instance.getDataAtRow(row)[7] == 'Собрано') {
+     td.className += ' green';
+     btncolor = 'btn-success'
+   }else if (instance.getDataAtRow(row)[7] == 'Не собрано') {
+     td.className += ' yellow';
+     btncolor = 'btn-warning'
+   } else if (instance.getDataAtRow(row)[7] == 'В работе') {
+     td.className += ' blue';
+     btncolor = 'btn-primary'
+   } else {
+     td.className += ' red';
+     btncolor = 'btn-danger'
+   }
+ }
+ switch (column) {
+ case 9:
+   td.innerHTML = `<div style = "text-align: center"> <a class="btn btn-sm btn-primary ${btncolor}" style="color: ${btncolor == 'btn-warning' ? '#000' : 'white'}; width: 80%; font-size: smaller;" role="button" href="/works/order/mini?Id=${value}" target="_blank">${value}</a></div>`;
+   break;
+ case 0: 
+   td.innerHTML = `<div style = "text-align: center"> <a class="btn btn-sm btn-primary ${btncolor}" style="color: ${btncolor == 'btn-warning' ? '#000' : 'white'}; width: 90%; font-size: smaller;" role="button" href="/works/device/mini?Id=${value}" target="_blank"><i class="bi bi-reply-fill"></i>${value}</a></div>`;
+   break;
+ case 11:
+   if (value == 'true') {
+     td.innerHTML = '<i class="bi bi-truck"></i> &check;'
+   } else {
+     td.innerHTML = ''
+   }
+   break;
+ case 17:
+   td.innerHTML = `<textarea readonly class="form-control form-control-sm" style="height: 10px; width: 200px;">${value}</textarea>`
+   break;
+ default:
+   td.innerHTML = value;
+ }
+ td.addEventListener('click', () => {
+   document.o.location= '/works/device/mini?Id=' + instance.getDataAtRow(row)[0];
+ });
+}
+</script>
+
+<script type="text/javascript" src="Face/node_modules/handsontable/dist/handsontable.full.min.js"></script>
+<script type="text/javascript" src="Face/node_modules/handsontable/dist/languages/ru-RU.min.js"></script>
+
+
+<script>
+
+  Handsontable.renderers.registerRenderer('customStylesRenderer', customRender);
+  con = container
+  colData = dataColumns
+  source = datasource
+  hidden = hiddenCol
+  
+  var hot = new Handsontable(con, {
+  language: 'ru-RU',
+  columns: colData,
+  hiddenColumns: {indicators: true, columns: hidden},
+  hiddenRows: true,
+  manualColumnMove: true,
+  manualColumnFreeze: true,
+  manualColumnResize: true,
+  data: source,
+  filters: true,
+  dropdownMenu: ['filter_by_condition', 'filter_by_value', 'filter_action_bar'],
+  columnSorting: true,
+  dateFormat: 'DD.MM.YYYY',
+  readOnly: true,
+  rowHeaders: true,
+  height: '100%',
+  autoWrapRow: true,
+  autoWrapCol: true,
+  contextMenu: {
+    callback(key, selection, clickEvent) {
+      console.log(key, selection, clickEvent);
+    },
+    items: {
+      copy: 'copy',hidecol: 'hidden_columns_hide', showcol: 'hidden_columns_show', hiderow :'hidden_rows_hide', showrow: 'hidden_rows_show', freezcol: 'freeze_column', unfreezcol: 'unfreeze_column',
+      scv: {
+          name: 'Экспорт в CSV',
+          callback(key, selection, clickEvent) {
+          const exportPlugin = hot.getPlugin('exportFile');
+
+          exportPlugin.downloadFile('csv', {
+          bom: true,
+          columnDelimiter: ';',
+          columnHeaders: true,
+          exportHiddenColumns: false,
+          exportHiddenRows: false,
+          fileExtension: 'csv',
+          filename: 'Экспорт [DD].[MM].[YYYY]',
+          mimeType: 'text/csv',
+          rowDelimiter: '\r\n',
+          rowHeaders: true
+          });
+          }
+      },
+    }
+  },
+  licenseKey: 'non-commercial-and-evaluation'
+  });
+</script>
 
 </body>
 
