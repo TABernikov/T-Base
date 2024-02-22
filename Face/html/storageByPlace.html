@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="ru">
 
@@ -72,42 +73,65 @@
           </div>
         </nav>
 
-        <table class="table table-bordered table-hover table-striped table-sm" id = "sort">
-            <thead class="table-light" style="position: sticky; top: 76px;">
-                <tr>
-                    <th scope="col">
-                        Место
-                    </th>
-                    <th scope="col">
-                        Наименование
-                    </th>
-                    <th scope="col">
-                        Кол-во
-                    </th>
-                    <th scope="col">
 
-                    </th>
-                </tr>
+        <div class="accordion" id="tableAccordion">
+          <table class="table">
+            <thead>
+              <tr>
+                <th scope="col">Место</th>
+                <th scope="col"></th>
+                <th scope="col"></th>
+                <th scope="col"></th>
+              </tr>
             </thead>
             <tbody>
-                {{range .Tab}}
-                <tr>
-                    <td>
-                        {{.Place}}
-                    </td>
-                    <td>
-                        {{.Name}}
-                    </td>
-                    <td>
-                        {{.Amout}}
-                    </td>
-                    <td>
-                      <a class="btn btn-sm btn-outline-secondary" href="/works/tmc?Search=Raw&Place={{.Place}}&Name={{.Name}}&Shiped=false" type="button" style="width: 100%;">В ТМЦ</a>
-                    </td>
-                </tr>
-                {{end}}
+              {{range $key, $value := .Tab}}
+              <tr >
+                <th scope="row" data-bs-toggle="collapse" data-bs-target="#collapseRow{{$key}}" aria-expanded="true" aria-controls="collapseRow{{$key}}" class="accordion-button">{{$key}}&nbsp;&nbsp;</th>
+                <td><a
+                  name=""
+                  id=""
+                  class="btn btn-primary btn-sm"
+                  style=""
+                  href="/works/placepage?placenum={{$key}}"
+                  role="button"
+                  >Открыть место</a
+                >
+                </td>
+              </tr>
+              <tr>
+                <td colspan="2" class="p-0">
+                  <div id="collapseRow{{$key}}" class="accordion-collapse collapse show">
+                    <!-- Subtable content here -->
+                    <div class = "container">
+                      
+                      
+                      <table class="table table-striped table-hover">
+                        <thead>
+                          <tr>
+                            <th scope="col">Наименование</th>
+                            <th scope="col">Кол-во</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {{range $value}}
+                          <tr class="">
+                            <td>{{.Name}}</td>
+                            <td>{{.Amout}}</td>
+                          </tr>
+                          {{end}}
+                        </tbody>
+                      </table>
+                      
+                      
+                    </div>
+                  </div>
+                </td>
+              </tr>
+              {{end}}
             </tbody>
-        </table>
+          </table>
+        </div>
 
       </div>
         <script src="Face/html/js/bootstrap.bundle.js"></script>

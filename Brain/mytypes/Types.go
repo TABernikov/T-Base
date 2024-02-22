@@ -378,3 +378,39 @@ func ChekInWork(devices ...DeviceRaw) bool {
 	}
 	return false
 }
+
+// Большие мапы
+
+type Map5int map[int]map[int]map[int]map[int]int
+
+func (map4 Map5int) Sum(a int, b int, c int, d int, e int) {
+	_, ok := map4[a]
+	if !ok {
+		map4[a] = make(map[int]map[int]map[int]int)
+	}
+	_, ok = map4[a][b]
+	if !ok {
+		map4[a][b] = make(map[int]map[int]int)
+	}
+	_, ok = map4[a][b][c]
+	if !ok {
+		map4[a][b][c] = make(map[int]int)
+	}
+	map4[a][b][c][d] += e
+}
+
+func (map4 Map5int) Set(a int, b int, c int, d int, e int) {
+	_, ok := map4[a]
+	if !ok {
+		map4[a] = make(map[int]map[int]map[int]int)
+	}
+	_, ok = map4[a][b]
+	if !ok {
+		map4[a][b] = make(map[int]map[int]int)
+	}
+	_, ok = map4[a][b][c]
+	if !ok {
+		map4[a][b][c] = make(map[int]int)
+	}
+	map4[a][b][c][d] = e
+}

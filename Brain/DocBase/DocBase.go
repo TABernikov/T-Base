@@ -2,7 +2,9 @@ package DocBase
 
 import (
 	"T-Base/Brain/mytypes"
+	"bytes"
 	"context"
+	"text/template"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -129,4 +131,153 @@ func (base DocBase) UpdateDoc(ctx context.Context, DocType string, doc mytypes.D
 	collection := base.Db.Collection(DocType)
 	_, err := collection.UpdateByID(context.Background(), doc.Id, bson.M{"$set": doc})
 	return err
+}
+
+func (base DocBase) CreateProductionDoc(ctx context.Context, buildMap mytypes.Map5int, tModelSn map[int][]string, dModelCount map[int]int, user mytypes.User, tModelMap map[int]string, dModelMap map[int]string, mModelMap map[int]string) (docId string, err error) {
+	docType := "production.out"
+	docName := `Постановка на ГП ` + time.Now().Format("02.01.2006 15:04")
+
+	docContent := ``
+	acces := []string{}
+
+	templ := `# {{.Title}}
+
+**{{.Authtor}}**
+
+#### Произведено:
+
+|Наименование | Кол-во |
+|--|--|
+{{range .TDone}}|{{.Name}}|{{.Amount}}|
+{{end}}
+
+----
+
+#### Затрачено:
+
+**Коммутаторы:**
+|Наименование | Кол-во |
+|--|--|
+{{range .DDone}}|{{.Name}}|{{.Amount}}|
+{{end}}
+
+----
+
+**Материалы**
+|Наименование | Кол-во |
+|--|--|
+{{range .MDone}}|{{.Name}}|{{.Amount}}|
+{{end}}
+
+----
+
+### Подробно
+{{range .BDone}}
+Сборка № **{{.BN}}**
+|Т-КОМ|Кол-во|D-LINK|Кол-во|
+|--|--|--|--|
+|{{.TN}}|{{.TD}}|{{.DN}}|{{.DD}}|
+
+|Наименование|Кол-во|
+|--|--|
+{{range .MDone}}|{{.Name}}|{{.Amount}}|
+{{end}}
+
+
+----
+
+{{end}}
+
+`
+	type Done struct {
+		Name   string
+		Amount int
+	}
+	type BuildDone struct {
+		TN    string
+		TD    int
+		DN    string
+		DD    int
+		BN    int
+		MDone []Done
+	}
+	type outData struct {
+		Title   string
+		Authtor string
+		TDone   []Done
+		DDone   []Done
+		MDone   []Done
+		BDone   []BuildDone
+	}
+
+	var tDone []Done
+	for t, sn := range tModelSn {
+		tDone = append(tDone, Done{Name: tModelMap[t], Amount: len(sn)})
+	}
+
+	var dDone []Done
+	for d, count := range dModelCount {
+		dDone = append(dDone, Done{Name: dModelMap[d], Amount: count})
+	}
+
+	var mDone []Done
+	mDoneMap := make(map[string]int)
+	for _, dmods := range buildMap {
+		for _, bilds := range dmods {
+			for _, matIds := range bilds {
+				for matId, amout := range matIds {
+					mDoneMap[mModelMap[matId]] += amout
+				}
+			}
+		}
+	}
+
+	for matName, amout := range mDoneMap {
+		mDone = append(mDone, Done{Name: matName, Amount: amout})
+	}
+
+	var bDone []BuildDone
+	for t, dmods := range buildMap {
+		for d, bilds := range dmods {
+			var MDone []Done
+			for b, matIds := range bilds {
+				for matId, amout := range matIds {
+					MDone = append(MDone, Done{Name: mModelMap[matId], Amount: amout})
+				}
+				bDone = append(bDone, BuildDone{TN: tModelMap[t], DN: dModelMap[d], TD: len(bilds), DD: len(MDone), MDone: MDone, BN: b})
+			}
+		}
+	}
+
+	data := outData{
+		Title:   docName,
+		Authtor: user.Name,
+		TDone:   tDone,
+		DDone:   dDone,
+		MDone:   mDone,
+		BDone:   bDone,
+	}
+
+	t := template.New("test")
+	t, err = t.Parse(templ)
+	if err != nil {
+		return
+	}
+
+	var tpl bytes.Buffer
+	err = t.Execute(&tpl, data)
+	if err != nil {
+		return
+	}
+
+	docContent = tpl.String()
+
+	user.Name = "Система"
+	id, err := base.NewDoc(ctx, docType, docName, user, docContent, acces)
+	if err != nil {
+		return
+	}
+
+	docId = id.Hex()
+	return
 }

@@ -5,7 +5,6 @@ import (
 	"T-Base/Brain/mytypes"
 	"context"
 	"crypto/rand"
-	"fmt"
 	"log"
 	"math/big"
 	"strconv"
@@ -434,21 +433,33 @@ func ReadNewDevice(path string, base Storage.Base) ([]mytypes.DeviceRaw, error, 
 		dModel, ok := DNamesMap[rows[i][0]]
 		log.Println(dModel)
 		if !ok {
+
 			f.SetCellValue("Лист1", "H"+strconv.Itoa(i+1), "Ошибка чтения модели поставщика")
 			isLitleErr = true
 			localLittlErr = true
+
 		}
 		tModel, ok := TNamesMap[rows[i][1]]
-		fmt.Print(tModel)
+		log.Println(tModel)
 		if !ok {
-			f.SetCellValue("Лист1", "I"+strconv.Itoa(i+1), "Ошибка чтения планируемой модели")
-			isLitleErr = true
-			localLittlErr = true
+			if rows[i][1] == "" {
+				tModel = 0
+			} else {
+				f.SetCellValue("Лист1", "I"+strconv.Itoa(i+1), "Ошибка чтения планируемой модели")
+				isLitleErr = true
+				localLittlErr = true
+			}
 		}
 		if !localLittlErr {
+			mac := ""
+			if len(rows[i]) <= 5 {
+				mac = ""
+			} else {
+				mac = rows[i][5]
+			}
 			device = mytypes.DeviceRaw{
 				Sn:          rows[i][4],
-				Mac:         rows[i][5],
+				Mac:         mac,
 				DModel:      dModel,
 				TModel:      tModel,
 				Rev:         rows[i][2],
