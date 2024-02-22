@@ -303,7 +303,6 @@ func (a App) DellDocFile(w http.ResponseWriter, r *http.Request, pr httprouter.P
 	}
 
 	a.Templ.AlertPage(w, 1, "Успех", "Успех", "Файл удален", "", "Главная", "/works/prof")
-
 }
 
 func (a App) DellDoc(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
@@ -340,7 +339,6 @@ func (a App) DellDoc(w http.ResponseWriter, r *http.Request, pr httprouter.Param
 	}
 
 	a.Templ.AlertPage(w, 1, "Успех", "Успех", "Документ удален", "", "Главная", "/works/prof")
-
 }
 
 func (a App) EditDocPage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
@@ -497,5 +495,4 @@ func (a App) ChangeTModelDs(w http.ResponseWriter, r *http.Request, pr httproute
 	}
 
 	a.Templ.AlertPage(w, 1, "Успех", "Успех", "Даташит обновлен", "", "Главная", "/works/prof")
-
 }

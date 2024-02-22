@@ -23,6 +23,7 @@ func TMCRouts(a App, r *httprouter.Router) {
 	r.GET("/works/storage/places", a.authtorized(a.StorageByPlacePage))
 	r.GET("/works/storage/models", a.authtorized(a.StorageByTModelPage))
 	r.GET("/works/prodout", a.authtorized(a.ProdOutTablePage))
+	r.GET("/works/placepage", a.authtorized(a.PlacePage))
 
 	r.POST("/works/tmc", a.authtorized(a.TMCPage))
 	r.POST("/works/tmcdemo", a.authtorized(a.TMCDemoPage))
@@ -545,4 +546,13 @@ func (a App) ProdOutTablePage(w http.ResponseWriter, r *http.Request, pr httprou
 
 		a.Templ.ProdOutTable(w, prodOut, models, dates)
 	}
+}
+
+func (a App) PlacePage(w http.ResponseWriter, r *http.Request, pr httprouter.Params, user mytypes.User) {
+	placenum, err := strconv.Atoi(r.FormValue("placenum"))
+	if err != nil {
+		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Номер места задан не числом", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	a.Templ.PlacePage(w, placenum)
 }

@@ -230,9 +230,14 @@ func (templ Templ) StoragePage(w http.ResponseWriter, storage []mytypes.StorageC
 func (templ Templ) StorageByPlacePage(w http.ResponseWriter, storage []mytypes.StorageByPlaceCount, lable string) {
 	type storagePage struct {
 		Lable string
-		Tab   []mytypes.StorageByPlaceCount
+		Tab   map[int][]mytypes.StorageByPlaceCount
 	}
-	table := storagePage{lable, storage}
+
+	tab := make(map[int][]mytypes.StorageByPlaceCount)
+	for i := 0; i < len(storage); i++ {
+		tab[storage[i].Place] = append(tab[storage[i].Place], storage[i])
+	}
+	table := storagePage{lable, tab}
 
 	t := template.Must(template.ParseFiles("Face/html/storageByPlace.html"))
 	t.Execute(w, table)
@@ -1977,4 +1982,57 @@ func (templ Templ) TestTable(w http.ResponseWriter) {
 
 	t := template.Must(template.ParseFiles("Face/html/TestTable.html"))
 	t.Execute(w, Devices)
+}
+
+func (templ Templ) PlacePage(w http.ResponseWriter, placeNum int) {
+
+	qq := `SELECT name, "cleanSns".order, count(sn) FROM "cleanSns" WHERE place = $1 Group by name, "cleanSns".order Order by "cleanSns".order`
+
+	var Page struct {
+		PlaceNum int
+		Items    []struct {
+			Name   string
+			Order  int
+			Amount int
+		}
+	}
+
+	rows, err := templ.Db.Db.Query(templ.ctx, qq, placeNum)
+	if err != nil {
+		templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения данных", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	var items []struct {
+		Name   string
+		Order  int
+		Amount int
+	}
+	for rows.Next() {
+		var name string
+		var order int
+		var amount int
+		var item struct {
+			Name   string
+			Order  int
+			Amount int
+		}
+		err := rows.Scan(&name, &order, &amount)
+		if err != nil {
+			templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка получения данных", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		item.Name = name
+		item.Order = order
+		item.Amount = amount
+		items = append(items, item)
+	}
+
+	Page.PlaceNum = placeNum
+	Page.Items = items
+
+	t := template.Must(template.ParseFiles("Face/html/placePage.html"))
+
+	t.Execute(w, Page)
+
 }

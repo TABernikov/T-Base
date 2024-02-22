@@ -541,9 +541,12 @@ func (a App) ReleaseProduction(w http.ResponseWriter, r *http.Request, pr httpro
 
 	var counter int
 	matList := make(map[int]int)
+	BuildMap := make(mytypes.Map5int)
+	TmodelSn := make(map[int][]string)
+	DmodelCount := make(map[int]int)
 	for _, sn := range in {
 		// Преобразование устройства
-		build, tmodel, matToProdus, err := a.Db.ReleaseProduction(a.Ctx, sn)
+		build, tmodel, dmodel, matToProdus, err := a.Db.ReleaseProduction(a.Ctx, sn)
 		if err != nil {
 			if err.Error() == "не девайс" {
 				continue
@@ -582,8 +585,10 @@ func (a App) ReleaseProduction(w http.ResponseWriter, r *http.Request, pr httpro
 		// Добавляем материалы для этого устройства в общий лист списаия
 		for i, a := range matToProdus {
 			matList[i] += a
+			BuildMap.Sum(tmodel, dmodel, build, i, a)
 		}
-
+		TmodelSn[tmodel] = append(TmodelSn[tmodel], sn)
+		DmodelCount[dmodel] += 1
 	}
 	for matId, amout := range matList {
 		err := a.Db.AddMatLog(a.Ctx, matId, amout, 4, "Преобразование", user.UserId)
@@ -593,7 +598,67 @@ func (a App) ReleaseProduction(w http.ResponseWriter, r *http.Request, pr httpro
 		}
 	}
 
-	a.Templ.AlertPage(w, 1, "Успешно", "Успешно", "Преобразовано "+strconv.Itoa(counter)+" устройств", "", "Главная", "/works/prof")
+	tmodelMap := make(map[int]string)
+	qq := `SELECT "tModelsId", "tModelsName" FROM public."tModels";`
+	rows, err := a.Db.Db.Query(a.Ctx, qq)
+	if err != nil {
+		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка поиска устройств", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	for rows.Next() {
+		var tmodelId int
+		var tmodelName string
+		err = rows.Scan(&tmodelId, &tmodelName)
+		if err != nil {
+			a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка поиска устройств", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		tmodelMap[tmodelId] = tmodelName
+	}
+
+	dModelMap := make(map[int]string)
+	qq = `SELECT "dModelsId", "dModelName" FROM public."dModels";`
+	rows, err = a.Db.Db.Query(a.Ctx, qq)
+	if err != nil {
+		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка поиска имен устройств", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	for rows.Next() {
+		var dmodelId int
+		var dmodelName string
+		err = rows.Scan(&dmodelId, &dmodelName)
+		if err != nil {
+			a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка поиска имен устройств", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		dModelMap[dmodelId] = dmodelName
+	}
+
+	mModelMap := make(map[int]string)
+	qq = `SELECT "matId", "1CName" FROM public.mats;`
+	rows, err = a.Db.Db.Query(a.Ctx, qq)
+	if err != nil {
+		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка поиска имен материалов", err.Error(), "Главная", "/works/prof")
+		return
+	}
+	for rows.Next() {
+		var matId int
+		var matName string
+		err = rows.Scan(&matId, &matName)
+		if err != nil {
+			a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка поиска имен материалов", err.Error(), "Главная", "/works/prof")
+			return
+		}
+		mModelMap[matId] = matName
+	}
+
+	docId, err := a.DocBase.CreateProductionDoc(a.Ctx, BuildMap, TmodelSn, DmodelCount, user, tmodelMap, dModelMap, mModelMap)
+	if err != nil {
+		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Ошибка создания документа", err.Error(), "Главная", "/works/prof")
+		return
+	}
+
+	a.Templ.AlertPage(w, 1, "Успешно", "Успешно", "Преобразовано "+strconv.Itoa(counter)+" устройств", "", "Отчет", "/works/doc?type=production.out&id="+docId)
 }
 
 // Страница возврата не собраных устройств на производство
@@ -745,7 +810,7 @@ func (a App) TakeDeviceByExcel(w http.ResponseWriter, r *http.Request, pr httpro
 	}
 	insertCount, err := a.Db.InsertDivice(a.Ctx, devices...)
 	if litleErr {
-		err := sendFile(w, r, f.Name(), name)
+		err := sendTMPFile(w, r, f.Name(), name+"ОШИБКИ")
 		if err != nil {
 			fmt.Fprintln(w, err)
 		}
@@ -756,13 +821,13 @@ func (a App) TakeDeviceByExcel(w http.ResponseWriter, r *http.Request, pr httpro
 	}
 
 	if insertCount == 0 {
-		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Устройства небыли приняты", err.Error(), "Главная", "/works/prof")
+		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Устройства небыли приняты", "insertCount = 0", "Главная", "/works/prof")
 		return
 	} else if insertCount < len(devices) {
 		a.Templ.AlertPage(w, 2, "Готово", "Частично", "Часть устройств не было принято", "Внесено "+strconv.Itoa(insertCount), "Главная", "/works/prof")
 		return
 	} else if insertCount > len(devices) {
-		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", err.Error(), "Главная", "/works/prof")
+		a.Templ.AlertPage(w, 5, "Ошибка", "Ошибка", "Непредвиденная ошибка", "insertCount > len(devices)", "Главная", "/works/prof")
 		return
 	}
 

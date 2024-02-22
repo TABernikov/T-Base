@@ -72,14 +72,14 @@
                 <div class="row mb-3">
                   <select class="form-select" name="in2" id="in2">
                     <option selected value="">Выберите</option>
-                    <option value = "1">Доступно</option>
-                    <option value = "2">Доступно не собранно</option>
-                    <option value = "3">Демо</option>
-                    <option value = "4">ЗИП</option>
-                    <option value = "5">Ремонт</option>
-                    <option value = "8">Списаные</option>
+                    <option {{if eq .ReqOrder "1"}} selected {{end}} value = "1">Доступно</option>
+                    <option {{if eq .ReqOrder "2"}} selected {{end}} value = "2">Доступно не собранно</option>
+                    <option {{if eq .ReqOrder "3"}} selected {{end}} value = "3">Демо</option>
+                    <option {{if eq .ReqOrder "4"}} selected {{end}} value = "4">ЗИП</option>
+                    <option {{if eq .ReqOrder "5"}} selected {{end}} value = "5">Ремонт</option>
+                    <option {{if eq .ReqOrder "8"}} selected {{end}} value = "8">Списаные</option>
                     {{range .Orders}}
-                    <option value="{{.OrderId}}"> {{.OrderId}} - {{.Name}} (#{{.Id1C}} - {{.OrderDate}})</option>
+                    <option {{if eq $.ReqOrder (printf "%d" .OrderId)}} selected {{end}} value="{{.OrderId}}"> {{.OrderId}} - {{.Name}} (#{{.Id1C}} - {{.OrderDate}})</option>
                     {{end}}
                   </select>
                 </div>

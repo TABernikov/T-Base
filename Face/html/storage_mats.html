@@ -166,9 +166,13 @@
           name = instance.getDataAtRow(row)[1];
           
 
-          td.addEventListener('dblclick', () => {
-          {{if eq .User.Acces 2}}openModal(name,id); {{else}}openEvents(id,name); {{end}}
-          });
+        
+          {{if eq .User.Acces 2}}
+          td.setAttribute('ondblclick', `openModal('`+name+`',`+id+`);`);  
+          {{else}}
+          td.setAttribute('ondblclick', `openEvents(`+id+`,'`+name+`');`);  
+          {{end}}
+          
         }
         td.innerHTML = value;
        
